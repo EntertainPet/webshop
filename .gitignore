@@ -1,0 +1,51 @@
+# =====================================
+# Python general
+# =====================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+.env/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# =====================================
+# Django
+# =====================================
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static/
+local_settings.py
+
+# =====================================
+# Configuración / IDEs
+# =====================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# =====================================
+# Archivos del sistema
+# =====================================
+.DS_Store
+Thumbs.db
+
+# =====================================
+# Archivos de entorno / credenciales
+# =====================================
+.env.local
+.env.*.local
+*.env
