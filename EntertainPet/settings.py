@@ -55,7 +55,7 @@ ROOT_URLCONF = 'EntertainPet.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -121,3 +121,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# **Clave para el usuario personalizado**
+AUTH_USER_MODEL = 'home.Cliente'
+
+# Redirecciones de Auth
+LOGIN_URL = 'home:identificacion'
+LOGIN_REDIRECT_URL = 'home:inicio'
+LOGOUT_REDIRECT_URL = 'home:inicio'
