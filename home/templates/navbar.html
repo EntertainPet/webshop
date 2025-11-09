@@ -1,0 +1,21 @@
+{% load static %}
+
+<header class="navbar">
+  <div class="brand">🐾 EntertainPet</div>
+
+  <div class="search-bar" style="max-width:600px;">
+    <form method="get" action="/catalogo/">
+      <input name="q" type="search" placeholder="Buscar productos..." aria-label="Buscar">
+      <button type="submit">Buscar</button>
+    </form>
+  </div>
+
+  <div class="nav-actions">
+      <a href="/catalogo/">Catálogo</a>
+      <a href="/carrito/" class="cart-badge">
+        <img src="{% static 'img/cart.svg' %}" alt="Carrito" class="cart-icon">
+        <span class="cart-count">0</span>
+      </a>
+    <a href="/login/">Iniciar Sesión / Registarse</a>
+  </div>
+  </header>

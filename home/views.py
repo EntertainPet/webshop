@@ -17,6 +17,13 @@ def index(request):
     else:
         context = {"item_name": "No item available"}
 
-    template = loader.get_template("index.html")
-    return HttpResponse(template.render(context, request))
+    return render(request, "index.html", context)
+
+
+def login_view(request):
+    return render(request, "login.html")
+
+
+def register_view(request):
+    return render(request, "register.html")
 
