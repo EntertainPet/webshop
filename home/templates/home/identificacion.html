@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Identificación · EntertainPet{% endblock %}
+{% block content %}
+  <h1>Identificación</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="mb-3">
+      <label for="id_username" class="form-label">Usuario</label>
+      {{ form.username }}
+    </div>
+    <div class="mb-3">
+      <label for="id_password" class="form-label">Contraseña</label>
+      {{ form.password }}
+    </div>
+    <button class="btn btn-primary" type="submit">Entrar</button>
+  </form>
+{% endblock %}
