@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.text import slugify
 
 class Cliente(AbstractUser):
     telefono = models.CharField(max_length=20, blank=True)
@@ -34,6 +35,7 @@ class Marca(models.Model):
 
 class Producto(models.Model):
     nombre = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
     descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     precio_oferta = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -50,6 +52,22 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def get_absolute_url(self):
+        # Prefer slug-based public URL under /catalogo/<slug>/
+        return f"/catalogo/{self.slug or slugify(self.nombre)}/"
+
+    def save(self, *args, **kwargs):
+        # Auto-generate a unique slug from the nombre when missing
+        if not self.slug:
+            base = slugify(self.nombre)[:200]
+            slug_candidate = base
+            i = 1
+            while Producto.objects.filter(slug=slug_candidate).exclude(pk=self.pk).exists():
+                i += 1
+                slug_candidate = f"{base}-{i}"
+            self.slug = slug_candidate
+        super().save(*args, **kwargs)
 
     @property
     def precio_final(self):
