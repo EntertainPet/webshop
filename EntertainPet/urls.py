@@ -16,12 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from home import views
 
 urlpatterns = [
-    path("login/", views.login_view, name="login"),
-    path("register/", views.register_view, name="register"),
+    path("admin/", admin.site.urls),
     path("", include("home.urls")),
-    path('admin/', admin.site.urls),
-    path("cart/", views.CartView.as_view(), name="cart_alias"), 
 ]
