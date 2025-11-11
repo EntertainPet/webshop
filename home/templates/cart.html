@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Carrito - EntertainPet{% endblock %}
+
+{% block content %}
+  <h2 class="mt-4" style="color:var(--marron-oscuro)">Tu cesta</h2>
+
+  <div class="cart-page">
+    <section>
+      <div class="cart-list">
+        {% if carrito %}
+          {% comment %}Intentar recorrer los items del carrito con diferentes nombres conocidos{% endcomment %}
+          {% if carrito.items.all %}
+            {% for item in carrito.items.all %}
+              <div class="cart-item">
+                <div class="mini-img">
+                  {% if item.producto.image %}
+                    <img src="{{ item.producto.image.url }}" alt="{{ item.producto.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">
+                  {% else %}
+                    🖼️
+                  {% endif %}
+                </div>
+                <div class="meta">
+                  <h5>{{ item.producto.name }}</h5>
+                  <div class="price">{{ item.producto.price }} €</div>
+                </div>
+                <div class="controls">
+                  <label>Cantidad</label>
+                  <form method="post" action="#">
+                    {% csrf_token %}
+                    <input type="number" name="cantidad" min="0" value="{{ item.cantidad }}">
+                    <button class="add-btn" type="submit">Actualizar</button>
+                  </form>
+                  <form method="post" action="#">
+                    {% csrf_token %}
+                    <button type="submit" style="background:none;border:none;color:var(--danger);text-decoration:underline;margin-top:6px">Eliminar</button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            {% if carrito.itemcarrito_set.all %}
+              {% for item in carrito.itemcarrito_set.all %}
+                <div class="cart-item">
+                  <div class="mini-img">🖼️</div>
+                  <div class="meta">
+                    <h5>{{ item.producto.name }}</h5>
+                    <div class="price">{{ item.producto.price }} €</div>
+                  </div>
+                  <div class="controls">
+                    <label>Cantidad</label>
+                    <input type="number" min="0" value="{{ item.cantidad }}">
+                    <a href="{% url 'home:carrito_remove' item.id %}" style="font-size:0.85rem;color:var(--danger);text-decoration:underline;margin-top:6px">Eliminar</a>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p>No hay productos en el carrito.</p>
+            {% endif %}
+          {% endif %}
+        {% else %}
+          {% if cart_items %}
+            {% for item in cart_items %}
+              <div class="cart-item">
+                <div class="mini-img">
+                  {% if item.producto.imagenes.first %}
+                    <img src="{{ item.producto.imagenes.first.imagen }}" alt="{{ item.producto.nombre }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">
+                  {% else %}
+                    🖼️
+                  {% endif %}
+                </div>
+                <div class="meta">
+                  <h5>{{ item.producto.nombre }}</h5>
+                  <div class="price">{{ item.producto.precio_final }} €</div>
+                </div>
+                <div class="controls">
+                  <label>Cantidad</label>
+                  <input type="number" min="0" value="{{ item.cantidad }}">
+                    <a href="{% url 'home:carrito_remove' item.producto.pk %}" style="font-size:0.85rem;color:var(--danger);text-decoration:underline;margin-top:6px">Eliminar</a>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p>No hay productos en el carrito.</p>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <div style="margin-top:18px" class="checkout-section">
+        <h3>Proceso rápido de compra (3 pasos)</h3>
+        <p class="small-note">No es necesario registrarse para comprar. Puedes completar como invitado.</p>
+
+        <form action="#" method="post" aria-label="Checkout form">
+          {% csrf_token %}
+          <div style="margin-top:12px">
+            <h4 style="color:var(--marron-oscuro)">1) Datos del cliente</h4>
+            <div class="field">
+              <label for="nombre">Nombre completo</label>
+              <input id="nombre" name="nombre" type="text" placeholder="Ej. María Pérez" required>
+            </div>
+            <div class="field">
+              <label for="email">Correo electrónico</label>
+              <input id="email" name="email" type="email" placeholder="correo@ejemplo.com" required>
+            </div>
+            <div class="field">
+              <label for="telefono">Teléfono</label>
+              <input id="telefono" name="telefono" type="tel" placeholder="+34 600 000 000">
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <h4 style="color:var(--marron-oscuro)">2) Dirección de entrega</h4>
+            <div class="field">
+              <label for="direccion">Dirección</label>
+              <input id="direccion" name="direccion" type="text" placeholder="Calle, número, piso" required>
+            </div>
+            <div class="field">
+              <label for="ciudad">Ciudad</label>
+              <input id="ciudad" name="ciudad" type="text" placeholder="Ej. Sevilla" required>
+            </div>
+            <div class="field">
+              <label for="cp">Código postal</label>
+              <input id="cp" name="cp" type="text" placeholder="41001" required>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <h4 style="color:var(--marron-oscuro)">3) Pago</h4>
+            <div class="field">
+              <label for="cardname">Titular de la tarjeta</label>
+              <input id="cardname" name="cardname" type="text" placeholder="Nombre en tarjeta" required>
+            </div>
+            <div class="field">
+              <label for="cardnumber">Número de tarjeta</label>
+              <input id="cardnumber" name="cardnumber" type="text" placeholder="0000 0000 0000 0000" required>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1" class="field">
+                <label for="exp">Caducidad</label>
+                <input id="exp" name="exp" type="text" placeholder="MM/AA" required>
+              </div>
+              <div style="width:120px" class="field">
+                <label for="cvv">CVV</label>
+                <input id="cvv" name="cvv" type="text" placeholder="123" required>
+              </div>
+            </div>
+
+            <p class="small-note">Al finalizar recibirás un correo con los datos del pedido, importe y dirección de entrega.</p>
+
+            <div class="security-row">
+              <div class="badge">🔒 Pago seguro</div>
+              <div style="font-size:0.9rem;color:var(--gris);margin-left:8px">Compra rápida en 3 pasos • No es necesario registrarse</div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button type="submit" class="add-btn">Finalizar compra</button>
+              <a href="{% url 'home:productos' %}" style="align-self:center;text-decoration:underline;color:var(--marron-oscuro)">Seguir comprando</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <aside class="order-summary">
+  <h4>Resumen de la cesta</h4>
+  <div class="summary-row"><span>Productos ({% if carrito %}{{ carrito.items.count }}{% else %}{{ cart_items|length|default:0 }}{% endif %})</span><strong>€ {{ total|default:"0.00" }}</strong></div>
+      <div class="summary-row"><span>Gastos envío</span><span>€ 4,50</span></div>
+      <div class="summary-row"><span>IVA (21%)</span><span>€ {{ total|default:"0.00" }}</span></div>
+      <hr style="border:none;border-top:1px solid #eee;margin:10px 0">
+      <div class="summary-row"><strong>Total</strong><strong>€ {{ total|default:"0.00" }}</strong></div>
+
+      <div style="margin-top:12px">
+        <a href="#final" class="step-pill">Ir al pago / finalizar</a>
+      </div>
+
+      <div style="margin-top:12px" class="checkout-steps">
+        <div class="step-pill">1 • Datos cliente</div>
+        <div class="step-pill">2 • Dirección envío</div>
+        <div class="step-pill">3 • Pago</div>
+      </div>
+    </aside>
+  </div>
+
+  <section id="final" style="margin-top:18px">
+    <div class="checkout-section">
+      <h3 style="color:var(--marron-oscuro)">Confirmación</h3>
+      <p>Al completar el pago recibirás un correo electrónico con los datos del producto comprado, importe y dirección de entrega (esto es una maqueta, en una integración real el correo se enviaría automáticamente).</p>
+      <p class="small-note" style="margin-top:8px;color:var(--gris)">Política de devoluciones: <strong>no se contemplan devoluciones</strong>.</p>
+    </div>
+  </section>
+
+  <footer class="footer" style="margin-top:20px">
+    2025 EntertainPet — Compra segura. Atención en español.
+  </footer>
+{% endblock %}

@@ -23,4 +23,5 @@ urlpatterns = [
     path("register/", views.register_view, name="register"),
     path("", include("home.urls")),
     path('admin/', admin.site.urls),
+    path("cart/", views.CartView.as_view(), name="cart_alias"), 
 ]
