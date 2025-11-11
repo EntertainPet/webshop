@@ -7,6 +7,7 @@ from django.views.generic import TemplateView, ListView, DetailView, FormView
 
 from .forms import ClienteRegistrationForm, ClienteLoginForm
 from .models import Categoria, Producto, Carrito, ItemCarrito
+from django.shortcuts import render
 
 from django.conf import settings
 import stripe
@@ -27,6 +28,12 @@ class AboutView(TemplateView):
 class ContactView(TemplateView):
     template_name = "home/contacto.html"
 
+def login_view(request):
+    return render(request, "login.html")
+
+
+def register_view(request):
+    return render(request, "register.html")
 
 # Auth
 class RegisterView(FormView):
