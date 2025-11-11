@@ -8,6 +8,15 @@ from django.views.generic import TemplateView, ListView, DetailView, FormView
 from .forms import ClienteRegistrationForm, ClienteLoginForm
 from .models import Categoria, Producto, Carrito, ItemCarrito
 
+from django.conf import settings
+import stripe
+
+from rest_framework.response import Response
+
+from rest_framework.decorators import api_view
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 # Páginas informativas
 class HomeView(TemplateView):
     template_name = "home/inicio.html"
