@@ -20,7 +20,11 @@ urlpatterns = [
     path("registro/", views.RegisterView.as_view(), name="registro"),
     path("logout/", views.CerrarSesionView.as_view(), name="logout"),
 
-    path("checkout/entrega/", views.CheckoutEntregaView.as_view(), name="checkout_entrega"),
-    path("checkout/pago/", views.CheckoutPagoView.as_view(), name="checkout_pago"),
-    path("checkout/confirmacion/", views.CheckoutConfirmacionView.as_view(), name="checkout_confirmacion"),
+    #stripe
+    path("create_checkout_session/", views.create_checkout_session, name="create_checkout_session"),
+    path("webhook/", views.my_webhook_view, name="webhook"),
+    path("success/", views.success_view, name="success"),
+    path("cancel/", views.cancel_view, name="cancel"),
+
+
 ]
