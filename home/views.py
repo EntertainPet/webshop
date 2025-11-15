@@ -5,7 +5,7 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, FormView
 
-from .forms import ClienteRegistrationForm, ClienteLoginForm
+from .forms import ClienteRegistrationForm
 from .models import Categoria, Producto, Carrito, ItemCarrito
 
 from django.conf import settings
@@ -29,31 +29,21 @@ class ContactView(TemplateView):
 
 
 def register_view(request):
-    return render(request, "registration/registro.html")
+    form = ClienteRegistrationForm()
+    if request.method == "POST":
+        form = ClienteRegistrationForm(request.POST)
+        print(form.errors)
+        print(form.is_valid())
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            Carrito.objects.get_or_create(cliente=user)
+            return redirect("home:catalogo")
+    return render(request, "registration/registro.html", {"form": form})
+
 
 def cart_view(request):
     return render(request, "cart.html")
-
-# Auth
-class RegisterView(FormView):
-    template_name = "home/registro.html"
-    form_class = ClienteRegistrationForm
-    success_url = reverse_lazy("home:inicio")
-
-    def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        # crea carrito vacío al registrarse
-        Carrito.objects.get_or_create(cliente=user)
-        return super().form_valid(form)
-
-class IdentificacionView(LoginView):
-    template_name = "home/identificacion.html"
-    authentication_form = ClienteLoginForm
-
-class CerrarSesionView(LogoutView):
-    pass
-
 
 # Catálogo (mínimo)
 class CategoryListView(ListView):

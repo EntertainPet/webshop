@@ -15,7 +15,6 @@ class ClienteRegistrationForm(UserCreationForm):
         fields = [
             "username", "email",
             "first_name", "last_name",
-            "telefono", "direccion", "ciudad", "codigo_postal",
-            "password", "password2",
+            "telefono", "direccion", "ciudad", "codigo_postal"
         ]
 
