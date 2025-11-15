@@ -1,2 +1,5 @@
 django
 django-bootstrap-v5
+python-dotenv
+stripe
+djangorestframework
