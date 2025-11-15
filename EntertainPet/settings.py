@@ -132,6 +132,6 @@ STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 AUTH_USER_MODEL = 'home.Cliente'
 
 # Redirecciones de Auth
-LOGIN_URL = 'home:identificacion'
-LOGIN_REDIRECT_URL = 'home:inicio'
-LOGOUT_REDIRECT_URL = 'home:inicio'
+LOGIN_URL = 'home:login'
+LOGIN_REDIRECT_URL = 'home:catalogo'
+LOGOUT_REDIRECT_URL = 'home:catalogo'

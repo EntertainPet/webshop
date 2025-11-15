@@ -29,7 +29,7 @@ class ContactView(TemplateView):
 
 
 def register_view(request):
-    return render(request, "registration/register.html")
+    return render(request, "registration/registro.html")
 
 def cart_view(request):
     return render(request, "cart.html")

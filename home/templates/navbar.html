@@ -1,21 +1,30 @@
 {% load static %}
 
 <header class="navbar">
-  <div class="brand">🐾 EntertainPet</div>
+  <div class="brand">
+    <a href="{% url 'home:catalogo' %}">
+      🐾 EntertainPet
+    </a>
+  </div>
 
   <div class="search-bar" style="max-width:600px;">
-    <form method="get" action="/catalogo/">
+    <form method="get" action="{% url 'home:catalogo' %}">
       <input name="q" type="search" placeholder="Buscar productos..." aria-label="Buscar">
       <button type="submit">Buscar</button>
     </form>
   </div>
 
   <div class="nav-actions">
-      <a href="/catalogo/">Catálogo</a>
+      <a href="{% url 'home:catalogo' %}">Catálogo</a>
       <a href="{% url 'home:carrito' %}" class="cart-badge">
         <img src="{% static 'img/cart.svg' %}" alt="Carrito" class="cart-icon">
         <span class="cart-count">0</span>
       </a>
-    <a href="/login/">Iniciar Sesión / Registarse</a>
+    {% if user.is_authenticated %}
+      <a href="#">@{{ user.username }}</a>
+      <a href="{% url 'home:logout' %}">Cerrar Sesión</a>
+    {% else %}
+    <a href="{% url 'home:login' %}">Iniciar Sesión / Registarse</a>
+    {% endif %}
   </div>
   </header>
