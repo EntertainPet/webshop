@@ -12,7 +12,7 @@
 
   <div class="nav-actions">
       <a href="/catalogo/">Catálogo</a>
-      <a href="/cart/" class="cart-badge">
+      <a href="{% url 'home:carrito' %}" class="cart-badge">
         <img src="{% static 'img/cart.svg' %}" alt="Carrito" class="cart-icon">
         <span class="cart-count">0</span>
       </a>
