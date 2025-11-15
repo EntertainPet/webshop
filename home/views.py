@@ -27,12 +27,9 @@ class AboutView(TemplateView):
 class ContactView(TemplateView):
     template_name = "home/contacto.html"
 
-def login_view(request):
-    return render(request, "login.html")
-
 
 def register_view(request):
-    return render(request, "register.html")
+    return render(request, "registration/register.html")
 
 def cart_view(request):
     return render(request, "cart.html")
