@@ -9,6 +9,7 @@ class Cliente(AbstractUser):
     codigo_postal = models.CharField(max_length=10, blank=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    is_anonymous_user = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         # “usuario (email)”

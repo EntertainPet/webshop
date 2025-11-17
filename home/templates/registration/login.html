@@ -36,7 +36,10 @@
     <button type="submit" class="auth-btn">Entrar</button>
     </form>
 
-    <a href="{% url 'home:catalogo' %}" class="auth-btn" id="guest-btn">Continuar como invitado</a>
+    <form method="post" action="{% url 'home:guest' %}" style="display: inline;">
+      {% csrf_token %}
+      <button type="submit" class="auth-btn" id="guest-btn">Continuar como invitado</button>
+    </form>
 
     <div class="auth-switch">
       ¿No tienes cuenta?

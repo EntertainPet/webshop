@@ -11,6 +11,7 @@ urlpatterns = [
     path("carrito/add/<int:pk>/", views.add_to_cart, name="carrito_add"),
     path("carrito/remove/<int:item_id>/", views.remove_from_cart, name="carrito_remove"),
     path("login/", auth_views.LoginView.as_view(), name="login"),
-    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     path("register/", views.register_view, name="register"),
+    path("guest/", views.invitado_view, name="guest"),
 ]

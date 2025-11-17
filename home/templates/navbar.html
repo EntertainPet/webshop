@@ -21,8 +21,15 @@
         <span class="cart-count">0</span>
       </a>
     {% if user.is_authenticated %}
-      <a href="#">@{{ user.username }}</a>
-      <a href="{% url 'home:logout' %}">Cerrar Sesión</a>
+      {% if user.is_anonymous_user %}
+        <a href="#">@{{ user.username|slice:":14" }}</a>
+      {% else %}
+        <a href="#">@{{ user.username }}</a>
+      {% endif %}
+      <form method="post" action="{% url 'home:logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Cerrar Sesión</button>
+      </form>
     {% else %}
     <a href="{% url 'home:login' %}">Iniciar Sesión / Registarse</a>
     {% endif %}

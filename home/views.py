@@ -1,9 +1,10 @@
 from django.contrib.auth import login
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, FormView
+import uuid
 
 from .forms import ClienteRegistrationForm
 from .models import Categoria, Producto, Carrito, ItemCarrito
@@ -14,6 +15,8 @@ import stripe
 from rest_framework.response import Response
 
 from rest_framework.decorators import api_view
+
+from home import models
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -27,13 +30,37 @@ class AboutView(TemplateView):
 class ContactView(TemplateView):
     template_name = "home/contacto.html"
 
+class CustomLogoutView(LogoutView):
+    def post(self, request, *args, **kwargs):
+        cliente = request.user
+        resp = super().post(request, *args, **kwargs)      
+        if cliente.is_authenticated and cliente.is_anonymous_user:
+            cliente.delete()
+        return resp
+
+def invitado_view(request):
+    nuevo_cliente = models.Cliente.objects.create(
+        username=f"guest_{uuid.uuid4()}",
+        email=f"guest_{uuid.uuid4()}@example.com",
+        telefono="0000000000",
+        direccion="Dirección de prueba",
+        ciudad="Ciudad de prueba",
+        codigo_postal="00000",
+        is_anonymous_user=True
+    )
+    nuevo_cliente.set_unusable_password()
+    nuevo_cliente.save()
+    login(request, nuevo_cliente)
+    return redirect("home:catalogo")
 
 def register_view(request):
     form = ClienteRegistrationForm()
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            return redirect("home:catalogo")
+        return render(request, "registration/registro.html", {"form": form})
     if request.method == "POST":
         form = ClienteRegistrationForm(request.POST)
-        print(form.errors)
-        print(form.is_valid())
         if form.is_valid():
             user = form.save()
             login(request, user)
