@@ -1,14 +1,17 @@
-from django.urls import path
+from django.urls import include, path
 from . import views
+from django.contrib.auth import views as auth_views
 
 app_name = "home"
 
 urlpatterns = [
-    path("catalogo/", views.ProductListView.as_view(), name="catalogo"),
+    path("", views.ProductListView.as_view(), name="catalogo"),
     path("catalogo/<slug:slug>/", views.ProductDetailView.as_view(), name="producto_detalle"),
     path("carrito/", views.CartView.as_view(), name="carrito"),
     path("carrito/add/<int:pk>/", views.add_to_cart, name="carrito_add"),
     path("carrito/remove/<int:item_id>/", views.remove_from_cart, name="carrito_remove"),
-    path("login/", views.IdentificacionView.as_view(), name="login"),
-    path("register/", views.RegisterView.as_view(), name="register"),
+    path("login/", auth_views.LoginView.as_view(), name="login"),
+    path("logout/", views.CustomLogoutView.as_view(), name="logout"),
+    path("register/", views.register_view, name="register"),
+    path("guest/", views.invitado_view, name="guest"),
 ]

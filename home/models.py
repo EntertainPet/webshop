@@ -3,12 +3,13 @@ from django.db import models
 from django.utils.text import slugify
 
 class Cliente(AbstractUser):
-    telefono = models.CharField(max_length=20, blank=True)
-    direccion = models.CharField(max_length=255, blank=True)
-    ciudad = models.CharField(max_length=100, blank=True)
-    codigo_postal = models.CharField(max_length=10, blank=True)
+    telefono = models.CharField(max_length=20, blank=False)
+    direccion = models.CharField(max_length=255, blank=False)
+    ciudad = models.CharField(max_length=100, blank=False)
+    codigo_postal = models.CharField(max_length=10, blank=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    is_anonymous_user = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         # “usuario (email)”
