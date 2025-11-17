@@ -70,6 +70,45 @@ class ProductListView(ListView):
     context_object_name = "productos"
     paginate_by = 12
 
+    def get_queryset(self):
+        qs = super().get_queryset().filter(esta_disponible=True)
+
+        # --- Obtener parámetros GET ---
+        q = self.request.GET.get("q", "")
+        categoria = self.request.GET.get("categoria", "")
+        marca = self.request.GET.get("marca", "")
+        precio_min = self.request.GET.get("min", "")
+        precio_max = self.request.GET.get("max", "")
+
+        # --- Búsqueda ---
+        if q:
+            qs = qs.filter(
+                Q(nombre__icontains=q) |
+                Q(descripcion__icontains=q)
+            )
+
+        # --- Filtros ---
+        if categoria:
+            qs = qs.filter(categoria__id=categoria)
+
+        if marca:
+            qs = qs.filter(marca__id=marca)
+
+        if precio_min:
+            qs = qs.filter(precio_final__gte=precio_min)
+
+        if precio_max:
+            qs = qs.filter(precio_final__lte=precio_max)
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["categorias"] = Categoria.objects.all()
+        ctx["marcas"] = Marca.objects.all()
+        ctx["search"] = self.request.GET.get("q", "")
+        return ctx
+
 class ProductDetailView(DetailView):
     model = Producto
     template_name = "home/producto_detalle.html"
