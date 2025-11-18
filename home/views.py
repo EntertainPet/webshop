@@ -14,6 +14,7 @@ import stripe
 from rest_framework.response import Response
 
 from rest_framework.decorators import api_view
+from django.db.models import Q
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -79,20 +80,21 @@ class ProductListView(ListView):
             qs = qs.filter(categoria__id=categoria)
 
         if marca:
-            qs = qs.filter(marca__id=marca)
+            qs = qs.filter(marca=marca)
 
         if precio_min:
-            qs = qs.filter(precio_final__gte=precio_min)
+            qs = qs.filter(precio__gte = precio_min)
 
         if precio_max:
-            qs = qs.filter(precio_final__lte=precio_max)
+            precio = qs.model._meta.get_field("precio")
+            qs = qs.filter(precio__lte =precio_max)
 
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["categorias"] = Categoria.objects.all()
-        ctx["marcas"] = Marca.objects.all()
+        ctx["marcas"] = Producto.objects.values_list("marca__id", "marca__nombre").distinct()
         ctx["search"] = self.request.GET.get("q", "")
         return ctx
 
