@@ -14,4 +14,7 @@ urlpatterns = [
     path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     path("register/", views.register_view, name="register"),
     path("guest/", views.invitado_view, name="guest"),
+
+
+    path('prueba-correo-pedido/', views.prueba_correo_pedido_simulado, name='prueba_correo_pedido'),
 ]

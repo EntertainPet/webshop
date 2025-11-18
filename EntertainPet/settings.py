@@ -135,3 +135,11 @@ AUTH_USER_MODEL = 'home.Cliente'
 LOGIN_URL = 'home:login'
 LOGIN_REDIRECT_URL = 'home:catalogo'
 LOGOUT_REDIRECT_URL = 'home:catalogo'
+
+# Envío de correos
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'entertainpet2025@gmail.com'
+EMAIL_HOST_PASSWORD = 'agqz vtmx ycfe gjpu'

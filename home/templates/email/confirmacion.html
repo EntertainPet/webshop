@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmación de Pedido</title>
+</head>
+<body style="font-family: Arial, Helvetica, sans-serif; color: #333333; background-color: #f4f4f4; margin: 0; padding: 20px;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border: 1px solid #2E86C1; max-width: 600px; width: 100%;">
+          
+          <tr>
+            <td style="background-color: #000000; padding: 15px; text-align: center;">
+              <span style="color: #ffffff; font-size: 20px; font-weight: bold;">TU TIENDA</span>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 20px;">
+              <h2 style="color: #000000; margin-top: 0; font-size: 18px;">Confirmación de pedido</h2>
+              <p style="font-size: 14px; line-height: 1.5; color: #555;">
+                ¡Muchas gracias por su confianza, 
+                {% if cliente %}{{ cliente.username }}{% else %}Cliente{% endif %}!
+                <br>Aquí están los detalles de su compra.<br><br>
+                <strong>Número de pedido:</strong> {{ pedido.stripe_checkout_id }}<br>
+                <strong>Estado:</strong> {{ pedido.status }}
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 0 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #2E86C1; margin-bottom: 20px;">
+                <tr style="background-color: #eaf4fb;">
+                  <td colspan="2" style="padding: 8px; border-bottom: 1px solid #2E86C1; color: #2E86C1; font-weight: bold; font-size: 12px;">Producto</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #2E86C1; color: #2E86C1; font-weight: bold; text-align: right; font-size: 12px;">Total</td>
+                </tr>
+
+                {% for item in items_con_subtotal %}
+                <tr>
+                  <td width="70" style="padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle;">
+                    {% with imagen_obj=item.producto.imagenes.first %}
+                      {% if imagen_obj %}
+                        <img src="{{ imagen_obj.imagen }}" alt="{{ item.producto.nombre }}" style="width: 60px; height: auto; display: block; border-radius: 4px;">
+                      {% else %}
+                        <div style="width: 60px; height: 60px; background-color: #eee; border-radius: 4px;"></div>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+
+                  <td style="padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle;">
+                    <div style="font-size: 13px; color: #333;">
+                      <strong>{{ item.producto.nombre }}</strong>
+                    </div>
+                    <div style="font-size: 11px; color: #777; margin-top: 4px;">
+                      {{ item.cantidad }} x ${{ item.producto.precio_final }}
+                    </div>
+                  </td>
+
+                  <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; vertical-align: middle; font-size: 13px;">
+                    ${{ item.subtotal }}
+                  </td>
+                </tr>
+                {% endfor %}
+
+                <tr>
+                  <td colspan="3" style="padding: 15px; background-color: #fafafa; text-align: right;">
+                    <p style="margin: 0; font-size: 16px; font-weight: bold; color: #000;">Total: ${{ pedido.cantidad }}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          {% if cliente %}
+          <tr>
+            <td style="padding: 0 20px 20px 20px;">
+              <h3 style="color: #2E86C1; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Información de envío</h3>
+              <p style="font-size: 12px; color: #555; line-height: 1.4;">
+                <strong>{{ cliente.first_name }} {{ cliente.last_name }}</strong><br>
+                {{ cliente.direccion }}<br>
+                {{ cliente.ciudad }}, {{ cliente.codigo_postal }}<br>
+                {{ cliente.telefono }}
+              </p>
+            </td>
+          </tr>
+          {% endif %}
+
+          <tr>
+            <td style="background-color: #f4f4f4; padding: 10px; text-align: center; font-size: 11px; color: #999;">
+              &copy; 2025 EntertainPet. Todos los derechos reservados.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
