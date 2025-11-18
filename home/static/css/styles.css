@@ -6,7 +6,34 @@
   --bg: #f9f4ef;
   --success: #2d8a4e;
 }
+/* Reseteamos el botón para que parezca texto */
+.logout-btn {
+    background-color: transparent; /* Quita el fondo gris */
+    border: none;                  /* Quita el borde */
+    padding: 0;                    /* Quita el relleno interno */
+    margin: 0;                     /* Quita márgenes extra */
+    
+    /* Hacemos que herede la fuente y color de la barra de navegación */
+    color: inherit;                
+    font-family: inherit;          
+    font-size: inherit;            
+    font-weight: inherit;          
+    
+    /* Importante: que el cursor cambie a la "manita" al pasar por encima */
+    cursor: pointer;               
+    
+    /* Alineación */
+    vertical-align: middle;
+    
+    /* Si tus otros enlaces tienen subrayado, puedes ponerlo aquí, si no, 'none' */
+    text-decoration: none; 
+}
 
+/* Opcional: Añadir efecto al pasar el ratón (hover) */
+.logout-btn:hover {
+    text-decoration: underline; /* O cambiar el color, según tu diseño */
+    opacity: 0.8; /* Un pequeño efecto visual */
+}
 .navbar {
   background: var(--marron-claro);
   color: var(--marron-oscuro);
@@ -541,7 +568,7 @@ a {
   border-radius: 4px;
 }
 
-.auth-form .form-errors {
+.auth-form .form-errors, .auth-form .form-errors ul, .auth-form .form-errors li {
   color: #dc3545;
   font-size: 0.875rem;
   margin-top: 0.25rem;
@@ -565,3 +592,5 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+
