@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 import uuid
 
-from .forms import ClienteRegistrationForm, ClienteLoginForm
+from .forms import ClienteRegistrationForm
 from .models import Categoria, Producto, Carrito, ItemCarrito, Pedido, ItemPedido
 
 

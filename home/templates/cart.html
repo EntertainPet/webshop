@@ -86,80 +86,6 @@
           {% endif %}
         {% endif %}
       </div>
-
-      <div style="margin-top:18px" class="checkout-section">
-        <h3>Proceso rápido de compra (3 pasos)</h3>
-        <p class="small-note">No es necesario registrarse para comprar. Puedes completar como invitado.</p>
-
-        <form action="#" method="post" aria-label="Checkout form">
-          {% csrf_token %}
-          <div style="margin-top:12px">
-            <h4 style="color:var(--marron-oscuro)">1) Datos del cliente</h4>
-            <div class="field">
-              <label for="nombre">Nombre completo</label>
-              <input id="nombre" name="nombre" type="text" placeholder="Ej. María Pérez" required>
-            </div>
-            <div class="field">
-              <label for="email">Correo electrónico</label>
-              <input id="email" name="email" type="email" placeholder="correo@ejemplo.com" required>
-            </div>
-            <div class="field">
-              <label for="telefono">Teléfono</label>
-              <input id="telefono" name="telefono" type="tel" placeholder="+34 600 000 000">
-            </div>
-          </div>
-
-          <div style="margin-top:12px">
-            <h4 style="color:var(--marron-oscuro)">2) Dirección de entrega</h4>
-            <div class="field">
-              <label for="direccion">Dirección</label>
-              <input id="direccion" name="direccion" type="text" placeholder="Calle, número, piso" required>
-            </div>
-            <div class="field">
-              <label for="ciudad">Ciudad</label>
-              <input id="ciudad" name="ciudad" type="text" placeholder="Ej. Sevilla" required>
-            </div>
-            <div class="field">
-              <label for="cp">Código postal</label>
-              <input id="cp" name="cp" type="text" placeholder="41001" required>
-            </div>
-          </div>
-
-          <div style="margin-top:12px">
-            <h4 style="color:var(--marron-oscuro)">3) Pago</h4>
-            <div class="field">
-              <label for="cardname">Titular de la tarjeta</label>
-              <input id="cardname" name="cardname" type="text" placeholder="Nombre en tarjeta" required>
-            </div>
-            <div class="field">
-              <label for="cardnumber">Número de tarjeta</label>
-              <input id="cardnumber" name="cardnumber" type="text" placeholder="0000 0000 0000 0000" required>
-            </div>
-            <div style="display:flex;gap:8px">
-              <div style="flex:1" class="field">
-                <label for="exp">Caducidad</label>
-                <input id="exp" name="exp" type="text" placeholder="MM/AA" required>
-              </div>
-              <div style="width:120px" class="field">
-                <label for="cvv">CVV</label>
-                <input id="cvv" name="cvv" type="text" placeholder="123" required>
-              </div>
-            </div>
-
-            <p class="small-note">Al finalizar recibirás un correo con los datos del pedido, importe y dirección de entrega.</p>
-
-            <div class="security-row">
-              <div class="badge">🔒 Pago seguro</div>
-              <div style="font-size:0.9rem;color:var(--gris);margin-left:8px">Compra rápida en 3 pasos • No es necesario registrarse</div>
-            </div>
-
-            <div style="margin-top:12px;display:flex;gap:8px">
-              <button type="submit" class="add-btn">Finalizar compra</button>
-              <a href="{% url 'home:catalogo' %}" style="align-self:center;text-decoration:underline;color:var(--marron-oscuro)">Seguir comprando</a>
-            </div>
-          </div>
-        </form>
-      </div>
     </section>
 
     <aside class="order-summary">
@@ -189,8 +115,4 @@
       <p class="small-note" style="margin-top:8px;color:var(--gris)">Política de devoluciones: <strong>no se contemplan devoluciones</strong>.</p>
     </div>
   </section>
-
-  <footer class="footer" style="margin-top:20px">
-    2025 EntertainPet — Compra segura. Atención en español.
-  </footer>
 {% endblock %}
