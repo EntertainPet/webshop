@@ -99,74 +99,74 @@ class ProductDetailView(DetailView):
 class CartView(TemplateView):
     template_name = "cart.html"
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        request = self.request
-        # Usuario autenticado -> usar modelo Carrito
-        if request.user.is_authenticated:
-            carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
-            ctx["carrito"] = carrito
-            ctx["total"] = carrito.total
-        else:
-            # Carrito en sesión: {"<producto_pk>": cantidad}
-            session_cart = request.session.get("cart", {})
-            items = []
-            total = 0
-            if session_cart:
-                pks = [int(pk) for pk in session_cart.keys()]
-                productos = Producto.objects.filter(pk__in=pks)
-                prod_map = {p.pk: p for p in productos}
-                for pk_str, qty in session_cart.items():
-                    try:
-                        pk = int(pk_str)
-                        cantidad = int(qty)
-                    except (TypeError, ValueError):
-                        continue
-                    producto = prod_map.get(pk)
-                    if not producto:
-                        continue
-                    subtotal = producto.precio_final * cantidad
-                    total += subtotal
-                    items.append({"producto": producto, "cantidad": cantidad, "subtotal": subtotal})
-            ctx["cart_items"] = items
-            ctx["total"] = total
-        return ctx
+    # def get_context_data(self, **kwargs):
+    #     ctx = super().get_context_data(**kwargs)
+    #     request = self.request
+    #     # Usuario autenticado -> usar modelo Carrito
+    #     if request.user.is_authenticated:
+    #         carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
+    #         ctx["carrito"] = carrito
+    #         ctx["total"] = carrito.total
+    #     else:
+    #         # Carrito en sesión: {"<producto_pk>": cantidad}
+    #         session_cart = request.session.get("cart", {})
+    #         items = []
+    #         total = 0
+    #         if session_cart:
+    #             pks = [int(pk) for pk in session_cart.keys()]
+    #             productos = Producto.objects.filter(pk__in=pks)
+    #             prod_map = {p.pk: p for p in productos}
+    #             for pk_str, qty in session_cart.items():
+    #                 try:
+    #                     pk = int(pk_str)
+    #                     cantidad = int(qty)
+    #                 except (TypeError, ValueError):
+    #                     continue
+    #                 producto = prod_map.get(pk)
+    #                 if not producto:
+    #                     continue
+    #                 subtotal = producto.precio_final * cantidad
+    #                 total += subtotal
+    #                 items.append({"producto": producto, "cantidad": cantidad, "subtotal": subtotal})
+    #         ctx["cart_items"] = items
+    #         ctx["total"] = total
+    #     return ctx
 
-def add_to_cart(request, pk):
-    producto = get_object_or_404(Producto, pk=pk)
-    # Si el usuario está autenticado, persistir en modelo
-    if request.user.is_authenticated:
-        carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
-        item, created = ItemCarrito.objects.get_or_create(
-            carrito=carrito, producto=producto, talla=""
-        )
-        if not created:
-            item.cantidad += 1
-        item.save()
-        return redirect("home:carrito")
+# def add_to_cart(request, pk):
+#     producto = get_object_or_404(Producto, pk=pk)
+#     # Si el usuario está autenticado, persistir en modelo
+#     if request.user.is_authenticated:
+#         carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
+#         item, created = ItemCarrito.objects.get_or_create(
+#             carrito=carrito, producto=producto, talla=""
+#         )
+#         if not created:
+#             item.cantidad += 1
+#         item.save()
+#         return redirect("home:carrito")
 
-    # Usuario anónimo -> usar sesión
-    session_cart = request.session.get("cart", {})
-    key = str(producto.pk)
-    session_cart[key] = int(session_cart.get(key, 0)) + 1
-    request.session["cart"] = session_cart
-    request.session.modified = True
-    return redirect("home:carrito")
+#     # Usuario anónimo -> usar sesión
+#     session_cart = request.session.get("cart", {})
+#     key = str(producto.pk)
+#     session_cart[key] = int(session_cart.get(key, 0)) + 1
+#     request.session["cart"] = session_cart
+#     request.session.modified = True
+#     return redirect("home:carrito")
 
-def remove_from_cart(request, item_id):
-    # Si está autenticado, eliminar por id de ItemCarrito
-    if request.user.is_authenticated:
-        ItemCarrito.objects.filter(id=item_id, carrito__cliente=request.user).delete()
-        return redirect("home:carrito")
+# def remove_from_cart(request, item_id):
+#     # Si está autenticado, eliminar por id de ItemCarrito
+#     if request.user.is_authenticated:
+#         ItemCarrito.objects.filter(id=item_id, carrito__cliente=request.user).delete()
+#         return redirect("home:carrito")
 
-    # Para anónimos, item_id se interpreta como pk de Producto en la sesión
-    session_cart = request.session.get("cart", {})
-    key = str(item_id)
-    if key in session_cart:
-        session_cart.pop(key)
-        request.session["cart"] = session_cart
-        request.session.modified = True
-    return redirect("home:carrito")
+#     # Para anónimos, item_id se interpreta como pk de Producto en la sesión
+#     session_cart = request.session.get("cart", {})
+#     key = str(item_id)
+#     if key in session_cart:
+#         session_cart.pop(key)
+#         request.session["cart"] = session_cart
+#         request.session.modified = True
+#     return redirect("home:carrito")
 
 
 # Checkout (placeholders)
@@ -279,128 +279,3 @@ def success_view(request):
 
 def cancel_view(request):
     return render(request, "home/cancel.html")
-# # Newly Added
-
-
-# @api_view(["POST"])
-# def create_user(request):
-#     username = request.data.get("username")
-#     email = request.data.get("email")
-#     first_name = request.data.get("first_name")
-#     last_name = request.data.get("last_name")
-#     profile_picture_url = request.data.get("profile_picture_url")
-
-#     new_user = User.objects.create(username=username, email=email,
-#                                        first_name=first_name, last_name=last_name, profile_picture_url=profile_picture_url)
-#     serializer = UserSerializer(new_user)
-#     return Response(serializer.data)
-
-
-# @api_view(["GET"])
-# def existing_user(request, email):
-#     try:
-#         User.objects.get(email=email)
-#         return Response({"exists": True}, status=status.HTTP_200_OK)
-#     except User.DoesNotExist:
-#         return Response({"exists": False}, status=status.HTTP_404_NOT_FOUND)
-
-
-# @api_view(['GET'])
-# def get_orders(request):
-#     email = request.query_params.get("email")
-#     orders = Order.objects.filter(customer_email=email)
-#     serializer = OrderSerializer(orders, many=True)
-#     return Response(serializer.data)
-
-
-# @api_view(["POST"])
-# def add_address(request):
-#     email = request.data.get("email")
-#     street = request.data.get("street")
-#     city = request.data.get("city")
-#     state = request.data.get("state")
-#     phone = request.data.get("phone")
-
-#     if not email:
-#         return Response({"error": "Email is required"}, status=400)
-    
-#     customer = User.objects.get(email=email)
-
-#     address, created = CustomerAddress.objects.get_or_create(
-#         customer=customer)
-#     address.email = email 
-#     address.street = street 
-#     address.city = city 
-#     address.state = state
-#     address.phone = phone 
-#     address.save()
-
-#     serializer = CustomerAddressSerializer(address)
-#     return Response(serializer.data)
-
-
-# @api_view(["GET"])
-# def get_address(request):
-#     email = request.query_params.get("email") 
-#     address = CustomerAddress.objects.filter(customer__email=email)
-#     if address.exists():
-#         address = address.last()
-#         serializer = CustomerAddressSerializer(address)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-#     return Response({"error": "Address not found"}, status=200)
-
-
-# @api_view(["GET"])
-# def my_wishlists(request):
-#     email = request.query_params.get("email")
-#     wishlists = Wishlist.objects.filter(user__email=email)
-#     serializer = WishlistSerializer(wishlists, many=True)
-#     return Response(serializer.data)
-
-
-# @api_view(["GET"])
-# def product_in_wishlist(request):
-#     email = request.query_params.get("email")
-#     product_id = request.query_params.get("product_id")
-
-#     if Wishlist.objects.filter(product__id=product_id, user__email=email).exists():
-#         return Response({"product_in_wishlist": True})
-#     return Response({"product_in_wishlist": False})
-
-
-
-# @api_view(['GET'])
-# def get_cart(request, cart_code):
-#     cart = Cart.objects.filter(cart_code=cart_code).first()
-    
-#     if cart:
-#         serializer = CartSerializer(cart)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-#     return Response({"error": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
-
-
-
-
-# @api_view(['GET'])
-# def get_cart_stat(request):
-#     cart_code = request.query_params.get("cart_code")
-#     cart = Cart.objects.filter(cart_code=cart_code).first()
-
-#     if cart:
-#         serializer = SimpleCartSerializer(cart)
-#         return Response(serializer.data)
-#     return Response({"error": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
-
-
-# @api_view(['GET'])
-# def product_in_cart(request):
-#     cart_code = request.query_params.get("cart_code")
-#     product_id = request.query_params.get("product_id")
-    
-#     cart = Cart.objects.filter(cart_code=cart_code).first()
-#     product = Product.objects.get(id=product_id)
-    
-#     product_exists_in_cart = CartItem.objects.filter(cart=cart, product=product).exists()
-
-#     return Response({'product_in_cart': product_exists_in_cart})
