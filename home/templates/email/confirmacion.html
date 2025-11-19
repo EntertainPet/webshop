@@ -44,7 +44,7 @@
                   <td width="70" style="padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle;">
                     {% with imagen_obj=item.producto.imagenes.first %}
                       {% if imagen_obj %}
-                        <img src="{{ imagen_obj.imagen }}" alt="{{ item.producto.nombre }}" style="width: 60px; height: auto; display: block; border-radius: 4px;">
+                        <img src="{{ imagen_obj.imagen_url }}" alt="{{ item.producto.nombre }}" style="width: 60px; height: auto; display: block; border-radius: 4px;">
                       {% else %}
                         <div style="width: 60px; height: 60px; background-color: #eee; border-radius: 4px;"></div>
                       {% endif %}

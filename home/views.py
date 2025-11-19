@@ -179,38 +179,33 @@ class CheckoutConfirmacionView(LoginRequiredMixin, TemplateView):
     template_name = "home/checkout_confirmacion.html"
     
 
-def enviar_correo_confirmacion_pedido_template(pedido):
+def enviar_correo(pedido):
     asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
-    from_email = "no-reply@tu-tienda.com"
     to_email = [pedido.cliente_email]
 
-    try:
-        cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
-    except:
-        cliente = None
-
     items_con_subtotal = []
-    for item in pedido.pedido_items.all(): # Usando el related_name='pedido_items'
+    # Revisar con lo de oscar
+    for item in pedido.pedido_items.all(): 
         subtotal = item.producto.precio_final * item.cantidad
         item.subtotal = subtotal 
+        
+        imagen_principal = item.producto.imagenes.filter(es_principal=True).first()
+        item.imagen_url = imagen_principal.imagen if imagen_principal else ""   #Añadir una foto
+    
         items_con_subtotal.append(item)
 
     context = {
         "pedido": pedido,
         "items_con_subtotal": items_con_subtotal,
-        "cliente": cliente
     }
 
     html_content = render_to_string("email/confirmacion.html", context)
-    text_content = f"Gracias por tu compra. Pedido #{pedido.stripe_checkout_id}."
 
-    correo = EmailMultiAlternatives(asunto, text_content, from_email, to_email)
-    correo.attach_alternative(html_content, "text/html")
-    correo.send(fail_silently=False)
+    correo = EmailMultiAlternatives(asunto, html_content, to_email)
+    correo.send(fail_silently=False) #Para que no pete la app si falla, quitar al final
 
 
 from django.http import HttpResponse
-from collections import namedtuple
 class MockImage:
     def __init__(self, url):
         self.imagen = url
