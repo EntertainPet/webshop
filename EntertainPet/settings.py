@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es'
 
 TIME_ZONE = 'UTC'
 
@@ -135,6 +135,6 @@ WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 AUTH_USER_MODEL = 'home.Cliente'
 
 # Redirecciones de Auth
-LOGIN_URL = 'home:identificacion'
-LOGIN_REDIRECT_URL = 'home:inicio'
-LOGOUT_REDIRECT_URL = 'home:inicio'
+LOGIN_URL = 'home:login'
+LOGIN_REDIRECT_URL = 'home:catalogo'
+LOGOUT_REDIRECT_URL = 'home:catalogo'

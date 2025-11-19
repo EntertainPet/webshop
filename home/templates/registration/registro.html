@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear cuenta - EntertainPet{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div>
+    <h2>Crear cuenta</h2>
+
+    <form class="auth-form" method="post" action="{% url 'home:register' %}">
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <div class="form-errors">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.username.id_for_label }}">Nombre de usuario</label>
+          {{ form.username }}
+          <div class="form-errors">{{ form.username.errors }}</div>
+        </div>
+        <div class="form-group">
+          <label for="{{ form.first_name.id_for_label }}">Nombre</label>
+          {{ form.first_name }}
+          <div class="form-errors">{{ form.first_name.errors }}</div>
+        </div>
+        <div class="form-group">
+          <label for="{{ form.last_name.id_for_label }}">Apellidos</label>
+          {{ form.last_name }}
+          <div class="form-errors">{{ form.last_name.errors }}</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}">Correo electrónico</label>
+          {{ form.email }}
+          <div class="form-errors">{{ form.email.errors }}</div>
+        </div>
+        <div class="form-group">
+          <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+          {{ form.telefono }}
+          <div class="form-errors">{{ form.telefono.errors }}</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.direccion.id_for_label }}">Dirección</label>
+        {{ form.direccion }}
+        <div class="form-errors">{{ form.direccion.errors }}</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.ciudad.id_for_label }}">Ciudad</label>
+          {{ form.ciudad }}
+          <div class="form-errors">{{ form.ciudad.errors }}</div>
+        </div>
+        <div class="form-group">
+          <label for="{{ form.codigo_postal.id_for_label }}">Código postal</label>
+          {{ form.codigo_postal }}
+          <div class="form-errors">{{ form.codigo_postal.errors }}</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.password.id_for_label }}">Contraseña</label>
+          {{ form.password1 }}
+          <div class="form-errors">{{ form.password.errors }}</div>
+        </div>
+        <div class="form-group">
+          <label for="{{ form.password2.id_for_label }}">Confirmar contraseña</label>
+          {{ form.password2 }}
+          <div class="form-errors">{{ form.password2.errors }}</div>
+        </div>
+      </div>
+
+      <button type="submit" class="auth-btn">Registrarse</button>
+    </form>
+
+    <div class="auth-switch">
+      ¿Ya tienes cuenta?
+      <a href="{% url 'home:login' %}">Inicia sesión aquí</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

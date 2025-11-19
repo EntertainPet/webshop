@@ -1,6 +1,10 @@
-{% extends "base.html" %}
-{% block title %}Inicio · EntertainPet{% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}Inicio - EntertainPet{% endblock %}
+
 {% block content %}
-  <h1>Inicio</h1>
-  <p>Página de bienvenida.</p>
+  <div class="py-4 text-center">
+    <h1>Welcome to My Django App</h1>
+    <p>Item name: <strong>{{ item_name }}</strong></p>
+  </div>
 {% endblock %}

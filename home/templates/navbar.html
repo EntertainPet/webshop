@@ -1,0 +1,37 @@
+{% load static %}
+
+<header class="navbar">
+  <div class="brand">
+    <a href="{% url 'home:catalogo' %}">
+      🐾 EntertainPet
+    </a>
+  </div>
+
+  <div class="search-bar" style="max-width:600px;">
+    <form method="get" action="{% url 'home:catalogo' %}">
+      <input name="q" type="search" placeholder="Buscar productos..." aria-label="Buscar">
+      <button type="submit">Buscar</button>
+    </form>
+  </div>
+
+  <div class="nav-actions">
+      <a href="{% url 'home:catalogo' %}">Catálogo</a>
+      <a href="{% url 'home:carrito' %}" class="cart-badge">
+        <img src="{% static 'img/cart.svg' %}" alt="Carrito" class="cart-icon">
+        <span class="cart-count">0</span>
+      </a>
+    {% if user.is_authenticated %}
+      {% if user.is_anonymous_user %}
+        <a href="#">@{{ user.username|slice:":14" }}</a>
+      {% else %}
+        <a href="#">@{{ user.username }}</a>
+      {% endif %}
+      <form method="post" action="{% url 'home:logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Cerrar Sesión</button>
+      </form>
+    {% else %}
+    <a href="{% url 'home:login' %}">Iniciar Sesión / Registarse</a>
+    {% endif %}
+  </div>
+  </header>

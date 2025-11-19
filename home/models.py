@@ -1,13 +1,15 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.text import slugify
 
 class Cliente(AbstractUser):
-    telefono = models.CharField(max_length=20, blank=True)
-    direccion = models.CharField(max_length=255, blank=True)
-    ciudad = models.CharField(max_length=100, blank=True)
-    codigo_postal = models.CharField(max_length=10, blank=True)
+    telefono = models.CharField(max_length=20, blank=False)
+    direccion = models.CharField(max_length=255, blank=False)
+    ciudad = models.CharField(max_length=100, blank=False)
+    codigo_postal = models.CharField(max_length=10, blank=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    is_anonymous_user = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         # “usuario (email)”
@@ -34,6 +36,7 @@ class Marca(models.Model):
 
 class Producto(models.Model):
     nombre = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
     descripcion = models.TextField(blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     precio_oferta = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -50,6 +53,22 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def get_absolute_url(self):
+        # Prefer slug-based public URL under /catalogo/<slug>/
+        return f"/catalogo/{self.slug or slugify(self.nombre)}/"
+
+    def save(self, *args, **kwargs):
+        # Auto-generate a unique slug from the nombre when missing
+        if not self.slug:
+            base = slugify(self.nombre)[:200]
+            slug_candidate = base
+            i = 1
+            while Producto.objects.filter(slug=slug_candidate).exclude(pk=self.pk).exists():
+                i += 1
+                slug_candidate = f"{base}-{i}"
+            self.slug = slug_candidate
+        super().save(*args, **kwargs)
 
     @property
     def precio_final(self):
