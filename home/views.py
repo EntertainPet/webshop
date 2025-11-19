@@ -132,41 +132,41 @@ class CartView(TemplateView):
     #         ctx["total"] = total
     #     return ctx
 
-# def add_to_cart(request, pk):
-#     producto = get_object_or_404(Producto, pk=pk)
-#     # Si el usuario está autenticado, persistir en modelo
-#     if request.user.is_authenticated:
-#         carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
-#         item, created = ItemCarrito.objects.get_or_create(
-#             carrito=carrito, producto=producto, talla=""
-#         )
-#         if not created:
-#             item.cantidad += 1
-#         item.save()
-#         return redirect("home:carrito")
+def add_to_cart(request, pk):
+    # producto = get_object_or_404(Producto, pk=pk)
+    # # Si el usuario está autenticado, persistir en modelo
+    # if request.user.is_authenticated:
+    #     carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
+    #     item, created = ItemCarrito.objects.get_or_create(
+    #         carrito=carrito, producto=producto, talla=""
+    #     )
+    #     if not created:
+    #         item.cantidad += 1
+    #     item.save()
+    #     return redirect("home:carrito")
 
-#     # Usuario anónimo -> usar sesión
-#     session_cart = request.session.get("cart", {})
-#     key = str(producto.pk)
-#     session_cart[key] = int(session_cart.get(key, 0)) + 1
-#     request.session["cart"] = session_cart
-#     request.session.modified = True
-#     return redirect("home:carrito")
+    # # Usuario anónimo -> usar sesión
+    # session_cart = request.session.get("cart", {})
+    # key = str(producto.pk)
+    # session_cart[key] = int(session_cart.get(key, 0)) + 1
+    # request.session["cart"] = session_cart
+    # request.session.modified = True
+    return redirect("home:carrito")
 
-# def remove_from_cart(request, item_id):
-#     # Si está autenticado, eliminar por id de ItemCarrito
-#     if request.user.is_authenticated:
-#         ItemCarrito.objects.filter(id=item_id, carrito__cliente=request.user).delete()
-#         return redirect("home:carrito")
+def remove_from_cart(request, item_id):
+    # # Si está autenticado, eliminar por id de ItemCarrito
+    # if request.user.is_authenticated:
+    #     ItemCarrito.objects.filter(id=item_id, carrito__cliente=request.user).delete()
+    #     return redirect("home:carrito")
 
-#     # Para anónimos, item_id se interpreta como pk de Producto en la sesión
-#     session_cart = request.session.get("cart", {})
-#     key = str(item_id)
-#     if key in session_cart:
-#         session_cart.pop(key)
-#         request.session["cart"] = session_cart
-#         request.session.modified = True
-#     return redirect("home:carrito")
+    # # Para anónimos, item_id se interpreta como pk de Producto en la sesión
+    # session_cart = request.session.get("cart", {})
+    # key = str(item_id)
+    # if key in session_cart:
+    #     session_cart.pop(key)
+    #     request.session["cart"] = session_cart
+    #     request.session.modified = True
+    return redirect("home:carrito")
 
 
 # Checkout (placeholders)
