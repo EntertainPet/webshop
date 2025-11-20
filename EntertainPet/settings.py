@@ -29,7 +29,9 @@ SECRET_KEY = 'django-insecure-#*dnr@#5voq^z+yun*)oyzqvt-)+2q2q53^l89yv*zx_@l)u!e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+#CUANDO DESPLEGUEMOS EN RENDER HAY QUE AÑADIR EL HOST EN ESTOS DOS CAMPOS
+ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = ["https://0686e37fcb6f.ngrok-free.app"]
 
 
 # Application definition
@@ -128,6 +130,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 # **Clave para el usuario personalizado**
 AUTH_USER_MODEL = 'home.Cliente'
 

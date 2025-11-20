@@ -98,34 +98,38 @@ class TallaProducto(models.Model):
 
 # Carrito / Pedido (esqueleto funcional)
 class Carrito(models.Model):
-    cliente = models.OneToOneField(Cliente, on_delete=models.CASCADE, related_name="carrito")
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    codigo_carrito = models.CharField(max_length=11, unique=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Carrito de {self.cliente.username or self.cliente.email}"
-
-    @property
-    def total(self):
-        return sum(item.total for item in self.items.all())
+        return self.codigo_carrito
 
 
 class ItemCarrito(models.Model):
-    carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE, related_name="items")
-    producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
-    talla = models.CharField(max_length=20, blank=True)
-    cantidad = models.PositiveIntegerField(default=1)
-
-    class Meta:
-        unique_together = ("carrito", "producto", "talla")
-
-    @property
-    def precio_unitario(self):
-        return self.producto.precio_final
-
-    @property
-    def total(self):
-        return self.precio_unitario * self.cantidad
+    carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE, related_name="carrito_items")
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="item")
+    cantidad = models.IntegerField(default=1)
 
     def __str__(self):
-        return f"{self.producto.nombre} x{self.cantidad}"
+        return f"{self.cantidad} x {self.producto.nombre} en el carrito {self.carrito.codigo_carrito}"
+
+class Pedido(models.Model):
+    stripe_checkout_id = models.CharField(max_length=255, unique=True)
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2)#cantidad = precio * numero unidades
+    divisa = models.CharField(max_length=10)
+    cliente_email = models.EmailField()
+    status = models.CharField(max_length=20, choices=[("Pending", "Pending"), ("Paid", "Paid")])
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order {self.stripe_checkout_id} - {self.status}"
+    
+class ItemPedido(models.Model):
+    pedido = models.ForeignKey(Pedido, related_name='pedido_items', on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"Order {self.producto.nombre} - {self.pedido.stripe_checkout_id}"
+    
