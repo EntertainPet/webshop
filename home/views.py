@@ -10,12 +10,9 @@ from django.views.decorators.csrf import csrf_exempt
 import uuid
 
 from .forms import ClienteRegistrationForm
-<<<<<<< HEAD
-from .models import Categoria, Marca, Producto, Carrito, ItemCarrito
-=======
-from .models import Categoria, Producto, Carrito, ItemCarrito, Pedido, ItemPedido
 
->>>>>>> develop
+from .models import Categoria, Marca, Producto, Carrito, ItemCarrito, Pedido, ItemPedido
+
 
 from django.conf import settings
 import stripe
