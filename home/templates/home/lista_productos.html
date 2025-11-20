@@ -3,69 +3,175 @@
 
 {% block title %}Catálogo - EntertainPet{% endblock %}
 
+{% block global_sidebar %}
+<!-- BOTÓN PARA ABRIR LA BARRA DE FILTROS -->
+<button id="openFilters" class="filter-button">⚙️ Filtros</button>
+
+<!-- BARRA LATERAL DE FILTROS -->
+<div id="filterSidebar" class="filter-sidebar">
+
+    <!-- CABECERA DEL SIDEBAR -->
+    <div class="filter-header">
+        <h2>Filtros</h2>
+        <span id="closeFilters" class="close-btn">✖</span>
+    </div>
+
+    <!-- FORMULARIO DE FILTROS -->
+    <form method="GET" id="filterForm">
+
+        <!-- BUSCAR -->
+        <div class="filter-block">
+            <label>Buscar:</label>
+            <input type="text" name="q" placeholder="Buscar..." value="{{ search }}">
+        </div>
+
+        <!-- CATEGORÍAS -->
+        <div class="filter-block collapsible">
+            <div class="filter-header-collapsible">
+                <span>Categorías</span>
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="filter-options">
+                {% for c in categorias %}
+                    <label class="filter-item">
+                        <input type="checkbox" name="categoria" value="{{ c.id }}"
+                              {% if c.id|stringformat:"s" in selected_categorias %}checked{% endif %}>
+                        {{ c.nombre }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- MARCAS -->
+        <div class="filter-block collapsible">
+            <div class="filter-header-collapsible">
+                <span>Marcas</span>
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="filter-options">
+                {% for m in marcas %}
+                    <label class="filter-item">
+                        <input type="checkbox" name="marca" value="{{ m.id }}"
+                              {% if m.0|stringformat:"s" in selected_marcas %}checked{% endif %}>
+                        {{ m.nombre }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- MATERIALES -->
+        <div class="filter-block collapsible">
+            <div class="filter-header-collapsible">
+                <span>Material</span>
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="filter-options">
+                {% for mat in material %}
+                    <label class="filter-item">
+                        <input type="checkbox" name="material" value="{{ mat }}"
+                              {% if mat in selected_materiales %}checked{% endif %}>
+                        {{ mat }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- COLORES -->
+        <div class="filter-block collapsible">
+            <div class="filter-header-collapsible">
+                <span>Color</span>
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="filter-options">
+                {% for col in color %}
+                    <label class="filter-item">
+                        <input type="checkbox" name="color" value="{{ col }}"
+                              {% if col in selected_colores %}checked{% endif %}>
+                        {{ col }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- PRECIOS -->
+        <div class="filter-block">
+            <label><strong>Precio mínimo:</strong></label>
+            <input type="number" name="min" value="{{ request.GET.min }}">
+
+            <label><strong>Precio máximo:</strong></label>
+            <input type="number" name="max" value="{{ request.GET.max }}">
+        </div>
+
+        <!-- BOTÓN APLICAR -->
+        <button type="submit" class="apply-btn">Aplicar filtros</button>
+
+    </form>
+    <form method="GET" id="clearFiltersForm">
+        <button type="submit" class="clear-filters-btn">Eliminar filtros</button>
+    </form>
+</div>
+{% endblock %}
+
 {% block content %}
-	<div class="catalog-header">
-		<h1>Catálogo</h1>
-	</div>
+<div class="catalog-header">
+    <h1>Catálogo</h1>
+</div>
 
-	<div class="products-grid container">
-		{% for p in productos %}
-			<div class="card">
-				<div class="imagen-placeholder">
-					{% if p.imagenes.first %}
-						<img src="{{ p.imagenes.first.imagen }}" alt="{{ p.nombre }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">
-					{% else %}
-						🖼️
-					{% endif %}
-				</div>
+<div class="products-grid container">
+    {% if productos %}
+        {% for p in productos %}
+        <div class="card">
+            <div class="imagen-placeholder">
+                {% if p.imagenes.first %}
+                    <img src="{{ p.imagenes.first.imagen }}" alt="{{ p.nombre }}"
+                         style="width:100%;height:100%;object-fit:cover;border-radius:6px">
+                {% else %}
+                    🖼️
+                {% endif %}
+            </div>
 
-				<h4>{{ p.nombre }}</h4>
-				<div class="price">{{ p.precio_final }} €</div>
+            <h4>{{ p.nombre }}</h4>
+            <div class="price">{{ p.precio }} €</div>
 
-				<a href="{% url 'home:producto_detalle' p.pk %}" class="detalle-link">Ver detalle</a>
+            <a href="{% url 'home:producto_detalle' p.slug %}" class="detalle-link">Ver detalle</a>
 
-				<form action="{% url 'home:carrito_add' p.pk %}" method="post">
-					{% csrf_token %}
-					<button type="submit" class="add-btn">Añadir</button>
-				</form>
-			</div>
-		{% empty %}
-			<div style="background:#fff7e6;border:1px dashed #f0c36d;padding:12px;border-radius:8px;margin-bottom:12px">
-				<strong>Datos de prueba — Ejemplos visuales</strong>
-				<p style="margin:6px 0 0; color:#666">No hay productos reales en la base de datos. A continuación se muestran elementos de prueba para visualizar el diseño.</p>
-			</div>
+            <form action="{% url 'home:carrito_add' p.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="add-btn">Añadir</button>
+            </form>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="background:#fff7e6;border:1px dashed #f0c36d;padding:12px;border-radius:8px;margin-bottom:12px">
+            <strong>No se encontraron productos.</strong>
+            <p style="margin:6px 0 0; color:#666">Intenta cambiar los filtros o la búsqueda.</p>
+        </div>
+    {% endif %}
+</div>
 
-			<!-- Productos de ejemplo (datos falsos) -->
-			<div class="card">
-				<div class="imagen-placeholder">🧸</div>
-				<h4>Juguete de peluche (DEMO)</h4>
-				<div class="price">12.99 €</div>
-				<a class="detalle-link" href="#">Ver detalle</a>
-				<form action="#" method="post">
-					<button type="button" class="add-btn">Añadir (demo)</button>
-				</form>
-			</div>
+<!-- PAGINACIÓN -->
+{% if is_paginated %}
+    <div class="pagination">
 
-			<div class="card">
-				<div class="imagen-placeholder">🦴</div>
-				<h4>Hueso de goma (DEMO)</h4>
-				<div class="price">7.50 €</div>
-				<a class="detalle-link" href="#">Ver detalle</a>
-				<form action="#" method="post">
-					<button type="button" class="add-btn">Añadir (demo)</button>
-				</form>
-			</div>
+        {% if page_obj.has_previous %}
+            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Anterior</a>
+        {% endif %}
 
-			<div class="card">
-				<div class="imagen-placeholder">🐟</div>
-				<h4>Ratón de tela (DEMO)</h4>
-				<div class="price">5.00 €</div>
-				<a class="detalle-link" href="#">Ver detalle</a>
-				<form action="#" method="post">
-					<button type="button" class="add-btn">Añadir (demo)</button>
-				</form>
-			</div>
-		{% endfor %}
-	</div>
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Siguiente</a>
+        {% endif %}
+
+    </div>
+{% endif %}
 
 {% endblock %}
