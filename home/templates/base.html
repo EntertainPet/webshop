@@ -11,6 +11,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    {% block global_sidebar %}{% endblock %}
     {% include 'navbar.html' %}
 
     <main class="container">
@@ -21,6 +22,58 @@
         <p>&copy; {% now "Y" %} EntertainPet. Todos los derechos reservados.</p>
     </footer>
 
-    {% block extra_scripts %}{% endblock %}
+    {% block extra_scripts %}
+      <script>
+        const sidebar = document.getElementById("filterSidebar");
+        const openBtn = document.getElementById("openFilters");
+        const closeBtn = document.getElementById("closeFilters");
+        const filterForm = document.getElementById("filterForm");
+
+        openBtn.addEventListener("click", () => {
+            sidebar.classList.add("active");
+        });
+
+        closeBtn.addEventListener("click", () => {
+            sidebar.classList.remove("active");
+        });
+
+        filterForm.addEventListener("submit", () => {
+            sidebar.classList.remove("active"); // cerrar automáticamente
+        });
+        const blocks = document.querySelectorAll('.filter-block.collapsible');
+
+        blocks.forEach(block => {
+            const header = block.querySelector('.filter-header-collapsible');
+            const options = block.querySelector('.filter-options');
+
+            header.addEventListener('click', () => {
+                // Cerrar todos los bloques primero
+                blocks.forEach(b => {
+                    if (b !== block) {
+                        b.classList.remove('active');
+                        b.querySelector('.filter-options').style.maxHeight = null;
+                    }
+                });
+
+                // Alternar el bloque clicado
+                if (block.classList.contains('active')) {
+                    block.classList.remove('active');
+                    options.style.maxHeight = null;
+                } else {
+                    block.classList.add('active');
+                    options.style.maxHeight = options.scrollHeight + 'px';
+                }
+            });
+
+            // Ajustar altura si se cambia el tamaño de ventana
+            window.addEventListener('resize', () => {
+                if (block.classList.contains('active')) {
+                    options.style.maxHeight = options.scrollHeight + 'px';
+                }
+            });
+        });
+        </script>
+
+    {% endblock %}
 </body>
 </html>

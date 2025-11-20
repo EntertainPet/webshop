@@ -7,7 +7,7 @@ from django.views.generic import TemplateView, ListView, DetailView, FormView
 import uuid
 
 from .forms import ClienteRegistrationForm
-from .models import Categoria, Producto, Carrito, ItemCarrito
+from .models import Categoria, Marca, Producto, Carrito, ItemCarrito
 
 from django.conf import settings
 import stripe
@@ -90,10 +90,12 @@ class ProductListView(ListView):
 
         # --- Obtener parámetros GET ---
         q = self.request.GET.get("q", "")
-        categoria = self.request.GET.get("categoria", "")
-        marca = self.request.GET.get("marca", "")
+        categoria = self.request.GET.getlist("categoria", [])
+        marca = self.request.GET.getlist("marca", [])
         precio_min = self.request.GET.get("min", "")
         precio_max = self.request.GET.get("max", "")
+        color = self.request.GET.getlist("color", [])
+        material = self.request.GET.getlist("material", [])
 
         # --- Búsqueda ---
         if q:
@@ -104,16 +106,21 @@ class ProductListView(ListView):
 
         # --- Filtros ---
         if categoria:
-            qs = qs.filter(categoria__id=categoria)
+            qs = qs.filter(categoria__id__in=categoria)
 
         if marca:
-            qs = qs.filter(marca=marca)
+            qs = qs.filter(marca__id__in=marca)
+
+        if material:
+            qs = qs.filter(material__in=material)
+        
+        if color:
+            qs = qs.filter(color__in=color)
 
         if precio_min:
             qs = qs.filter(precio__gte = precio_min)
 
         if precio_max:
-            precio = qs.model._meta.get_field("precio")
             qs = qs.filter(precio__lte =precio_max)
 
         return qs
@@ -121,8 +128,16 @@ class ProductListView(ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["categorias"] = Categoria.objects.all()
-        ctx["marcas"] = Producto.objects.values_list("marca__id", "marca__nombre").distinct()
+        ctx["marcas"] = Marca.objects.all()
+        ctx["color"] = Producto.objects.exclude(color = "").values_list("color", flat=True).distinct()
+        ctx["material"] = Producto.objects.exclude(material = "").values_list("material", flat=True).distinct()
         ctx["search"] = self.request.GET.get("q", "")
+
+
+        ctx["selected_categorias"] = self.request.GET.getlist("categoria")
+        ctx["selected_marcas"] = self.request.GET.getlist("marca")
+        ctx["selected_colores"] = self.request.GET.getlist("color")
+        ctx["selected_materiales"] = self.request.GET.getlist("material")
         return ctx
 
 class ProductDetailView(DetailView):

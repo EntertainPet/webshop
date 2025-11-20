@@ -3,49 +3,136 @@
 
 {% block title %}Catálogo - EntertainPet{% endblock %}
 
-{% block content %}
-  <div class="catalog-header">
-    <h1>Catálogo</h1>
-  </div>
+{% block global_sidebar %}
+<!-- BOTÓN PARA ABRIR LA BARRA DE FILTROS -->
+<button id="openFilters" class="filter-button">⚙️ Filtros</button>
 
-  <!-- ====== FORMULARIO DE BÚSQUEDA Y FILTRO ====== -->
-  <div class="filter-container" style="margin-bottom:20px;">
-    <form method="GET" class="filter-box">
-        <input type="text" name="q" placeholder="Buscar..." value="{{ search }}">
+<!-- BARRA LATERAL DE FILTROS -->
+<div id="filterSidebar" class="filter-sidebar">
 
-        <select name="categoria">
-            <option value="">Todas las categorías</option>
-            {% for c in categorias %}
-                <option value="{{ c.id }}" {% if request.GET.categoria == c.id|stringformat:"s" %}selected{% endif %}>
-                    {{ c.nombre }}
-                </option>
-            {% endfor %}
-        </select>
+    <!-- CABECERA DEL SIDEBAR -->
+    <div class="filter-header">
+        <h2>Filtros</h2>
+        <span id="closeFilters" class="close-btn">✖</span>
+    </div>
 
-        <select name="marca">
-            <option value="">Todas las marcas</option>
-            {% for m in marcas %}
-                <option value="{{ m.id }}" {% if request.GET.marca == m.id|stringformat:"s" %}selected{% endif %}>
-                    {{ m.nombre }}
-                </option>
-            {% endfor %}
-        </select>
+    <!-- FORMULARIO DE FILTROS -->
+    <form method="GET" id="filterForm">
 
-        <input type="number" name="min" placeholder="Precio mínimo" value="{{ request.GET.min }}">
-        <input type="number" name="max" placeholder="Precio máximo" value="{{ request.GET.max }}">
+        <!-- BUSCAR -->
+        <div class="filter-block">
+            <label>Buscar:</label>
+            <input type="text" name="q" placeholder="Buscar..." value="{{ search }}">
+        </div>
 
-        <button type="submit">Filtrar</button>
+        <!-- CATEGORÍAS -->
+        <div class="filter-block collapsible">
+            <div class="filter-header-collapsible">
+                <span>Categorías</span>
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="filter-options">
+                {% for c in categorias %}
+                    <label class="filter-item">
+                        <input type="checkbox" name="categoria" value="{{ c.id }}"
+                              {% if c.id|stringformat:"s" in selected_categorias %}checked{% endif %}>
+                        {{ c.nombre }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- MARCAS -->
+        <div class="filter-block collapsible">
+            <div class="filter-header-collapsible">
+                <span>Marcas</span>
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="filter-options">
+                {% for m in marcas %}
+                    <label class="filter-item">
+                        <input type="checkbox" name="marca" value="{{ m.id }}"
+                              {% if m.0|stringformat:"s" in selected_marcas %}checked{% endif %}>
+                        {{ m.nombre }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- MATERIALES -->
+        <div class="filter-block collapsible">
+            <div class="filter-header-collapsible">
+                <span>Material</span>
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="filter-options">
+                {% for mat in material %}
+                    <label class="filter-item">
+                        <input type="checkbox" name="material" value="{{ mat }}"
+                              {% if mat in selected_materiales %}checked{% endif %}>
+                        {{ mat }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- COLORES -->
+        <div class="filter-block collapsible">
+            <div class="filter-header-collapsible">
+                <span>Color</span>
+                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
+                </svg>
+            </div>
+            <div class="filter-options">
+                {% for col in color %}
+                    <label class="filter-item">
+                        <input type="checkbox" name="color" value="{{ col }}"
+                              {% if col in selected_colores %}checked{% endif %}>
+                        {{ col }}
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- PRECIOS -->
+        <div class="filter-block">
+            <label><strong>Precio mínimo:</strong></label>
+            <input type="number" name="min" value="{{ request.GET.min }}">
+
+            <label><strong>Precio máximo:</strong></label>
+            <input type="number" name="max" value="{{ request.GET.max }}">
+        </div>
+
+        <!-- BOTÓN APLICAR -->
+        <button type="submit" class="apply-btn">Aplicar filtros</button>
+
     </form>
-  </div>
-  <!-- ============================================ -->
+    <form method="GET" id="clearFiltersForm">
+        <button type="submit" class="clear-filters-btn">Eliminar filtros</button>
+    </form>
+</div>
+{% endblock %}
 
-  <div class="products-grid container">
+{% block content %}
+<div class="catalog-header">
+    <h1>Catálogo</h1>
+</div>
+
+<div class="products-grid container">
     {% if productos %}
         {% for p in productos %}
         <div class="card">
             <div class="imagen-placeholder">
                 {% if p.imagenes.first %}
-                    <img src="{{ p.imagenes.first.imagen }}" alt="{{ p.nombre }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">
+                    <img src="{{ p.imagenes.first.imagen }}" alt="{{ p.nombre }}"
+                         style="width:100%;height:100%;object-fit:cover;border-radius:6px">
                 {% else %}
                     🖼️
                 {% endif %}
@@ -68,21 +155,23 @@
             <p style="margin:6px 0 0; color:#666">Intenta cambiar los filtros o la búsqueda.</p>
         </div>
     {% endif %}
-  </div>
+</div>
 
-  <!-- Paginación -->
-  {% if is_paginated %}
+<!-- PAGINACIÓN -->
+{% if is_paginated %}
     <div class="pagination">
-      {% if page_obj.has_previous %}
-        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.categoria %}categoria={{ request.GET.categoria }}&{% endif %}{% if request.GET.marca %}marca={{ request.GET.marca }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
-      {% endif %}
 
-      <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_previous %}
+            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Anterior</a>
+        {% endif %}
 
-      {% if page_obj.has_next %}
-        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.categoria %}categoria={{ request.GET.categoria }}&{% endif %}{% if request.GET.marca %}marca={{ request.GET.marca }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>
-      {% endif %}
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Siguiente</a>
+        {% endif %}
+
     </div>
-  {% endif %}
+{% endif %}
 
 {% endblock %}
