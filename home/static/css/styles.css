@@ -568,7 +568,7 @@ a {
   border-radius: 4px;
 }
 
-.auth-form .form-errors {
+.auth-form .form-errors, .auth-form .form-errors ul, .auth-form .form-errors li {
   color: #dc3545;
   font-size: 0.875rem;
   margin-top: 0.25rem;
