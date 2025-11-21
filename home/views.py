@@ -12,6 +12,7 @@ import uuid
 from django.template.loader import render_to_string
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.http import HttpResponse
+from django.templatetags.static import static
 
 from .forms import ClienteRegistrationForm
 
@@ -240,105 +241,40 @@ class CheckoutPagoView(LoginRequiredMixin, TemplateView):
 class CheckoutConfirmacionView(LoginRequiredMixin, TemplateView):
     template_name = "home/checkout_confirmacion.html"
     
-
 def enviar_correo(pedido):
     asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
     to_email = [pedido.cliente_email]
 
+    FROM_EMAIL = "entertainpet2025@gmail.com"
+    IMG_DEFAULT = static("img/hero.png")
+
     items_con_subtotal = []
-    # Revisar con lo de oscar
-    for item in pedido.pedido_items.all(): 
+    for item in pedido.pedido_items.select_related("producto"):
         subtotal = item.producto.precio_final * item.cantidad
-        item.subtotal = subtotal 
-        
-        imagen_principal = item.producto.imagenes.filter(es_principal=True).first()
-        item.imagen_url = imagen_principal.imagen if imagen_principal else ""   #Añadir una foto
-    
-        items_con_subtotal.append(item)
+
+        imagen = item.producto.imagenes.filter(es_principal=True).first()
+        imagen_url = imagen.imagen if imagen else IMG_DEFAULT
+
+        items_con_subtotal.append({
+            "producto": item.producto,
+            "cantidad": item.cantidad,
+            "subtotal": subtotal,
+            "imagen_url": imagen_url,
+        })
+
+    cliente = models.Cliente.objects.filter(email=pedido.cliente_email).first()
 
     context = {
         "pedido": pedido,
         "items_con_subtotal": items_con_subtotal,
+        "cliente": cliente,
     }
 
     html_content = render_to_string("email/confirmacion.html", context)
 
-    correo = EmailMultiAlternatives(asunto, html_content, to_email)
-    correo.send(fail_silently=False) #Para que no pete la app si falla, quitar al final
-
-
-from django.http import HttpResponse
-class MockImage:
-    def __init__(self, url):
-        self.imagen = url
-
-class MockImageManager:
-    def __init__(self, url):
-        self.url = url
-    def first(self):
-        return MockImage(self.url) if self.url else None
-
-class MockProduct:
-    def __init__(self, nombre, precio, imagen_url):
-        self.nombre = nombre
-        self.precio_final = precio # Usamos precio_final directamente
-        # Simulamos el related_name="imagenes" y el método .first()
-        self.imagenes = MockImageManager(imagen_url)
-
-class MockItemPedido:
-    def __init__(self, producto, cantidad):
-        self.producto = producto
-        self.cantidad = cantidad
-        # Calculamos subtotal para el template
-        self.subtotal = "{:.2f}".format(producto.precio_final * cantidad)
-
-class MockPedido:
-    def __init__(self, checkout_id, total, email):
-        self.stripe_checkout_id = checkout_id
-        self.status = "Paid"
-        self.cantidad = total
-        self.cliente_email = email
-
-class MockCliente:
-    def __init__(self, nombre, direccion, ciudad, cp):
-        self.username = nombre
-        self.first_name = nombre.split()[0]
-        self.last_name = nombre.split()[1] if len(nombre.split()) > 1 else ""
-        self.direccion = direccion
-        self.ciudad = ciudad
-        self.codigo_postal = cp
-        self.telefono = "+34 600 00 00 00"
-
-def prueba_correo_pedido_simulado(request):
-    """
-    Simula un pedido usando la foto del perro y el remitente CORRECTO.
-    """
-    
-    url_perro = "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=300&q=80"
-
-    prod1 = MockProduct("Cachorro Boyero de Berna (Macho)", 1200.00, url_perro)
-    prod2 = MockProduct("Cachorro Boyero de Berna (Hembra)", 1200.00, url_perro)
-    
-    items = [MockItemPedido(prod1, 1), MockItemPedido(prod2, 1)]
-    cliente_mock = MockCliente("Pablo Arrabal", "Av. Reina Mercedes 17", "Sevilla, España", "41012")
-    pedido_mock = MockPedido("ORD-3295815", "2400.00", "entertainpet2025@gmail.com")
-
-    html_content = render_to_string("email/confirmacion.html", {
-        "pedido": pedido_mock,
-        "items_con_subtotal": items,
-        "cliente": cliente_mock
-    })
-
-    # --- AQUÍ ESTÁ EL CAMBIO ---
-    remitente = "noreply@entertainpet.com"
-    # ---------------------------
-
-    asunto = "Confirmación de Pedido (Remitente Correcto)"
-    msg = EmailMultiAlternatives(asunto, "Gracias por tu compra.", remitente, [pedido_mock.cliente_email])
-    msg.attach_alternative(html_content, "text/html")
-    msg.send()
-
-    return HttpResponse(f"Correo enviado desde <strong>{remitente}</strong>")
+    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
+    correo.attach_alternative(html_content, "text/html")
+    correo.send(fail_silently=False)
 
 
 @api_view(['POST'])
@@ -429,10 +365,13 @@ def fulfill_checkout(session, cart_code):
         orderitem = ItemPedido.objects.create(pedido=order, producto=item.producto, 
                                              cantidad=item.cantidad)
     
+    try:
+        enviar_correo(order)
+    except Exception as e:
+        print("Error enviando correo:", e)
+        
     cart.delete()
 
-
-from django.shortcuts import render
 def success_view(request):
 
     return render(request, "home/success.html")
