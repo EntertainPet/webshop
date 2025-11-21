@@ -94,7 +94,6 @@ class ProductListView(ListView):
     def get_queryset(self):
         qs = super().get_queryset().filter(esta_disponible=True)
 
-        # --- Obtener parámetros GET ---
         q = self.request.GET.get("q", "")
         categoria = self.request.GET.getlist("categoria", [])
         marca = self.request.GET.getlist("marca", [])
@@ -103,14 +102,12 @@ class ProductListView(ListView):
         color = self.request.GET.getlist("color", [])
         material = self.request.GET.getlist("material", [])
 
-        # --- Búsqueda ---
         if q:
             qs = qs.filter(
                 Q(nombre__icontains=q) |
                 Q(descripcion__icontains=q)
             )
 
-        # --- Filtros ---
         if categoria:
             qs = qs.filter(categoria__id__in=categoria)
 
@@ -119,32 +116,42 @@ class ProductListView(ListView):
 
         if material:
             qs = qs.filter(material__in=material)
-        
+
         if color:
             qs = qs.filter(color__in=color)
 
         if precio_min:
-            qs = qs.filter(precio__gte = precio_min)
+            qs = qs.filter(precio__gte=precio_min)
 
         if precio_max:
-            qs = qs.filter(precio__lte =precio_max)
+            qs = qs.filter(precio__lte=precio_max)
 
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+
         ctx["categorias"] = Categoria.objects.all()
         ctx["marcas"] = Marca.objects.all()
-        ctx["color"] = Producto.objects.exclude(color = "").values_list("color", flat=True).distinct()
-        ctx["material"] = Producto.objects.exclude(material = "").values_list("material", flat=True).distinct()
+        ctx["color"] = Producto.objects.exclude(color="").values_list("color", flat=True).distinct()
+        ctx["material"] = Producto.objects.exclude(material="").values_list("material", flat=True).distinct()
+
+        ctx["productos_destacados"] = Producto.objects.filter(
+            es_destacado=True,
+            esta_disponible=True
+        )[:12]  # Slider
+
+        # Selected
         ctx["search"] = self.request.GET.get("q", "")
-
-
         ctx["selected_categorias"] = self.request.GET.getlist("categoria")
         ctx["selected_marcas"] = self.request.GET.getlist("marca")
         ctx["selected_colores"] = self.request.GET.getlist("color")
         ctx["selected_materiales"] = self.request.GET.getlist("material")
+        ctx["min_value"] = self.request.GET.get("min", "")
+        ctx["max_value"] = self.request.GET.get("max", "")
+
         return ctx
+
 
 class ProductDetailView(DetailView):
     model = Producto

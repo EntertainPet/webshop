@@ -43,25 +43,79 @@ footer {
     color: #6b4c3b;
 }
 
+/* --- HERO DE FONDO BORROSO --- */
 .hero-section {
-    background-image: url('../img/hero.png'); /* ruta relativa desde css */
-    background-size: cover;
-    background-position: center;
-    border-radius: 10px;
     position: relative;
-    padding: 6rem 0;
+    overflow: hidden;
+    height: 480px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    color: #333;
-    text-align: center;
+    padding-left: 6rem;
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../img/hero-mascotas.jpg');
+    background-size: cover;
+    background-position: center;
+    filter: blur(3px) brightness(0.85);
+    transform: scale(1.1);
+    z-index: -1;
+}
+
+/* --- CONTENIDO IZQUIERDA --- */
+.hero-left {
+    position: relative;
+    z-index: 2;
+    max-width: 450px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* mantiene alineado todo a la izquierda */
+    gap: 0.8rem; /* separa logo y eslogan elegantemente */
 }
 
 
-.hero-section .btn-search {
-    font-size: 1.25rem;
-    padding: 0.75rem 1.5rem;
+/* Logo */
+.hero-logo {
+    width: 30%;
 }
+
+/* Slogan bonito */
+.hero-slogan {
+    font-family: 'Times New Roman', Times, serif, cursive; /* fuente bonita */
+    font-style: italic;
+    font-size: 1.75rem;
+    color: #fff7f3;
+    margin-bottom: 1.5rem;
+}
+
+/* Botón del Hero */
+/* Botón optimizado para fondos cálidos/anaranjados */
+.hero-btn {
+    background-color: rgba(255, 170, 60, 0.9);;
+    color: #fff7f3;
+    padding: 12px 10px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 100px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    transition: 0.25s ease;
+    margin-top: 30%;
+}
+
+.hero-btn:hover {
+    background: rgba(255, 170, 60, 0.9);
+    color: #8a4e00;
+    border-color: rgba(255, 170, 60, 0.9);
+    transform: scale(1.1);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+}
+
 
 
 /* ====== Cards ====== */
@@ -87,6 +141,338 @@ h2 {
 .lead {
     color: #6b4c3b;
 }
+
+/* Contenedor general del slider */
+.mySwiper {
+    padding: 2rem 0 3rem;
+}
+
+/* Card de producto profesional */
+.product-card {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.12);
+}
+
+/* Imagen grande y limpia */
+.product-image {
+    height: 230px;          /* ajusta según tu gusto */
+    object-fit: cover;
+}
+
+/* Título */
+.product-title {
+    font-size: 1rem;
+    color: #6b4c3b;
+}
+
+/* Botón "Añadir al carrito" como CTA principal */
+.btn-cart {
+    background-color: #ff6f61;
+    color: #fff7f3;
+    border-radius: 999px;
+    border: none;
+    font-weight: 600;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 8px 20px rgba(255, 111, 97, 0.45);
+}
+
+.btn-cart:hover {
+    background-color: #ff8b73;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(255, 111, 97, 0.6);
+}
+
+/* Botón "Ver más" secundario */
+.btn-outline-secondary {
+    border-radius: 999px;
+    border-color: #ffdfd3;
+    color: #6b4c3b;
+    background-color: #fff7f3;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #ffdfd3;
+    border-color: #ffb55a;
+    color: #6b4c3b;
+}
+
+/* Ajustes responsive */
+@media (max-width: 576px) {
+    .product-image {
+        height: 190px;
+    }
+}
+
+
+/* Título de la sección */
+.section-title {
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ffdfd3, #ffb55a);
+}
+
+/* Flechas de navegación más elegantes */
+.swiper-button-next,
+.swiper-button-prev {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: #ff6f61;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    font-size: 1.2rem;
+}
+
+/* Hover en flechas */
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+    background: #ffb55a;
+    color: #ffffff;
+}
+
+/* Bullets de paginación tipo e‑commerce */
+.swiper-pagination-bullet {
+    background: #ffd7ba;
+    opacity: 1;
+}
+
+.swiper-pagination-bullet-active {
+    background: #ff6f61;
+    transform: scale(1.1);
+}
+
+.pagination .page-link {
+    color: #6b4c3b;
+    border-color: #ffdfd3;
+    background-color: #fff7f3;
+}
+
+.pagination .page-link:hover {
+    color: #6b4c3b;
+    background-color: #ffdfd3;
+    border-color: #ffb55a;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #ff6f61;
+    border-color: #ff6f61;
+    color: #fff7f3;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #c4a69b;
+    background-color: #ffe5d9;
+    border-color: #f5cbb8;
+}
+/* Botón Filtros superior */
+.btn-filter-toggle {
+    border-radius: 999px;
+    background-color: #ffe5d9;
+    color: #6b4c3b;
+    border: 1px solid #ffdfd3;
+    font-weight: 500;
+    padding-inline: 1.2rem;
+}
+
+.btn-filter-toggle:hover {
+    background-color: #ffdfd3;
+    color: #6b4c3b;
+}
+
+/* Alineación barra filtros+buscador */
+.filter-top-search .filter-search-input {
+    border-radius: 999px 0 0 999px;
+    border-color: #ffdfd3;
+    background-color: #ffffff;
+}
+
+/* Panel de filtros (reutilizando lo anterior) */
+.filter-card {
+    border-radius: 20px;
+    background-color: #fff7f3;
+    padding: 1.75rem 2rem;
+}
+
+
+/* Títulos filtros */
+.filter-title {
+    font-weight: 700;
+    color: #6b4c3b;
+}
+
+.filter-subtitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #8b6a55;
+}
+
+/* Búsqueda */
+.filter-search-input {
+    border-radius: 999px 0 0 999px;
+    border-color: #ffdfd3;
+    background-color: #ffffff;
+}
+
+/* Links tipo texto (como en la captura) */
+.filter-link-text {
+    font-size: 0.95rem;
+    color: #6b4c3b;
+}
+
+/* Precio inputs */
+.filter-price-input {
+    max-width: 110px;
+    border-radius: 999px;
+    border-color: #ffdfd3;
+    background-color: #ffffff;
+}
+
+/* Opción de color con círculo */
+.filter-color-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #6b4c3b;
+}
+
+.filter-color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    display: inline-block;
+}
+
+/* Ejemplos de mapeo de colores (ajusta a los valores de tu BD) */
+.filter-color-rojo  { background-color: #ff6b6b; }
+.filter-color-verde { background-color: #38b000; }
+.filter-color-azul  { background-color: #4361ee; }
+.filter-color-negro { background-color: #111111; }
+.filter-color-blanco {
+    background-color: #ffffff;
+    border-color: #ccc;
+}
+
+/* Pills de material/categoría/marca */
+.filter-tag-pill {
+    cursor: pointer;
+    border-radius: 999px;
+    background-color: #ffe5d9;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.85rem;
+    color: #6b4c3b;
+    transition: background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.filter-tag-pill span {
+    display: inline-block;
+}
+
+/* Estado 'checked' (usando selector :has si el navegador lo soporta, o puedes añadir clase via JS) */
+.filter-tag-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+/* Checkbox oculto pero accesible */
+.filter-tag-pill input,
+.filter-color-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Estado base pill */
+.filter-tag-pill {
+    position: relative;
+    cursor: pointer;
+    border-radius: 999px;
+    background-color: #ffe5d9;        /* claro */
+    padding: 0.2rem 0.75rem;
+    font-size: 0.85rem;
+    color: #6b4c3b;
+    transition: background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, color 0.18s ease;
+}
+
+/* Texto dentro de la pill */
+.filter-tag-pill span {
+    display: inline-block;
+}
+
+/* Cuando está seleccionado -> fondo más oscuro */
+.filter-tag-pill input:checked + span {
+    background-color: #ffb59a;        /* más oscurito dentro de tu paleta */
+    color: #6b4c3b;
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Color: estado base */
+.filter-color-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.15rem 0.4rem;
+    border-radius: 999px;
+    transition: background-color 0.18s ease;
+}
+
+/* Cuando el color está seleccionado, fondo del label más oscuro */
+.filter-color-option input:checked ~ .filter-link-text {
+    color: #ff6f61;
+    font-weight: 600;
+}
+
+.filter-color-option input:checked ~ .filter-color-dot {
+    box-shadow: 0 0 0 2px #ff6f61;
+}
+
+
+
+/* Mejora general en pantallas pequeñas */
+@media (max-width: 768px) {
+    .filter-card {
+        padding: 1.25rem 1.25rem;
+    }
+}
+
+
+/* Ajustes responsive extra para móvil */
+@media (max-width: 576px) {
+    .product-card img {
+        height: 190px;
+    }
+}
+
 
 /* ====== Responsivo ====== */
 @media (max-width: 768px) {
