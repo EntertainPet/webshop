@@ -11,12 +11,15 @@ import uuid
 
 from django.template.loader import render_to_string
 from django.core.mail import send_mail, EmailMultiAlternatives
+from email.mime.image import MIMEImage
+import os
 from django.http import HttpResponse
 from django.templatetags.static import static
+import urllib.request
 
 from .forms import ClienteRegistrationForm
 
-from .models import Categoria, Marca, Producto, Carrito, ItemCarrito, Pedido, ItemPedido
+from .models import Categoria, Cliente, Marca, Producto, Carrito, ItemCarrito, Pedido, ItemPedido
 
 
 from django.conf import settings
@@ -243,26 +246,20 @@ class CheckoutConfirmacionView(LoginRequiredMixin, TemplateView):
     
 def enviar_correo(pedido):
     asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
+    FROM_EMAIL = "entertainpet2025@gmail.com"
     to_email = [pedido.cliente_email]
 
-    FROM_EMAIL = "entertainpet2025@gmail.com"
-    IMG_DEFAULT = static("img/hero.png")
-
-    items_con_subtotal = []
-    for item in pedido.pedido_items.select_related("producto"):
-        subtotal = item.producto.precio_final * item.cantidad
-
-        imagen = item.producto.imagenes.filter(es_principal=True).first()
-        imagen_url = imagen.imagen if imagen else IMG_DEFAULT
-
-        items_con_subtotal.append({
+    items_con_subtotal = [
+        {
             "producto": item.producto,
             "cantidad": item.cantidad,
-            "subtotal": subtotal,
-            "imagen_url": imagen_url,
-        })
+            "subtotal": item.producto.precio_final * item.cantidad,
+            "imagen_url": getattr(item.producto.imagenes.filter(es_principal=True).first(), "imagen", None),
+        }
+        for item in pedido.pedido_items.select_related("producto")
+    ]
 
-    cliente = models.Cliente.objects.filter(email=pedido.cliente_email).first()
+    cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
 
     context = {
         "pedido": pedido,
@@ -271,12 +268,10 @@ def enviar_correo(pedido):
     }
 
     html_content = render_to_string("email/confirmacion.html", context)
-
     correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
     correo.attach_alternative(html_content, "text/html")
+
     correo.send(fail_silently=False)
-
-
 @api_view(['POST'])
 def create_checkout_session(request):
     cart_code = request.data.get("cart_code")
