@@ -19,7 +19,9 @@ import stripe
 
 from rest_framework.response import Response
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
 from home import models
@@ -238,11 +240,14 @@ class CheckoutConfirmacionView(LoginRequiredMixin, TemplateView):
 
 
 @api_view(['POST'])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def create_checkout_session(request):
     cart_code = request.data.get("cart_code")
     email = request.data.get("email")
-    cart = Carrito.objects.get(codigo_carrito=cart_code)
     try:
+
+        cart = Carrito.objects.get(codigo_carrito=cart_code)
         checkout_session = stripe.checkout.Session.create(
             customer_email= email,
             payment_method_types=['card'],
