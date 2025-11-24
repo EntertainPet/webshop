@@ -189,7 +189,7 @@ class Command(BaseCommand):
 					producto=random.choice(productos),
 					cantidad=random.randint(1, 3)
 				)
-		self.stdout.write("✔ Carritos con items creados, no debería poder asociarse a usuario??")
+		self.stdout.write("✔ Carritos con items creados")
 
 		# --------------------------
 		# 6. Crear pedidos
