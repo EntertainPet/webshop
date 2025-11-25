@@ -41,6 +41,8 @@ class Command(BaseCommand):
 			password="cliente1",
 			email="cliente1@mail.com",
 			telefono="600123456",
+			first_name="María",
+			last_name="García",
 			direccion="Calle Mascotas 10",
 			ciudad="Barcelona",
 			codigo_postal="08001"
@@ -50,6 +52,8 @@ class Command(BaseCommand):
 			password="cliente2",
 			email="cliente2@mail.com",
 			telefono="600654321",
+			first_name="Carlos",
+			last_name="Martínez",
 			direccion="Avenida Peludos 20",
 			ciudad="Valencia",
 			codigo_postal="46001"
@@ -78,7 +82,8 @@ class Command(BaseCommand):
 		marcas_nombres = [
 			"Purina", "Royal Canin", "Pedigree", "Whiskas",
 			"Kong", "Tetra", "Ferplast", "Hill's",
-			"Beaphar", "Savic", "Vitakraft", "Eheim"
+			"Beaphar", "Savic", "Vitakraft", "Eheim",
+   			"Bugata Style"
 		]
 		marcas = {nombre: Marca.objects.create(nombre=nombre) for nombre in marcas_nombres}
 		self.stdout.write("✔ Marcas creadas")
@@ -87,97 +92,98 @@ class Command(BaseCommand):
 		# 4. Productos 
 		# --------------------------
 		productos_data = [
-			("Nike Pro Max", "Zapatillas deportivas diseñadas para perros activos, resistentes al agua y con suela antideslizante que protege las patas durante cualquier terreno.", "Ropa", "Kong", Decimal("34.99"), "https://s.alicdn.com/@sc04/kf/Hcb31b84cf15f41a1b92db766fe68106aY/Customized-Pet-Dog-Shoes-High-End-Materials-Waterproof-AJ-Shoes-4PCS-Set-Dog-Nikedog-Shoes.png_300x300.jpg", ["XS", "S", "M", "L"]),
-			("Purina ONE Mini Adulto 1.5 kg", "Alimento completo y equilibrado para perros adultos de razas pequeñas, formulado con ingredientes de alta calidad para mantener huesos y dientes sanos.", "Perros", "Purina", Decimal("8.09"), "https://www.tiendanimal.es/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dwc7c35208/images/nuevo_pienso_perros_purina_one_adult_mini_buey_arroz_ONE12211962_M_ind.jpg?sw=500&sh=500&sm=fit", []),
-			("Whiskas Adult 1+ Pescado 4 kg", "Alimento seco para gatos adultos, con sabor a pescado, que contribuye a una digestión sana y al mantenimiento de un pelaje brillante y saludable.", "Gatos", "Whiskas", Decimal("69.30"), "https://m.media-amazon.com/images/I/71ThhXSJ1PL._AC_UF1000,1000_QL80_.jpg", []),
-			("Ferplast Casita Roedor Natura", "Casita de madera natural para hámsters y otros roedores, ideal para dormir, esconderse y explorar, aportando un espacio seguro y acogedor.", "Roedores", "Ferplast", Decimal("14.99"), "https://www.kiwoko.com/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dwcc6a95ed/images/caseta_roedores_ferplast_sin_4645_FER84645099_4.jpg.jpg?sw=500&sh=500&sm=fit", []),
-			("Camiseta Básica", "Camiseta cómoda de algodón para perros, ligera y transpirable, perfecta para mantenerlos abrigados sin limitar sus movimientos.", "Ropa", "Kong", Decimal("6.99"), "https://ae-pic-a1.aliexpress-media.com/kf/Se38ee0b713e04364a10a941d19c7d9e2x.jpg_720x720q75.jpg_.avif", ["XS", "S", "M", "L"]),
-			("Royal Canin Mini Adult 3 kg", "Pienso formulado para perros adultos de razas pequeñas, contribuye a la salud digestiva y mantiene la vitalidad gracias a su mezcla de nutrientes.", "Perros", "Royal Canin", Decimal("37.39"), "https://piensoseloina.com/wp-content/uploads/2023/11/mini-ad-pack.png", []),
-			("Purina ONE Indoor Mature 1.5 kg", "Alimento completo para gatos mayores de interior, ayuda a reducir las bolas de pelo y a mantener un peso saludable gracias a su fórmula adaptada.", "Gatos", "Purina", Decimal("9.99"), "https://yumbiltong.com/cdn/shop/products/8143.jpg?v=1708312360&width=1920", []),
-			("Tetra Roedor Sleep’n Play", "Rueda ultra silenciosa y segura para roedores nocturnos, diseñada para mantenerlos activos sin molestar a los dueños.", "Roedores", "Tetra", Decimal("17.49"), "https://m.media-amazon.com/images/I/61rAmOph3KL._AC_UF1000,1000_QL80_.jpg", []),
-			("Suéter Navideño", "Suéter cálido y decorativo para mascotas, ideal para las fiestas y mantener a tu mascota abrigada con estilo.", "Ropa", "Kong", Decimal("14.99"), "https://www.tiendanimal.es/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dw9d92b8ef/images/large/ce6b2870f8934a69b0ae5d3d8626e8b2.jpg?sw=780&sh=780&sm=fit&q=85", ["XS", "S", "M", "L"]),
-			("Pedigree Dentastix perro grande 28 U", "Palitos masticables para higiene dental diaria, ayudan a reducir la placa y el sarro, mientras disfrutan de un sabor irresistible.", "Perros", "Pedigree", Decimal("12.99"), "https://www.albet.es/cdnassets/dentastix-pack-28-perros-grandes_l.png", []),
-			("Royal Canin Scratch & Play", "Rascador con poste de sisal para gatos, promueve el ejercicio, reduce el estrés y protege los muebles de los arañazos.", "Gatos", "Royal Canin", Decimal("45.50"), "https://m.media-amazon.com/images/I/611vVt+xQxL.jpg", []),
-			("Vitakraft Corredor Hamster Tunnel", "Túnel de plástico seguro y divertido para hámsters y ratones, fomenta el ejercicio y el entretenimiento diario.", "Roedores", "Vitakraft", Decimal("10.95"), "https://m.media-amazon.com/images/I/51fd8tRCfcL._AC_UF894,1000_QL80_.jpg", []),
-			("Sudadera Ligera", "Sudadera ligera para perros, transpirable y cómoda, ideal para paseos en climas templados.", "Ropa", "Beaphar", Decimal("19.99"), "https://m.media-amazon.com/images/I/61THZMLidoL._AC_UF350,350_QL80_.jpg", ["XS", "S", "M", "L"]),
-			("Kong Classic Juguete (M)", "Juguete de caucho duradero que se puede rellenar con golosinas, ideal para mantener a los perros entretenidos y estimular su inteligencia.", "Perros", "Kong", Decimal("5.60"), "https://www.superpet.club/19724-large_default/kong-classic-red.jpg", []),
-			("Ferplast Igloo Cama Gato", "Cama tipo iglú para gatos, cerrada y acogedora, que proporciona un refugio cálido y seguro para descansar.", "Gatos", "Ferplast", Decimal("39.89"), "https://www.ferplast.es/cdn/shop/files/3-0190010033_1800x1800.jpg?v=1728903644", []),
-			("Vitakraft Snack Conejo Zanahoria 100g", "Snack saludable y natural para conejos y roedores, con sabor a zanahoria, ideal para premiar y complementar su dieta.", "Roedores", "Vitakraft", Decimal("1.90"), "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXHFOy2En3gUZQHahiFBvbRPJIrkd8rG3ypQ&s", []),
-			("Impermeable", "Prenda impermeable ligera para perros, perfecta para mantenerlos secos durante la lluvia y al aire libre.", "Ropa", "Beaphar", Decimal("12.99"), "https://m.media-amazon.com/images/I/61KNLVjoopL.jpg", ["XS", "S", "M", "L"]),
-			("Hill's Science Plan Puppy Medium 12 kg", "Pienso de alta calidad para cachorros de tamaño mediano, que apoya un crecimiento saludable y desarrollo óptimo de sus defensas.", "Perros", "Hill's", Decimal("51.19"), "https://agromascotas.es/6189-large_default/hills-sp-canine-puppy-healthy-development-cordero-y-arroz.jpg", []),
-			("Kong Naturals Alimentador Lento Gato", "Comedero lento con diseño natural, que ayuda a los gatos a comer despacio, reduciendo problemas digestivos.", "Gatos", "Kong", Decimal("14.99"), "https://www.kiwoko.com/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dw43f38aaa/images/comedero_perros_outech_eco_kenia_OUT40595.jpg?sw=780&sh=780&sm=fit&q=85", []),
-			("TetraMin Flakes 1L", "Alimento completo en escamas para peces de acuario, garantiza vitalidad y colorido óptimo de los peces.", "Peces", "Tetra", Decimal("15.99"), "https://m.media-amazon.com/images/I/71eqp+Qt-wL.jpg", []),
-			("Arnés Evolutive", "Arnés de seguridad ajustable para perros, proporciona control y comodidad durante los paseos, con diseño ergonómico y seguro.", "Ropa", "Kong", Decimal("29.99"), "https://www.aresbaby.com/wp-content/uploads/2022/08/evolutive-safety-harness-1.jpg", ["XS", "S", "M", "L"]),
-			("Beaphar Calm & Relax Gotas 30 ml", "Suplemento líquido para perros ansiosos, que ayuda a reducir el estrés y mejora su bienestar durante situaciones difíciles.", "Perros", "Beaphar", Decimal("8.49"), "https://www.mvgarden.com/6394-superlarge_default/beaphar-calming-no-stress-perro-recambio-30ml.jpg", []),
-			("Beaphar Hairball Pasta 100 g", "Pasta especialmente formulada para ayudar a los gatos a eliminar las bolas de pelo y mantener un sistema digestivo saludable.", "Gatos", "Beaphar", Decimal("11.99"), "https://m.media-amazon.com/images/I/61gKfknVR0L.jpg", []),
-			("Ferplast Terrario Reptiles 45x45x60", "Terrario ventilado de cristal ideal para reptiles, con espacio suficiente para moverse y accesorios para simular su hábitat natural.", "Reptiles", "Ferplast", Decimal("109.99"), "https://confortanimal.es/wp-content/uploads/2025/09/Pro-Terrarium-Small-Tall-Exo-Terra-45%C3%9745%C3%9760-cm-%E2%80%93-Terrario-Alto-para-Repteis.jpg", []),
-			("Chaleco Reflectante", "Chaleco reflectante para paseos nocturnos, mejora la visibilidad de tu mascota y aporta seguridad en entornos urbanos.", "Ropa", "Beaphar", Decimal("18.99"), "https://m.media-amazon.com/images/I/61BaG8m-8OL._AC_UF1000,1000_QL80_.jpg", ["XS", "S", "M", "L"]),
-			("Pedigree Markies Galletas para perros", "Snack en forma de galleta delicioso que cuida los dientes de los perros mientras disfrutan de un premio saludable.", "Perros", "Pedigree", Decimal("8.58"), "https://www.kiwoko.com/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dw1770b9cd/images/pedigree_galletas_perros_PED104560_1.jpg?sw=500&sh=500&sm=fit", []),
-			("Royal Canin Baby Cat 2 kg", "Pienso para gatitos muy pequeños, proporciona todos los nutrientes esenciales para un desarrollo óptimo en las primeras etapas de vida.", "Gatos", "Royal Canin", Decimal("28.99"), "https://www.tiendanimal.es/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dw92e6cd5c/images/new_royal_canin_mother_babycat_gato_ROY310715_M_1.jpg?sw=780&sh=780&sm=fit&q=85", []),
-			("Vitakraft Jelly Perlas Gato", "Snack en gelatina para gatos, delicioso y divertido, con sabor a atún que encantará a tu felino.", "Gatos", "Vitakraft", Decimal("3.79"), "https://www.mascotasavila.com/cdn/shop/products/98114.png", []),
-			("Hill's Science Plan Mature Adult 7+ 5 kg", "Pienso específico para perros senior, que ayuda a mantener articulaciones sanas y vitalidad general en la edad avanzada.", "Perros", "Hill's", Decimal("59.85"), "https://www.piensosraposo.es/1837-large_default/hill-s-mature-adult-7-medium-science-plan-con-pollo.jpg", []),
-			("Tetra Reptomin Plus 250 ml", "Alimento granulado especialmente diseñado para reptiles, con vitaminas y minerales esenciales para un desarrollo saludable.", "Reptiles", "Tetra", Decimal("8.99"), "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPNgOJtohQILiP9VsIjXzoAsU-OAxK1DDbsA&s", []),
-			("Kong Flyer Disco Volador", "Disco volador de goma resistente, ideal para juegos al aire libre y para mantener activo a tu perro durante horas de diversión.", "Perros", "Kong", Decimal("9.99"), "https://media.zooplus.com/bilder/6/400/417796_pla_kong_flyer_hundefrisbee_hs_01_6.jpg?width=400&format=webp", []),
-			("Ferplast Fuente automática Fontanella 1.5L", "Fuente de agua automática con filtro que mantiene el agua limpia y fresca para perros y gatos, fomentando la hidratación constante.", "Perros", "Ferplast", Decimal("34.99"), "https://m.media-amazon.com/images/I/61jHplX8zyS._AC_UF894,1000_QL80_.jpg", []),
-			("Beaphar Shampoo Perros Aloe Vera 200 ml", "Champú suave con aloe vera, ideal para perros con piel sensible, mantiene el pelaje limpio, hidratado y brillante.", "Perros", "Beaphar", Decimal("10.99"), "https://riovet.es/wp-content/uploads/2022/05/Beaphar-Champu-Bio-Pieles-Sensibles-Perro.jpg", []),
-			("Ferplast Plato SlowBowl 500ml", "Comedero lento para perros, reduce la ingestión rápida de alimento y ayuda a la digestión, evitando problemas gastrointestinales.", "Perros", "Ferplast", Decimal("9.90"), "https://m.media-amazon.com/images/I/51fMtk5wKZL._AC_UF350,350_QL80_.jpg", []),
-			("Tetra AquaSafe Plus 250 ml", "Acondicionador de agua para acuarios nuevos, elimina cloro y metales pesados, preparando un ambiente saludable para los peces.", "Peces", "Tetra", Decimal("15.09"), "https://m.media-amazon.com/images/I/61dpFEj4G7L.jpg", []),
-			("Eheim Filtro canister 2213", "Filtro externo de alto rendimiento para acuarios, asegura una limpieza eficiente del agua y un entorno saludable para tus peces.", "Peces", "Eheim", Decimal("158.38"), "https://m.media-amazon.com/images/I/716-CXv4HvL.jpg", []),
-			("Tetra EasyBalance Test Kit", "Kit completo para medir pH, nitritos y nitratos en acuarios, permitiendo mantener un agua equilibrada y saludable para los peces.", "Peces", "Tetra", Decimal("23.01"), "https://m.media-amazon.com/images/I/616+XyhivhL.jpg", []),
-			("Tetra SafeStart 250 ml", "Inoculante biológico que ayuda a establecer colonias de bacterias beneficiosas en acuarios nuevos, asegurando un ecosistema estable y saludable.", "Peces", "Tetra", Decimal("16.89"), "https://m.media-amazon.com/images/I/81H2ThiOgJL.jpg", []),
-			("Jaula para transporte Savic Dog Residence con cojín", "Jaula portátil y cómoda para transportar perros de manera segura, con acolchado suave y ventilación adecuada.", "Perros", "Savic", Decimal("134.99"), "https://media.zooplus.com/bilder/1/400/76342_pla_3294_4007_dr_107ht_1.jpg?width=400&format=webp", []),
-			("Gorro", "Gorro suave y cálido para perros, protege la cabeza del frío y añade estilo durante los paseos.", "Ropa", "Beaphar", Decimal("12.99"), "https://www.sparkpaws.es/cdn/shop/files/20230917SP19926_600x.jpg?v=1758241855", ["XS", "S", "M", "L"])
-		]
-
+			("Nike Pro Max", "Zapatillas protectoras para mascotas confeccionadas con materiales resistentes al agua y costuras reforzadas. Suela antideslizante que ofrece tracción en superficies húmedas y urbanas; diseño ergonómico que protege las almohadillas y evita rozaduras. Ideales para paseos largos y condiciones meteorológicas adversas, fáciles de limpiar y con cierre ajustable para un calce seguro. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Bugata Style", Decimal("29.99"), "https://s.alicdn.com/@sc04/kf/Hcb31b84cf15f41a1b92db766fe68106aY/Customized-Pet-Dog-Shoes-High-End-Materials-Waterproof-AJ-Shoes-4PCS-Set-Dog-Nikedog-Shoes.png_300x300.jpg", ["XS", "S", "M", "L"]),
+			("Purina ONE Mini Adulto 1.5 kg", "Pienso completo pensado para perros de razas pequeñas, formulado para aportar energía sostenida y mantener la salud dental. Contiene nutrientes esenciales para la piel y el pelaje, con fibras específicas que favorecen la digestión. Ideal como parte de una dieta equilibrada, recomendado para mantenimiento diario y control de peso en perros activos.", "Perros", "Purina", Decimal("7.99"), "https://www.tiendanimal.es/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dwc7c35208/images/nuevo_pienso_perros_purina_one_adult_mini_buey_arroz_ONE12211962_M_ind.jpg?sw=500&sh=500&sm=fit", []),
+			("Whiskas Adult 1+ Pescado 4 kg", "Pienso completo para gatos adultos con sabor a pescado, formulado para favorecer la digestión, el brillo del pelaje y el mantenimiento del peso ideal. Incluye vitaminas y minerales esenciales que contribuyen al bienestar general; textura pensada para fomentar la masticación y la limpieza dental.", "Gatos", "Whiskas", Decimal("34.50"), "https://m.media-amazon.com/images/I/71ThhXSJ1PL._AC_UF1000,1000_QL80_.jpg", []),
+			("Ferplast Casita Roedor Natura", "Refugio de madera natural diseñado para roedores pequeños, con tratamiento seguro para animales y acabados lisos que evitan astillas. Proporciona aislamiento térmico y un espacio recogido para dormir, jugar y esconderse; fácil de limpiar y de integrar en jaulas modulares.", "Roedores", "Ferplast", Decimal("12.99"), "https://www.kiwoko.com/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dwcc6a95ed/images/caseta_roedores_ferplast_sin_4645_FER84645099_4.jpg.jpg?sw=500&sh=500&sm=fit", []),
+			("TetraMin Flakes 1L", "Escamas nutritivas para peces de acuario que ayudan a mantener color y vitalidad; fórmula equilibrada con vitaminas esenciales. Fácil de dosificar y adecuada para una amplia variedad de especies tropicales de agua dulce.", "Peces", "Tetra", Decimal("7.99"), "https://m.media-amazon.com/images/I/71eqp+Qt-wL.jpg", []),
+			("Ferplast Terrario Reptiles 45x45x60", "Terrario de cristal con buena ventilación y estructura resistente, apto para una amplia variedad de reptiles pequeños. Espacio suficiente para decoración, control de temperatura y humedad; incluye cierres de seguridad y bandeja inferior extraíble para limpieza.", "Reptiles", "Ferplast", Decimal("99.99"), "https://confortanimal.es/wp-content/uploads/2025/09/Pro-Terrarium-Small-Tall-Exo-Terra-45%C3%9745%C3%9760-cm-%E2%80%93-Terrario-Alto-para-Repteis.jpg", []),
+			("Camiseta Básica", "Camiseta ligera de algodón para mascotas, transpirable y suave al tacto. Costuras planas para mayor confort, diseño atemporal apto para uso diario y lavable a máquina. Perfecta para ir de paseo y para proteger ligeramente del sol en climas templados. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Savic", Decimal("5.99"), "https://ae-pic-a1.aliexpress-media.com/kf/Se38ee0b713e04364a10a941d19c7d9e2x.jpg_720x720q75.jpg_.avif", ["XS", "S", "M", "L"]),
+			("Royal Canin Mini Adult 3 kg", "Pienso específico para perros pequeños, formulado para apoyar la digestión, la salud oral y la vitalidad diaria. Contiene equilibradas combinaciones de proteínas y ácidos grasos esenciales para un pelaje brillante; pensado para perros con actividad moderada.", "Perros", "Royal Canin", Decimal("33.50"), "https://piensoseloina.com/wp-content/uploads/2023/11/mini-ad-pack.png", []),
+			("Purina ONE Indoor Mature 1.5 kg", "Pienso diseñado para gatos de interior de edad avanzada, ayuda a reducir la formación de bolas de pelo y a mantener un peso saludable. Enriquecido con nutrientes que favorecen la salud digestiva y la vitalidad, con croquetas adaptadas a la dentición del gato adulto.", "Gatos", "Purina", Decimal("9.49"), "https://yumbiltong.com/cdn/shop/products/8143.jpg?v=1708312360&width=1920", []),
+			("Tetra Roedor Sleep`n Play", "Rueda silenciosa y segura para roedores, fabricada con plástico no tóxico y diseño cerrado que reduce el riesgo de lesiones. Promueve el ejercicio nocturno sin generar ruidos molestos; fácil montaje y compatible con la mayoría de jaulas estándar.", "Roedores", "Tetra", Decimal("14.99"), "https://m.media-amazon.com/images/I/61rAmOph3KL._AC_UF1000,1000_QL80_.jpg", []),
+			("Suéter Navideño", "Suéter festivo y cálido para mascotas, confeccionado con fibra acrílica suave y estampado estacional. Proporciona abrigo en días fríos y es un complemento decorativo para celebraciones; cierres elásticos para facilitar el ajuste sin causar molestias. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Bugata Style", Decimal("11.99"), "https://www.tiendanimal.es/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dw9d92b8ef/images/large/ce6b2870f8934a69b0ae5d3d8626e8b2.jpg?sw=780&sh=780&sm=fit&q=85", ["XS", "S", "M", "L"]),
+			("Pedigree Dentastix perro grande 28 U", "Palitos de higiene dental para perros grandes que ayudan a reducir placa y sarro con uso diario. Textura y forma especialmente diseñadas para favorecer la limpieza mecánica de los dientes durante la masticación; complemento para una rutina de cuidado oral.", "Perros", "Pedigree", Decimal("10.99"), "https://www.albet.es/cdnassets/dentastix-pack-28-perros-grandes_l.png", []),
+			("Royal Canin Scratch & Play", "Rascador con poste de sisal natural pensado para cubrir las necesidades de rascado de los gatos, alargando el tiempo de juego y protegiendo muebles. Base estable y materiales duraderos, además de zonas para esconder juguetes y descansar.", "Gatos", "Royal Canin", Decimal("39.99"), "https://m.media-amazon.com/images/I/611vVt+xQxL.jpg", []),
+			("Vitakraft Corredor Hamster Tunnel", "Túnel modular de plástico seguro para hámsters y pequeños roedores, fomenta la exploración y el ejercicio. Diseño ventilado y fácil de limpiar; compatible con accesorios adicionales para crear circuitos y enriquecimiento ambiental.", "Roedores", "Vitakraft", Decimal("8.95"), "https://m.media-amazon.com/images/I/51fd8tRCfcL._AC_UF894,1000_QL80_.jpg", []),
+			("Eheim Filtro canister 2213", "Filtro externo de alto rendimiento para acuarios, diseñado para proporcionar filtración mecánica, biológica y química eficiente. Funcionamiento silencioso y bajo consumo, con fácil mantenimiento y cartuchos accesibles.", "Peces", "Eheim", Decimal("148.00"), "https://m.media-amazon.com/images/I/716-CXv4HvL.jpg", []),
+			("Sudadera Ligera", "Sudadera transpirable para mascotas, con tejido técnico que regula la temperatura corporal en climas suaves. Costuras reforzadas y detalle reflectante para mayor visibilidad; fácil de poner y apta para lavado frecuente sin perder forma. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Kong", Decimal("16.99"), "https://m.media-amazon.com/images/I/61THZMLidoL._AC_UF350,350_QL80_.jpg", ["XS", "S", "M", "L"]),
+			("Kong Classic Juguete (M)", "Juguete de caucho natural resistente, ideal para masticación intensa y entrenamiento. Rellenable para premios, ayuda a estimular la actividad mental y física; diseño flotante apto para juegos acuáticos y muy duradero frente a mordiscos repetidos.", "Perros", "Kong", Decimal("6.50"), "https://www.superpet.club/19724-large_default/kong-classic-red.jpg", []),
+			("Ferplast Igloo Cama Gato", "Cama tipo iglú que proporciona calor y privacidad, fabricada con materiales aislantes y base estable. Estructura fácil de desmontar para limpieza y cojín interior lavable; ideal para gatos que buscan un refugio acogedor y seguro.", "Gatos", "Ferplast", Decimal("34.99"), "https://www.ferplast.es/cdn/shop/files/3-0190010033_1800x1800.jpg?v=1728903644", []),
+			("Vitakraft Snack Conejo Zanahoria 100g", "Snack natural en formato comprimido para conejos y roedores como complemento ocasional; elaborado con ingredientes de origen vegetal que favorecen el desgaste dental y la actividad digestiva. Ideal para premios puntuales y entrenamiento.", "Roedores", "Vitakraft", Decimal("1.79"), "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXHFOy2En3gUZQHahiFBvbRPJIrkd8rG3ypQ&s", []),
+			("Tetra EasyBalance Test Kit", "Kit básico de pruebas para pH, nitritos y nitratos que facilita el mantenimiento del acuario doméstico. Incluye reactivos y manual de uso, ideal para diagnóstico rápido y toma de decisiones en el cuidado del agua.", "Peces", "Tetra", Decimal("19.99"), "https://m.media-amazon.com/images/I/616+XyhivhL.jpg", []),
+			("Impermeable", "Chaqueta impermeable para mascotas, ligera y con interior de malla para cómoda transpiración. Costuras selladas y cierre rápido que protege del viento y la lluvia; fácil de secar y de almacenar en plegado compacto. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Savic", Decimal("11.99"), "https://m.media-amazon.com/images/I/61KNLVjoopL.jpg", ["XS", "S", "M", "L"]),
+			("Hill's Science Plan Puppy Medium 12 kg", "Pienso formulado para cachorros de tamaño mediano, con nutrientes específicos para apoyar el crecimiento de huesos y músculos, además de defensas naturales. Textura adaptada para fomentar la masticación y la aceptación durante las etapas de destete y crecimiento.", "Perros", "Hill's", Decimal("48.50"), "https://agromascotas.es/6189-large_default/hills-sp-canine-puppy-healthy-development-cordero-y-arroz.jpg", []),
+			("Kong Naturals Alimentador Lento Gato", "Comedero diseñado para ralentizar la ingesta y fomentar el enriquecimiento alimentario; reduce atragantamientos y mejora la digestión felina. Superficie texturizada y cavidades distribuidas para que el gato explore y consuma más despacio.", "Gatos", "Kong", Decimal("12.99"), "https://www.kiwoko.com/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dw43f38aaa/images/comedero_perros_outech_eco_kenia_OUT40595.jpg?sw=780&sh=780&sm=fit&q=85", []),
+			("Tetra SafeStart 250 ml", "Inoculante biológico que acelera el ciclado del acuario y estabiliza la población bacteriana beneficiosa, reduciendo riesgos de pérdidas de peces. Útil en instalaciones nuevas o tras limpiezas profundas para recuperar equilibrio biológico.", "Peces", "Tetra", Decimal("14.49"), "https://m.media-amazon.com/images/I/81H2ThiOgJL.jpg", []),
+			("Arnés Evolutive", "Arnés ajustable con distribución de presión para paseos seguros; material resistente y cierres reforzados que evitan torsiones. Diseño ergonómico para comodidad del animal y del usuario, con puntos reflectantes para visibilidad nocturna. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Ferplast", Decimal("24.99"), "https://www.aresbaby.com/wp-content/uploads/2022/08/evolutive-safety-harness-1.jpg", ["XS", "S", "M", "L"]),
+			("Chaleco Reflectante", "Chaleco con bandas reflectantes de alta visibilidad para paseos nocturnos; material ligero y cierre ajustable. Mejora la seguridad del animal en zonas urbanas con baja iluminación y es fácil de poner y quitar sin molestias. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Bugata Style", Decimal("14.99"), "https://m.media-amazon.com/images/I/61BaG8m-8OL._AC_UF1000,1000_QL80_.jpg", ["XS", "S", "M", "L"]),
+			("Pedigree Markies Galletas para perros", "Snack crujiente pensado para premios y refuerzo positivo durante el adiestramiento; textura endurecida que favorece la limpieza dental leve durante la masticación. Formulado para ser sabroso y aceptado por perros de distintas edades.", "Perros", "Pedigree", Decimal("6.49"), "https://www.kiwoko.com/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dw1770b9cd/images/pedigree_galletas_perros_PED104560_1.jpg?sw=500&sh=500&sm=fit", []),
+			("Royal Canin Baby Cat 2 kg", "Pienso formulado para gatitos en etapas tempranas de desarrollo, favorece un correcto aporte de nutrientes para crecimiento y desarrollo inmunológico. Textura y tamaño de croqueta adaptados al régimen de lactancia y destete, con antioxidantes seleccionados.", "Gatos", "Royal Canin", Decimal("25.99"), "https://www.tiendanimal.es/dw/image/v2/BDLQ_PRD/on/demandware.static/-/Sites-kiwoko-master-catalog/default/dw92e6cd5c/images/new_royal_canin_mother_babycat_gato_ROY310715_M_1.jpg?sw=780&sh=780&sm=fit&q=85", []),
+			("Gorro", "Gorro cálido para proteger la cabeza y las orejas de tu mascota en climas fríos; tejido suave y costuras internas que evitan rozaduras. Diseño cómodo con ajuste para no restringir la visión ni el movimiento. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Bugata Style", Decimal("9.99"), "https://www.sparkpaws.es/cdn/shop/files/20230917SP19926_600x.jpg?v=1758241855", ["XS", "S", "M", "L"]),
+			("Hill's Science Plan Mature Adult 7+ 5 kg", "Pienso específico para perros senior que cuida articulaciones y energía diaria; contiene nutrientes que favorecen movilidad y salud cognitiva. Fórmula equilibrada para ayudar a mantener la masa muscular y la condición corporal en la tercera edad.", "Perros", "Hill's", Decimal("54.99"), "https://www.piensosraposo.es/1837-large_default/hill-s-mature-adult-7-medium-science-plan-con-pollo.jpg", []),
+			("Vitakraft Jelly Perlas Gato", "Premio en gelatina con sabor a atún, diseñado como snack ocasional para gatos; textura blanda adecuada para denticiones sensibles. Presentado en porciones individuales para control de la ingesta y como complemento apetecible en dietas variadas.", "Gatos", "Vitakraft", Decimal("3.49"), "https://www.mascotasavila.com/cdn/shop/products/98114.png", []),
+			("Jersey de lana", "Jersey de punto cálido y suave para mantener a tu mascota abrigada durante el invierno; corte adaptado para libertad de movimiento y facilidad de puesta. Materiales tratados para disminuir la formación de bolas y facilitar el lavado. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Vitakraft", Decimal("18.99"), "https://www.paraperrosygatos.es/cdn/shop/files/JERSEY_PERRO_ANTRACITA_TRIXIE.png?v=1731318156", ["XS", "S", "M", "L"]),
+			("Kong Flyer Disco Volador", "Disco de goma flexible y resistente para juegos al aire libre; diseño pensado para un vuelo estable y agarre cómodo. Material duradero y seguro para masticación, apto para entrenamiento de lanzamiento y recuperación en perros activos.", "Perros", "Kong", Decimal("8.99"), "https://media.zooplus.com/bilder/6/400/417796_pla_kong_flyer_hundefrisbee_hs_01_6.jpg?width=400&format=webp", []),
+			("Esmoquin", "Traje elegante para ocasiones especiales, con corte cómodo y tejido que no oprime. Incluye detalles prácticos para sujetar correa y acabados pensados para sesiones de fotos y eventos sin renunciar al confort del animal. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Bugata Style", Decimal("22.99"), "https://m.media-amazon.com/images/I/51PW4hzwWlL.jpg", ["XS", "S", "M", "L"]),
+			("Ferplast Fuente automática Fontanella 1.5L", "Fuente con filtro para mantener el agua fresca y en circulación, fomentando la hidratación constante. Capacidad de 1.5L, sistema silencioso y piezas desmontables para limpieza y mantenimiento; indicado para gatos y perros de tamaño pequeño a mediano.", "Perros", "Ferplast", Decimal("29.99"), "https://m.media-amazon.com/images/I/61jHplX8zyS._AC_UF894,1000_QL80_.jpg", []),
+			("Corbata", "Accesorio decorativo fácil de poner para eventos y sesiones fotográficas; cierre seguro y diseño cómodo que no limita el movimiento. Ideal como complemento temporal para looks formales o festivos. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Savic", Decimal("6.99"), "https://m.media-amazon.com/images/I/71gWM8c2ybL.jpg", ["XS", "S", "M", "L"]),
+			("Pijama", "Pijama suave y cálido para dormir, confeccionado con telas agradables que proporcionan confort nocturno. Ajuste pensado para que la mascota se mueva con libertad y mantenga el calor corporal durante la noche. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Bugata Style", Decimal("15.99"), "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSM-JQoMcRbHA4NzLRUHNMXcxQSuuZ__LU15g&s", ["XS", "S", "M", "L"]),
+			("Ferplast Plato SlowBowl 500ml", "Comedero antivelocidad con diseño que obliga a masticar más despacio y mejora la digestión; base estable y material resistente a mordiscos. Ideal para perros que comen rápido y sufren regurgitaciones o problemas digestivos leves.", "Perros", "Ferplast", Decimal("8.90"), "https://m.media-amazon.com/images/I/51fMtk5wKZL._AC_UF350,350_QL80_.jpg", []),
+			("Flotador", "Chaleco flotador para mascotas diseñado para mejorar la seguridad en actividades acuáticas; materiales flotantes y sistema de ajuste firme. Costuras y hebillas reforzadas, ideal para entrenamiento en agua y rescates recreativos. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Kong", Decimal("24.99"), "https://media.adeo.com/mkp/7cd776bd670a0b63dfdd340aeebfd723/media.jpeg", ["XS", "S", "M", "L"]),
+			("Bañador", "Bañador para mascotas en tejido de secado rápido, con patrón anatómico que no limita el movimiento al nadar. Ofrece protección frente al sol y es muy fácil de lavar; perfecto para días de playa y piscina. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Ferplast", Decimal("11.99"), "https://m.media-amazon.com/images/I/61QmiNqohUL._AC_UF1000,1000_QL80_.jpg", ["XS", "S", "M", "L"]),
+			("Pañuelo", "Pañuelo de tela suave y transpirable para looks diarios; fácil de colocar y con múltiples estampados disponibles. Funciona como accesorio estético y ligera protección contra el frío en paseos cortos. Producto válido para todo tipo de mascotas, se muestra un perro porque el proveedor nos proporciona así las fotografías", "Ropa", "Bugata Style", Decimal("4.99"), "https://m.media-amazon.com/images/I/61Y08VU-m3L._AC_UF894,1000_QL80_.jpg", ["XS", "S", "M", "L"]), 
+   	]
+  
 		productos = []
 
-		for nombre, desc, cat_nombre, marca_nombre, precio, img_url, tallas_data in productos_data:
-			categoria = Categoria.objects.get(nombre=cat_nombre)
-			marca = Marca.objects.get(nombre=marca_nombre)
+		for idx, (nombre, desc, cat_nombre, marca_nombre, precio, img_url, tallas_data) in enumerate(productos_data):
+				categoria = Categoria.objects.get(nombre=cat_nombre)
+				marca = Marca.objects.get(nombre=marca_nombre)
+				es_destacado = 10 <idx < 25
+				producto_stock_general = 0
+				if cat_nombre != "Ropa":
+					producto_stock_general = random.randint(0, 10)
 
-			producto_stock_general = 0
-			if cat_nombre != "Ropa":
-				producto_stock_general = random.randint(0, 10)
-
-			prod = Producto.objects.create(
-				nombre=nombre,
-				descripcion=desc,
-				precio=precio,
-				stock=producto_stock_general, 
-				categoria=categoria,
-				marca=marca
-			)
-
-			ImagenProducto.objects.create(
-				producto=prod,
-				imagen=img_url,
-				es_principal=True
-			)
-			
-			if cat_nombre == "Ropa" and tallas_data:
-				total_stock_tallas = 0
-				for talla in tallas_data:
-					stock_talla = random.randint(0, 5)
+				prod = Producto.objects.create(
+					nombre=nombre,
+					descripcion=desc,
+					precio=precio,
+					stock=producto_stock_general, 
+					categoria=categoria,
+					marca=marca,
+					es_destacado=es_destacado  
+				)
+				
+				ImagenProducto.objects.create(
+					producto=prod,
+					imagen=img_url,
+					es_principal=True
+				)
+				
+				if cat_nombre == "Ropa" and tallas_data:
+					total_stock_tallas = 0
+					for talla in tallas_data:
+						stock_talla = random.randint(0, 5)
+						TallaProducto.objects.create(
+							producto=prod, 
+							talla=talla,
+							stock=stock_talla 
+						)
+						total_stock_tallas += stock_talla 
+					
+					prod.stock = total_stock_tallas
+					prod.save() 
+				else:
 					TallaProducto.objects.create(
 						producto=prod, 
-						talla=talla,
-						stock=stock_talla 
+						talla="Única",
+						stock=producto_stock_general
 					)
-					total_stock_tallas += stock_talla 
-				prod.stock = total_stock_tallas
-				prod.save()
-
-			else:
-				TallaProducto.objects.create(
-					producto=prod, 
-					talla="Única",
-					stock=producto_stock_general
-				)
-			
-			productos.append(prod)
+				
+				productos.append(prod)
 
 		self.stdout.write(f"✔ {len(productos)} productos creados")
-
 		# --------------------------
 		# 5. Crear carritos con items
 		# --------------------------
