@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="auth-page">
-  <div>
+  <div class="auth-card">
     <h2>Crear cuenta</h2>
 
     <form class="auth-form" method="post" action="{% url 'home:register' %}">
@@ -21,17 +21,23 @@
         <div class="form-group">
           <label for="{{ form.username.id_for_label }}">Nombre de usuario</label>
           {{ form.username }}
-          <div class="form-errors">{{ form.username.errors }}</div>
+          {% if form.username.errors %}
+            <div class="form-errors">{{ form.username.errors }}</div>
+          {% endif %}
         </div>
         <div class="form-group">
           <label for="{{ form.first_name.id_for_label }}">Nombre</label>
           {{ form.first_name }}
-          <div class="form-errors">{{ form.first_name.errors }}</div>
+          {% if form.first_name.errors %}
+            <div class="form-errors">{{ form.first_name.errors }}</div>
+          {% endif %}
         </div>
         <div class="form-group">
           <label for="{{ form.last_name.id_for_label }}">Apellidos</label>
           {{ form.last_name }}
-          <div class="form-errors">{{ form.last_name.errors }}</div>
+          {% if form.last_name.errors %}
+            <div class="form-errors">{{ form.last_name.errors }}</div>
+          {% endif %}
         </div>
       </div>
 
@@ -39,44 +45,58 @@
         <div class="form-group">
           <label for="{{ form.email.id_for_label }}">Correo electrónico</label>
           {{ form.email }}
-          <div class="form-errors">{{ form.email.errors }}</div>
+          {% if form.email.errors %}
+            <div class="form-errors">{{ form.email.errors }}</div>
+          {% endif %}
         </div>
         <div class="form-group">
           <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
           {{ form.telefono }}
-          <div class="form-errors">{{ form.telefono.errors }}</div>
+          {% if form.telefono.errors %}
+            <div class="form-errors">{{ form.telefono.errors }}</div>
+          {% endif %}
         </div>
       </div>
 
       <div class="form-group">
         <label for="{{ form.direccion.id_for_label }}">Dirección</label>
         {{ form.direccion }}
-        <div class="form-errors">{{ form.direccion.errors }}</div>
+        {% if form.direccion.errors %}
+          <div class="form-errors">{{ form.direccion.errors }}</div>
+        {% endif %}
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label for="{{ form.ciudad.id_for_label }}">Ciudad</label>
           {{ form.ciudad }}
-          <div class="form-errors">{{ form.ciudad.errors }}</div>
+          {% if form.ciudad.errors %}
+            <div class="form-errors">{{ form.ciudad.errors }}</div>
+          {% endif %}
         </div>
         <div class="form-group">
           <label for="{{ form.codigo_postal.id_for_label }}">Código postal</label>
           {{ form.codigo_postal }}
-          <div class="form-errors">{{ form.codigo_postal.errors }}</div>
+          {% if form.codigo_postal.errors %}
+            <div class="form-errors">{{ form.codigo_postal.errors }}</div>
+          {% endif %}
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="{{ form.password.id_for_label }}">Contraseña</label>
+          <label for="{{ form.password1.id_for_label }}">Contraseña</label>
           {{ form.password1 }}
-          <div class="form-errors">{{ form.password.errors }}</div>
+          {% if form.password1.errors %}
+            <div class="form-errors">{{ form.password1.errors }}</div>
+          {% endif %}
         </div>
         <div class="form-group">
           <label for="{{ form.password2.id_for_label }}">Confirmar contraseña</label>
           {{ form.password2 }}
-          <div class="form-errors">{{ form.password2.errors }}</div>
+          {% if form.password2.errors %}
+            <div class="form-errors">{{ form.password2.errors }}</div>
+          {% endif %}
         </div>
       </div>
 

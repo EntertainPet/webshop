@@ -1,177 +1,360 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load query_tags %}
 
 {% block title %}Catálogo - EntertainPet{% endblock %}
 
-{% block global_sidebar %}
-<!-- BOTÓN PARA ABRIR LA BARRA DE FILTROS -->
-<button id="openFilters" class="filter-button">⚙️ Filtros</button>
-
-<!-- BARRA LATERAL DE FILTROS -->
-<div id="filterSidebar" class="filter-sidebar">
-
-    <!-- CABECERA DEL SIDEBAR -->
-    <div class="filter-header">
-        <h2>Filtros</h2>
-        <span id="closeFilters" class="close-btn">✖</span>
-    </div>
-
-    <!-- FORMULARIO DE FILTROS -->
-    <form method="GET" id="filterForm">
-
-        <!-- BUSCAR -->
-        <div class="filter-block">
-            <label>Buscar:</label>
-            <input type="text" name="q" placeholder="Buscar..." value="{{ search }}">
-        </div>
-
-        <!-- CATEGORÍAS -->
-        <div class="filter-block collapsible">
-            <div class="filter-header-collapsible">
-                <span>Categorías</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
-                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
-                </svg>
-            </div>
-            <div class="filter-options">
-                {% for c in categorias %}
-                    <label class="filter-item">
-                        <input type="checkbox" name="categoria" value="{{ c.id }}"
-                              {% if c.id|stringformat:"s" in selected_categorias %}checked{% endif %}>
-                        {{ c.nombre }}
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- MARCAS -->
-        <div class="filter-block collapsible">
-            <div class="filter-header-collapsible">
-                <span>Marcas</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
-                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
-                </svg>
-            </div>
-            <div class="filter-options">
-                {% for m in marcas %}
-                    <label class="filter-item">
-                        <input type="checkbox" name="marca" value="{{ m.id }}"
-                              {% if m.0|stringformat:"s" in selected_marcas %}checked{% endif %}>
-                        {{ m.nombre }}
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- MATERIALES -->
-        <div class="filter-block collapsible">
-            <div class="filter-header-collapsible">
-                <span>Material</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
-                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
-                </svg>
-            </div>
-            <div class="filter-options">
-                {% for mat in material %}
-                    <label class="filter-item">
-                        <input type="checkbox" name="material" value="{{ mat }}"
-                              {% if mat in selected_materiales %}checked{% endif %}>
-                        {{ mat }}
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- COLORES -->
-        <div class="filter-block collapsible">
-            <div class="filter-header-collapsible">
-                <span>Color</span>
-                <svg class="arrow" width="16" height="16" viewBox="0 0 24 24">
-                    <path d="M8 5l8 7-8 7" fill="none" stroke="#c19050" stroke-width="2"/>
-                </svg>
-            </div>
-            <div class="filter-options">
-                {% for col in color %}
-                    <label class="filter-item">
-                        <input type="checkbox" name="color" value="{{ col }}"
-                              {% if col in selected_colores %}checked{% endif %}>
-                        {{ col }}
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- PRECIOS -->
-        <div class="filter-block">
-            <label><strong>Precio mínimo:</strong></label>
-            <input type="number" name="min" value="{{ request.GET.min }}">
-
-            <label><strong>Precio máximo:</strong></label>
-            <input type="number" name="max" value="{{ request.GET.max }}">
-        </div>
-
-        <!-- BOTÓN APLICAR -->
-        <button type="submit" class="apply-btn">Aplicar filtros</button>
-
-    </form>
-    <form method="GET" id="clearFiltersForm">
-        <button type="submit" class="clear-filters-btn">Eliminar filtros</button>
-    </form>
-</div>
-{% endblock %}
-
 {% block content %}
-<div class="catalog-header">
-    <h1>Catálogo</h1>
-</div>
 
-<div class="products-grid container">
-    {% if productos %}
-        {% for p in productos %}
-        <div class="card">
-            <div class="imagen-placeholder">
-                {% if p.imagenes.first %}
-                    <img src="{{ p.imagenes.first.imagen }}" alt="{{ p.nombre }}"
-                         style="width:100%;height:100%;object-fit:cover;border-radius:6px">
-                {% else %}
-                    🖼️
-                {% endif %}
-            </div>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-left">
+        <img src="{% static 'img/logo.png' %}" alt="EntertainPet" class="hero-logo">
+        
+        <p class="hero-slogan">"Juguetes que llenan de alegría a tu mascota"</p>
 
-            <h4>{{ p.nombre }}</h4>
-            <div class="price">{{ p.precio }} €</div>
-
-            <a href="{% url 'home:producto_detalle' p.slug %}" class="detalle-link">Ver detalle</a>
-
-            <form action="{% url 'home:carrito_add' p.pk %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="add-btn">Añadir</button>
-            </form>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div style="background:#fff7e6;border:1px dashed #f0c36d;padding:12px;border-radius:8px;margin-bottom:12px">
-            <strong>No se encontraron productos.</strong>
-            <p style="margin:6px 0 0; color:#666">Intenta cambiar los filtros o la búsqueda.</p>
-        </div>
-    {% endif %}
-</div>
-
-<!-- PAGINACIÓN -->
-{% if is_paginated %}
-    <div class="pagination">
-
-        {% if page_obj.has_previous %}
-            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Anterior</a>
-        {% endif %}
-
-        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-
-        {% if page_obj.has_next %}
-            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Siguiente</a>
-        {% endif %}
-
+        <a href="#catalogo" class="btn btn-search hero-btn">Comprar Ahora</a>
     </div>
-{% endif %}
+</section>
 
 {% endblock %}
+
+{% block inner_content %}
+
+<div class="container mt-5">
+
+
+    <div class="container mt-5">
+    <div class="container mt-5">
+
+    <!-- Barra superior: Filtros + Buscador -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-filter-toggle"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#filterCollapse"
+                    aria-expanded="false"
+                    aria-controls="filterCollapse">
+                <i class="bi bi-sliders me-1"></i> Filtros
+            </button>
+        </div>
+
+        <form method="get" action="{% url 'home:catalogo' %}" class="d-flex align-items-center filter-top-search">
+            {# Mantener filtros activos al buscar de nuevo #}
+            {% for key, value in request.GET.items %}
+                {% if key != 'q' %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                {% endif %}
+            {% endfor %}
+
+            <div class="input-group">
+                <input type="text"
+                       class="form-control filter-search-input"
+                       name="q"
+                       placeholder="Buscar juguete..."
+                       value="{{ search }}">
+                <button class="btn btn-search" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+
+    <!-- Sección de filtros desplegable -->
+    <div class="collapse" id="filterCollapse">
+        <section class="filter-section mb-4">
+            <form method="get" action="{% url 'home:catalogo' %}" class="filter-card shadow-sm">
+
+                <div class="row g-4 align-items-start">
+                    <!-- Columna: Precio -->
+                    <div class="col-12 col-lg-3">
+                        <h5 class="filter-title mb-3">Precio</h5>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <input type="number"
+                                   class="form-control form-control-sm filter-price-input"
+                                   name="min"
+                                   placeholder="Mín."
+                                   value="{{ min_value }}">
+                            <span class="text-muted">–</span>
+                            <input type="number"
+                                   class="form-control form-control-sm filter-price-input"
+                                   name="max"
+                                   placeholder="Máx."
+                                   value="{{ max_value }}">
+                        </div>
+                        <p class="small text-muted mb-0">
+                            Introduce un rango o déjalo vacío para ver todos.
+                        </p>
+                    </div>
+
+                    <!-- Columna: Color -->
+                    <div class="col-12 col-lg-3">
+                        <h5 class="filter-title mb-3">Color</h5>
+                        <div class="d-flex flex-column gap-1">
+                            {% for c in color %}
+                                <label class="filter-color-option">
+                                    <input type="checkbox"
+                                           name="color"
+                                           value="{{ c }}"
+                                           class="d-none"
+                                           {% if c in selected_colores %}checked{% endif %}>
+                                    <span class="filter-color-dot filter-color-{{ c|lower|slugify }}"></span>
+                                    <span class="filter-link-text">{{ c }}</span>
+                                </label>
+                            {% empty %}
+                                <span class="text-muted small">Sin colores definidos.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Columna: Material -->
+                    <div class="col-12 col-lg-3">
+                        <h5 class="filter-title mb-3">Material</h5>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% for m in material %}
+                                <label class="filter-tag-pill">
+                                    <input type="checkbox"
+                                           name="material"
+                                           value="{{ m }}"
+                                           class="d-none"
+                                           {% if m in selected_materiales %}checked{% endif %}>
+                                    <span>{{ m }}</span>
+                                </label>
+                            {% empty %}
+                                <span class="text-muted small">Sin materiales definidos.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Columna: Categoría y Marca -->
+                    <div class="col-12 col-lg-3">
+                        <h5 class="filter-title mb-3">Categoría</h5>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% for cat in categorias %}
+                                <label class="filter-tag-pill">
+                                    <input type="checkbox"
+                                           name="categoria"
+                                           value="{{ cat.id }}"
+                                           class="d-none"
+                                           {% if cat.id|stringformat:"s" in selected_categorias %}checked{% endif %}>
+                                    <span>{{ cat.nombre }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+
+                        <h6 class="filter-subtitle mb-2">Marca</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for marca in marcas %}
+                                <label class="filter-tag-pill">
+                                    <input type="checkbox"
+                                           name="marca"
+                                           value="{{ marca.id }}"
+                                           class="d-none"
+                                           {% if marca.id|stringformat:"s" in selected_marcas %}checked{% endif %}>
+                                    <span>{{ marca.nombre }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'home:catalogo' %}" class="btn btn-outline-secondary btn-sm">
+                        Limpiar filtros
+                    </a>
+                    <button type="submit" class="btn btn-cart btn-sm">
+                        Aplicar filtros
+                    </button>
+                </div>
+
+            </form>
+        </section>
+    </div>
+
+    <!-- 🏆 SLIDER DE PRODUCTOS DESTACADOS -->
+    {% if productos_destacados %}
+    <h2 id = "catalogo" class="section-title text-center my-4">Productos Destacados</h2>
+
+    <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+
+            {% for producto in productos_destacados %}
+            <div class="swiper-slide">
+                <div class="card shadow-sm product-card">
+
+                    {% with img=producto.imagenes.first %}
+                        {% if img %}
+                            <img src="{{ img.imagen }}" class="card-img-top product-image" alt="{{ producto.nombre }}">
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="card-body text-center">
+                        <h5>{{ producto.nombre }}</h5>
+
+                        {% if producto.precio_oferta %}
+                            <p class="text-muted"><del>${{ producto.precio }}</del>
+                            <span class="text-danger fw-bold ms-1">${{ producto.precio_oferta }}</span></p>
+                        {% else %}
+                            <p class="fw-bold">${{ producto.precio }}</p>
+                        {% endif %}
+
+                        <a href="{{ producto.get_absolute_url }}" class="btn btn-search mt-2">Ver más</a>
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- Controles -->
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-pagination"></div>
+
+    </div>
+
+    <script>
+      new Swiper(".mySwiper", {
+          slidesPerView: 4,
+          spaceBetween: 24,
+          loop: true,
+          grabCursor: true,
+          speed: 600,
+
+          autoplay: {
+              delay: 3500,
+              disableOnInteraction: false,
+          },
+
+          navigation: {
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+          },
+
+          pagination: {
+              el: ".swiper-pagination",
+              clickable: true,
+          },
+
+          breakpoints: {
+              0:   { slidesPerView: 1.2, spaceBetween: 12 },
+              576: { slidesPerView: 2,   spaceBetween: 16 },
+              992: { slidesPerView: 3,   spaceBetween: 20 },
+              1200:{ slidesPerView: 4,   spaceBetween: 24 }
+          }
+      });
+    </script>
+
+    {% endif %}
+
+
+    <!-- 📦 LISTA NORMAL DE PRODUCTOS -->
+    <h2 class="section-title mt-5 mb-4 text-center">Productos</h2>
+
+    <div class="row g-4">
+        {% for producto in productos %}
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card product-card h-100">
+
+              {% with img=producto.imagenes.first %}
+                  {% if img %}
+                      <img src="{{ img.imagen }}" class="card-img-top product-image" alt="{{ producto.nombre }}">
+                  {% endif %}
+              {% endwith %}
+
+              <div class="card-body d-flex flex-column">
+                  <h5 class="product-title mb-1 text-truncate">{{ producto.nombre }}</h5>
+
+                  {% if producto.precio_oferta %}
+                      <p class="mb-2">
+                          <span class="text-muted text-decoration-line-through">
+                              ${{ producto.precio }}
+                          </span>
+                          <span class="ms-1 text-danger fw-semibold">
+                              ${{ producto.precio_oferta }}
+                          </span>
+                      </p>
+                  {% else %}
+                      <p class="mb-2 fw-semibold text-secondary">
+                          ${{ producto.precio }}
+                      </p>
+                  {% endif %}
+
+                  <div class="mt-auto d-flex gap-2">
+                      <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-secondary btn-sm w-50">
+                          Ver más
+                      </a>
+                      <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
+                          <i class="bi bi-cart-plus me-1"></i> Añadir
+                      </a>
+                  </div>
+              </div>
+
+          </div>
+      </div>
+
+
+        {% empty %}
+            <p class="text-center">No hay productos disponibles.</p>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <nav aria-label="Paginación de productos" class="mt-4">
+            <ul class="pagination justify-content-center">
+
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                          href="?{% query_transform page=page_obj.previous_page_number %}">
+                            Anterior
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                {% endif %}
+
+                {% for num in paginator.page_range %}
+                    {% if num == page_obj.number %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                        <li class="page-item">
+                            <a class="page-link"
+                              href="?{% query_transform page=num %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                          href="?{% query_transform page=page_obj.next_page_number %}">
+                            Siguiente
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Siguiente</span>
+                    </li>
+                {% endif %}
+
+            </ul>
+        </nav>
+    {% endif %}
+
+
+
+</div>
+
+{% endblock %}
+
