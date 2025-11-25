@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.text import slugify
+import uuid
+
 
 class Cliente(AbstractUser):
     telefono = models.CharField(max_length=20, blank=False)
@@ -12,7 +14,6 @@ class Cliente(AbstractUser):
     is_anonymous_user = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
-        # “usuario (email)”
         base = self.username or self.email or "cliente"
         return f"{base} ({self.email})" if self.email else base
 
@@ -55,11 +56,9 @@ class Producto(models.Model):
         return self.nombre
 
     def get_absolute_url(self):
-        # Prefer slug-based public URL under /catalogo/<slug>/
         return f"/catalogo/{self.slug or slugify(self.nombre)}/"
 
     def save(self, *args, **kwargs):
-        # Auto-generate a unique slug from the nombre when missing
         if not self.slug:
             base = slugify(self.nombre)[:200]
             slug_candidate = base
@@ -95,41 +94,65 @@ class TallaProducto(models.Model):
     def __str__(self):
         return f"{self.producto.nombre} - {self.talla}"
 
-
 # Carrito / Pedido (esqueleto funcional)
 class Carrito(models.Model):
-    codigo_carrito = models.CharField(max_length=11, unique=True)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name="carritos", null=True, blank=True)
+    codigo_carrito = models.CharField(max_length=11, unique=True, blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.codigo_carrito
+        return self.codigo_carrito or f"Carrito #{self.pk}"
+
+    def save(self, *args, **kwargs):
+        if not self.codigo_carrito:
+            self.codigo_carrito = f"CRT-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+
+    @property
+    def total(self):
+        return sum(item.subtotal for item in self.carrito_items.all())
+
+    @property
+    def cantidad_total_items(self):
+        return sum(item.cantidad for item in self.carrito_items.all())
 
 
 class ItemCarrito(models.Model):
     carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE, related_name="carrito_items")
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="item")
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="items_carrito")
+    talla_producto = models.ForeignKey(TallaProducto, on_delete=models.CASCADE, related_name="items_carrito")
     cantidad = models.IntegerField(default=1)
 
+    class Meta:
+        unique_together = ("carrito", "producto", "talla_producto")
+
     def __str__(self):
-        return f"{self.cantidad} x {self.producto.nombre} en el carrito {self.carrito.codigo_carrito}"
+        return f"{self.cantidad} x {self.producto.nombre} ({self.talla_producto.talla}) en {self.carrito}"
+
+    @property
+    def subtotal(self):
+        return self.producto.precio_final * self.cantidad
+
 
 class Pedido(models.Model):
     stripe_checkout_id = models.CharField(max_length=255, unique=True)
-    cantidad = models.DecimalField(max_digits=10, decimal_places=2)#cantidad = precio * numero unidades
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2)
     divisa = models.CharField(max_length=10)
     cliente_email = models.EmailField()
     status = models.CharField(max_length=20, choices=[("Pending", "Pending"), ("Paid", "Paid")])
+    codigo_seguimiento = models.CharField(max_length=50, blank=True, null=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Order {self.stripe_checkout_id} - {self.status}"
-    
+
+
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, related_name='pedido_items', on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     cantidad = models.IntegerField(default=1)
+    talla = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         return f"Order {self.producto.nombre} - {self.pedido.stripe_checkout_id}"
-    
