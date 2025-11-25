@@ -4,6 +4,7 @@
 {% block title %}Carrito - EntertainPet{% endblock %}
 
 {% block content %}
+<div class="container">
   <h2 class="mt-4" style="color:var(--marron-oscuro)">Tu cesta</h2>
 
   <div class="cart-page">
@@ -77,7 +78,7 @@
                 <div class="controls">
                   <label>Cantidad</label>
                   <input type="number" min="0" value="{{ item.cantidad }}">
-                    <a href="{% url 'home:carrito_remove' item.producto.pk %}" style="font-size:0.85rem;color:var(--danger);text-decoration:underline;margin-top:6px">Eliminar</a>
+                  <a href="{% url 'home:carrito_remove' item.producto.pk %}" style="font-size:0.85rem;color:var(--danger);text-decoration:underline;margin-top:6px">Eliminar</a>
                 </div>
               </div>
             {% endfor %}
@@ -89,12 +90,24 @@
     </section>
 
     <aside class="order-summary">
-  <h4>Resumen de la cesta</h4>
-  <div class="summary-row"><span>Productos ({% if carrito %}{{ carrito.items.count }}{% else %}{{ cart_items|length|default:0 }}{% endif %})</span><strong>€ {{ total|default:"0.00" }}</strong></div>
-      <div class="summary-row"><span>Gastos envío</span><span>€ 4,50</span></div>
-      <div class="summary-row"><span>IVA (21%)</span><span>€ {{ total|default:"0.00" }}</span></div>
+      <h4>Resumen de la cesta</h4>
+      <div class="summary-row">
+        <span>Productos ({% if carrito %}{{ carrito.items.count }}{% else %}{{ cart_items|length|default:0 }}{% endif %})</span>
+        <strong>€ {{ total|default:"0.00" }}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Gastos envío</span>
+        <span>€ 4,50</span>
+      </div>
+      <div class="summary-row">
+        <span>IVA (21%)</span>
+        <span>€ {{ total|default:"0.00" }}</span>
+      </div>
       <hr style="border:none;border-top:1px solid #eee;margin:10px 0">
-      <div class="summary-row"><strong>Total</strong><strong>€ {{ total|default:"0.00" }}</strong></div>
+      <div class="summary-row">
+        <strong>Total</strong>
+        <strong>€ {{ total|default:"0.00" }}</strong>
+      </div>
 
       <div style="margin-top:12px">
         <a href="#final" class="step-pill">Finalizar compra</a>
@@ -109,4 +122,5 @@
       <p class="small-note" style="margin-top:8px;color:var(--gris)">Política de devoluciones: <strong>no se contemplan devoluciones</strong>.</p>
     </div>
   </section>
+</div>
 {% endblock %}
