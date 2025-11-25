@@ -99,7 +99,7 @@ class Command(BaseCommand):
             colores_map[nombre] = Color.objects.create(nombre=nombre, codigo_hex=hex_code)
 
         colores_list = list(colores_map.values())
-        self.stdout.write("✔ Colores creados (Enum de base de datos)")
+        self.stdout.write("✔ Colores creados")
 
         # --------------------------
         # 5. Productos 

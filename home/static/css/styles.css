@@ -1,10 +1,15 @@
-/* ====== Tipografía y fondo ====== */
+/* =========================================================
+   TIPOGRAFÍA Y FONDO GLOBAL
+========================================================= */
 body {
     font-family: 'Roboto', sans-serif;
     background-color: #fff7f3; /* fondo pastel muy claro */
 }
 
-/* ====== Navbar ====== */
+/* =========================================================
+   NAVBAR
+   (solo ajustamos colores y tamaños, sin tocar el layout)
+========================================================= */
 .navbar {
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
@@ -17,33 +22,51 @@ body {
     color: #6b4c3b !important; /* marrón suave */
 }
 
-.navbar .nav-link i {
-    font-size: 1.2rem; /* tamaño de los iconos */
-}
-
+.navbar .nav-link i,
 .btn-search i {
     font-size: 1.2rem;
 }
-
 
 .nav-link:hover {
     color: #ff6f61 !important; /* coral pastel */
 }
 
-/* ====== Botón búsqueda ====== */
-
-
+/* Botón de búsqueda (solo efecto hover) */
 .btn-search:hover {
     transform: scale(1.1);
 }
 
-/* ====== Footer ====== */
+/* Cierre de sesión como link */
+.logout-btn {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+    vertical-align: middle;
+    text-decoration: none;
+}
+
+.logout-btn:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
 footer {
-    background-color: #ffe5d9; /* pastel más oscuro */
+    background-color: #ffe5d9;
     color: #6b4c3b;
 }
 
-/* --- HERO DE FONDO BORROSO --- */
+/* =========================================================
+   HERO – PORTADA CATÁLOGO
+========================================================= */
 .hero-section {
     position: relative;
     overflow: hidden;
@@ -56,10 +79,7 @@ footer {
 .hero-section::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background-image: url('../img/hero-mascotas.jpg');
     background-size: cover;
     background-position: center;
@@ -68,36 +88,31 @@ footer {
     z-index: -1;
 }
 
-/* --- CONTENIDO IZQUIERDA --- */
 .hero-left {
     position: relative;
     z-index: 2;
     max-width: 450px;
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* mantiene alineado todo a la izquierda */
-    gap: 0.8rem; /* separa logo y eslogan elegantemente */
+    align-items: flex-start;
+    gap: 0.8rem;
 }
 
-
-/* Logo */
 .hero-logo {
     width: 30%;
 }
 
-/* Slogan bonito */
 .hero-slogan {
-    font-family: 'Times New Roman', Times, serif, cursive; /* fuente bonita */
+    font-family: 'Times New Roman', Times, serif;
     font-style: italic;
     font-size: 1.75rem;
     color: #fff7f3;
     margin-bottom: 1.5rem;
 }
 
-/* Botón del Hero */
-/* Botón optimizado para fondos cálidos/anaranjados */
+/* Botón del hero */
 .hero-btn {
-    background-color: rgba(255, 170, 60, 0.9);;
+    background-color: rgba(255, 170, 60, 0.9);
     color: #fff7f3;
     padding: 12px 10px;
     font-size: 1.2rem;
@@ -116,23 +131,30 @@ footer {
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
 }
 
+/* Ajustes hero en móvil */
+@media (max-width: 768px) {
+    .hero-section {
+        height: 360px;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
 
+    .hero-logo {
+        width: 40%;
+    }
 
-/* ====== Cards ====== */
-.card {
-    border-radius: 10px;
+    .hero-btn {
+        margin-top: 1.5rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.3rem;
+    }
 }
 
-.card-img-top {
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-}
-
-.card-body .btn-search {
-    margin-top: auto;
-}
-
-/* ====== Secciones ====== */
+/* =========================================================
+   TIPOGRAFÍA GENERAL DE SECCIONES
+========================================================= */
 h2 {
     font-weight: 700;
     color: #6b4c3b;
@@ -142,12 +164,19 @@ h2 {
     color: #6b4c3b;
 }
 
-/* Contenedor general del slider */
-.mySwiper {
-    padding: 2rem 0 3rem;
+/* =========================================================
+   CARDS DE PRODUCTO / CATÁLOGO
+========================================================= */
+.card {
+    border-radius: 10px;
 }
 
-/* Card de producto profesional */
+.card-img-top {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+/* Card de producto */
 .product-card {
     border: none;
     border-radius: 18px;
@@ -162,10 +191,16 @@ h2 {
     box-shadow: 0 20px 55px rgba(0, 0, 0, 0.12);
 }
 
-/* Imagen grande y limpia */
+/* Imagen */
 .product-image {
-    height: 230px;          /* ajusta según tu gusto */
+    height: 230px;
     object-fit: cover;
+}
+
+@media (max-width: 576px) {
+    .product-image {
+        height: 190px;
+    }
 }
 
 /* Título */
@@ -174,7 +209,7 @@ h2 {
     color: #6b4c3b;
 }
 
-/* Botón "Añadir al carrito" como CTA principal */
+/* Botón "Añadir al carrito" */
 .btn-cart {
     background-color: #ff6f61;
     color: #fff7f3;
@@ -192,29 +227,21 @@ h2 {
     box-shadow: 0 12px 28px rgba(255, 111, 97, 0.6);
 }
 
-/* Botón "Ver más" secundario */
-.btn-outline-secondary {
+/* Botón secundario "Ver más" solo dentro de las product-card */
+.product-card .btn-outline-secondary {
     border-radius: 999px;
     border-color: #ffdfd3;
     color: #6b4c3b;
     background-color: #fff7f3;
 }
 
-.btn-outline-secondary:hover {
+.product-card .btn-outline-secondary:hover {
     background-color: #ffdfd3;
     border-color: #ffb55a;
     color: #6b4c3b;
 }
 
-/* Ajustes responsive */
-@media (max-width: 576px) {
-    .product-image {
-        height: 190px;
-    }
-}
-
-
-/* Título de la sección */
+/* Títulos de sección */
 .section-title {
     position: relative;
     display: inline-block;
@@ -232,7 +259,13 @@ h2 {
     background: linear-gradient(90deg, #ffdfd3, #ffb55a);
 }
 
-/* Flechas de navegación más elegantes */
+/* =========================================================
+   SWIPER (SLIDER)
+========================================================= */
+.mySwiper {
+    padding: 2rem 0 3rem;
+}
+
 .swiper-button-next,
 .swiper-button-prev {
     width: 42px;
@@ -248,14 +281,12 @@ h2 {
     font-size: 1.2rem;
 }
 
-/* Hover en flechas */
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
     background: #ffb55a;
     color: #ffffff;
 }
 
-/* Bullets de paginación tipo e‑commerce */
 .swiper-pagination-bullet {
     background: #ffd7ba;
     opacity: 1;
@@ -266,6 +297,9 @@ h2 {
     transform: scale(1.1);
 }
 
+/* =========================================================
+   PAGINACIÓN (solo dentro del componente de paginación)
+========================================================= */
 .pagination .page-link {
     color: #6b4c3b;
     border-color: #ffdfd3;
@@ -289,7 +323,10 @@ h2 {
     background-color: #ffe5d9;
     border-color: #f5cbb8;
 }
-/* Botón Filtros superior */
+
+/* =========================================================
+   FILTROS DEL CATÁLOGO
+========================================================= */
 .btn-filter-toggle {
     border-radius: 999px;
     background-color: #ffe5d9;
@@ -304,22 +341,20 @@ h2 {
     color: #6b4c3b;
 }
 
-/* Alineación barra filtros+buscador */
-.filter-top-search .filter-search-input {
+/* Input de búsqueda en la barra de filtros */
+.filter-top-search .filter-search-input,
+.filter-search-input {
     border-radius: 999px 0 0 999px;
     border-color: #ffdfd3;
     background-color: #ffffff;
 }
 
-/* Panel de filtros (reutilizando lo anterior) */
 .filter-card {
     border-radius: 20px;
     background-color: #fff7f3;
     padding: 1.75rem 2rem;
 }
 
-
-/* Títulos filtros */
 .filter-title {
     font-weight: 700;
     color: #6b4c3b;
@@ -331,20 +366,11 @@ h2 {
     color: #8b6a55;
 }
 
-/* Búsqueda */
-.filter-search-input {
-    border-radius: 999px 0 0 999px;
-    border-color: #ffdfd3;
-    background-color: #ffffff;
-}
-
-/* Links tipo texto (como en la captura) */
 .filter-link-text {
     font-size: 0.95rem;
     color: #6b4c3b;
 }
 
-/* Precio inputs */
 .filter-price-input {
     max-width: 110px;
     border-radius: 999px;
@@ -352,89 +378,7 @@ h2 {
     background-color: #ffffff;
 }
 
-/* Opción de color con círculo */
-.filter-color-option {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    font-size: 0.95rem;
-    color: #6b4c3b;
-}
-
-.filter-color-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-    display: inline-block;
-}
-
-/* Ejemplos de mapeo de colores (ajusta a los valores de tu BD) */
-.filter-color-rojo  { background-color: #ff6b6b; }
-.filter-color-verde { background-color: #38b000; }
-.filter-color-azul  { background-color: #4361ee; }
-.filter-color-negro { background-color: #111111; }
-.filter-color-blanco {
-    background-color: #ffffff;
-    border-color: #ccc;
-}
-
-/* Pills de material/categoría/marca */
-.filter-tag-pill {
-    cursor: pointer;
-    border-radius: 999px;
-    background-color: #ffe5d9;
-    padding: 0.2rem 0.75rem;
-    font-size: 0.85rem;
-    color: #6b4c3b;
-    transition: background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
-}
-
-.filter-tag-pill span {
-    display: inline-block;
-}
-
-/* Estado 'checked' (usando selector :has si el navegador lo soporta, o puedes añadir clase via JS) */
-.filter-tag-pill:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-}
-/* Checkbox oculto pero accesible */
-.filter-tag-pill input,
-.filter-color-option input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Estado base pill */
-.filter-tag-pill {
-    position: relative;
-    cursor: pointer;
-    border-radius: 999px;
-    background-color: #ffe5d9;        /* claro */
-    padding: 0.2rem 0.75rem;
-    font-size: 0.85rem;
-    color: #6b4c3b;
-    transition: background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, color 0.18s ease;
-}
-
-/* Texto dentro de la pill */
-.filter-tag-pill span {
-    display: inline-block;
-}
-
-/* Cuando está seleccionado -> fondo más oscuro */
-.filter-tag-pill input:checked + span {
-    background-color: #ffb59a;        /* más oscurito dentro de tu paleta */
-    color: #6b4c3b;
-    border-radius: 999px;
-    padding: 0.2rem 0.75rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-}
-
-/* Color: estado base */
+/* Opción color */
 .filter-color-option {
     position: relative;
     display: flex;
@@ -446,7 +390,65 @@ h2 {
     transition: background-color 0.18s ease;
 }
 
-/* Cuando el color está seleccionado, fondo del label más oscuro */
+.filter-color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    display: inline-block;
+}
+
+/* Mapeo colores */
+.filter-color-rojo  { background-color: #ff6b6b; }
+.filter-color-verde { background-color: #38b000; }
+.filter-color-azul  { background-color: #4361ee; }
+.filter-color-negro { background-color: #111111; }
+.filter-color-blanco {
+    background-color: #ffffff;
+    border-color: #ccc;
+}
+
+/* Pills de material/categoría/marca */
+.filter-tag-pill {
+    position: relative;
+    cursor: pointer;
+    border-radius: 999px;
+    background-color: #ffe5d9;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.85rem;
+    color: #6b4c3b;
+    transition: background-color 0.18s ease, box-shadow 0.18s ease,
+                transform 0.18s ease, color 0.18s ease;
+}
+
+.filter-tag-pill span {
+    display: inline-block;
+}
+
+/* Hover general */
+.filter-tag-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+/* Ocultar checkbox manteniendo accesibilidad */
+.filter-tag-pill input,
+.filter-color-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Estado seleccionado (pill) */
+.filter-tag-pill input:checked + span {
+    background-color: #ffb59a;
+    color: #6b4c3b;
+    border-radius: 999px;
+    padding: 0.2rem 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Estado seleccionado (color) */
 .filter-color-option input:checked ~ .filter-link-text {
     color: #ff6f61;
     font-weight: 600;
@@ -456,30 +458,340 @@ h2 {
     box-shadow: 0 0 0 2px #ff6f61;
 }
 
-
-
-/* Mejora general en pantallas pequeñas */
+/* Filtros en móvil */
 @media (max-width: 768px) {
     .filter-card {
         padding: 1.25rem 1.25rem;
     }
 }
 
+/* =========================================================
+   AUTENTICACIÓN (LOGIN / REGISTRO)
+========================================================= */
+.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px);
+    background: #fff7f3;
+    padding: 30px 20px;
+}
 
-/* Ajustes responsive extra para móvil */
-@media (max-width: 576px) {
-    .product-card img {
-        height: 190px;
+.auth-card {
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 18px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08);
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    margin: 40px auto;
+}
+
+.auth-card h2 {
+    color: #6b4c3b;
+    margin-bottom: 24px;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+}
+
+.auth-form label {
+    font-size: 0.9rem;
+    color: #8b6a55;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"],
+.auth-form input[type="tel"] {
+    padding: 12px 14px;
+    border: 1px solid #ffdfd3;
+    border-radius: 10px;
+    font-size: 1rem;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #ff6f61;
+    box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.1);
+}
+
+/* 2 columnas en registro */
+.auth-form .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px;
+}
+
+.auth-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-form .form-group label {
+    margin-bottom: 6px;
+}
+
+.auth-form .form-group input {
+    width: 100%;
+}
+
+.auth-btn {
+    background: #ff6f61;
+    color: #ffffff;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+    box-shadow: 0 8px 20px rgba(255, 111, 97, 0.35);
+}
+
+.auth-btn:hover {
+    background: #ff8b73;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(255, 111, 97, 0.5);
+}
+
+#guest-btn {
+    background: #ffe5d9;
+    color: #6b4c3b;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+#guest-btn:hover {
+    background: #ffdfd3;
+    color: #6b4c3b;
+}
+
+.auth-switch {
+    margin-top: 20px;
+    font-size: 0.95rem;
+    color: #8b6a55;
+    text-align: center;
+}
+
+.auth-switch a {
+    color: #ff6f61;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.form-errors {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 4px;
+    list-style: none;
+    padding: 0;
+}
+
+.form-errors ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Auth en pantallas pequeñas */
+@media (max-width: 768px) {
+    .auth-card {
+        padding: 24px;
+        max-width: 100%;
+    }
+
+    .auth-form .form-row {
+        grid-template-columns: 1fr;
     }
 }
 
-
-/* ====== Responsivo ====== */
-@media (max-width: 768px) {
-    .hero-overlay {
-        padding: 2rem 1rem;
+@media (min-height: 900px) {
+    .auth-page {
+        min-height: 80vh;
     }
-    .navbar-brand {
-        font-size: 1.3rem;
+}
+
+/* =========================================================
+   CARRITO
+========================================================= */
+.cart-page {
+    max-width: 1140px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    padding: 24px 20px;
+}
+
+.cart-list {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.cart-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid #ffe5d9;
+    align-items: center;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.cart-item .mini-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    background: #ffe5d9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b4c3b;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.cart-item .meta {
+    flex: 1;
+}
+
+.cart-item .meta h5 {
+    font-size: 1.05rem;
+    color: #6b4c3b;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.cart-item .meta .price {
+    font-weight: 700;
+    color: #ff6f61;
+    font-size: 1.1rem;
+}
+
+.cart-item .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.controls label {
+    font-size: 0.85rem;
+    color: #8b6a55;
+    font-weight: 500;
+}
+
+.controls input[type="number"] {
+    width: 80px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid #ffdfd3;
+    background-color: #ffffff;
+    text-align: center;
+}
+
+.order-summary {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.order-summary h4 {
+    color: #6b4c3b;
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 0;
+    font-size: 0.95rem;
+    color: #6b4c3b;
+}
+
+.summary-row strong {
+    color: #6b4c3b;
+    font-weight: 700;
+}
+
+.step-pill {
+    display: block;
+    padding: 14px 20px;
+    border-radius: 999px;
+    background: #ff6f61;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+    box-shadow: 0 8px 20px rgba(255, 111, 97, 0.35);
+    margin-top: 16px;
+}
+
+.step-pill:hover {
+    background: #ff8b73;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(255, 111, 97, 0.5);
+    color: #ffffff;
+}
+
+.checkout-section {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.checkout-section h3 {
+    color: #6b4c3b;
+    margin-bottom: 16px;
+    font-weight: 700;
+}
+
+.checkout-section p {
+    color: #8b6a55;
+    line-height: 1.6;
+}
+
+.small-note {
+    font-size: 0.9rem;
+    color: #8b6a55;
+    margin-top: 12px;
+}
+
+/* Carrito en responsive */
+@media (max-width: 992px) {
+    .cart-page {
+        grid-template-columns: 1fr;
+    }
+
+    .order-summary {
+        position: static;
     }
 }
