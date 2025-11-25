@@ -99,7 +99,7 @@ class ProductListView(ListView):
         marca = self.request.GET.getlist("marca", [])
         precio_min = self.request.GET.get("min", "")
         precio_max = self.request.GET.get("max", "")
-        color = self.request.GET.getlist("color", [])
+        color_ids = self.request.GET.getlist("color", []) 
         material = self.request.GET.getlist("material", [])
 
         if q:
@@ -117,9 +117,9 @@ class ProductListView(ListView):
         if material:
             qs = qs.filter(material__in=material)
 
-        if color:
-            qs = qs.filter(color__in=color)
-
+        if color_ids:
+            qs = qs.filter(colores__id__in=color_ids)
+            
         if precio_min:
             qs = qs.filter(precio__gte=precio_min)
 
@@ -133,7 +133,7 @@ class ProductListView(ListView):
 
         ctx["categorias"] = Categoria.objects.all()
         ctx["marcas"] = Marca.objects.all()
-        ctx["color"] = Producto.objects.exclude(color="").values_list("color", flat=True).distinct()
+        ctx["colores"] = models.Color.objects.all()
         ctx["material"] = Producto.objects.exclude(material="").values_list("material", flat=True).distinct()
 
         ctx["productos_destacados"] = Producto.objects.filter(
@@ -145,7 +145,7 @@ class ProductListView(ListView):
         ctx["search"] = self.request.GET.get("q", "")
         ctx["selected_categorias"] = self.request.GET.getlist("categoria")
         ctx["selected_marcas"] = self.request.GET.getlist("marca")
-        ctx["selected_colores"] = self.request.GET.getlist("color")
+        ctx["selected_colores"] = [int(c) for c in self.request.GET.getlist("color") if c.isdigit()]
         ctx["selected_materiales"] = self.request.GET.getlist("material")
         ctx["min_value"] = self.request.GET.get("min", "")
         ctx["max_value"] = self.request.GET.get("max", "")

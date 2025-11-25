@@ -93,15 +93,20 @@
                     <div class="col-12 col-lg-3">
                         <h5 class="filter-title mb-3">Color</h5>
                         <div class="d-flex flex-column gap-1">
-                            {% for c in color %}
+                            {% for color_obj in colores %} {# Renombramos a 'color_obj' para mayor claridad #}
                                 <label class="filter-color-option">
                                     <input type="checkbox"
-                                           name="color"
-                                           value="{{ c }}"
-                                           class="d-none"
-                                           {% if c in selected_colores %}checked{% endif %}>
-                                    <span class="filter-color-dot filter-color-{{ c|lower|slugify }}"></span>
-                                    <span class="filter-link-text">{{ c }}</span>
+                                        name="color"
+                                        value="{{ color_obj.id }}" {# <-- CAMBIO CLAVE: Usar el ID del objeto Color #}
+                                        class="d-none"
+                                        {# Si el ID del objeto Color está en la lista de IDs seleccionados (selected_colores) #}
+                                        {% if color_obj.id in selected_colores %}checked{% endif %}>
+                                    
+                                    {# Usamos el nombre del color para generar la clase CSS (si usas clases tipo .filter-color-rojo) #}
+                                    <span class="filter-color-dot filter-color-{{ color_obj.nombre|lower|slugify }}"
+                                        {% if color_obj.codigo_hex %}style="background-color: {{ color_obj.codigo_hex }};"{% endif %}></span>
+                                    
+                                    <span class="filter-link-text">{{ color_obj.nombre }}</span> {# <-- Usar el Nombre para mostrar #}
                                 </label>
                             {% empty %}
                                 <span class="text-muted small">Sin colores definidos.</span>
