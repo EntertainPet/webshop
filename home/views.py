@@ -2,7 +2,7 @@ from django.contrib.auth import login
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, FormView
 from django.http import HttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
@@ -291,6 +291,9 @@ def enviar_correo(pedido):
     asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
     FROM_EMAIL = "entertainpet2025@gmail.com"
     to_email = [pedido.cliente_email]
+    
+    dom = "http://localhost:8000"
+    seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
 
     items_con_subtotal = [
         {
@@ -308,6 +311,7 @@ def enviar_correo(pedido):
         "pedido": pedido,
         "items_con_subtotal": items_con_subtotal,
         "cliente": cliente,
+        "seguimiento_url": seguimiento_url,
     }
 
     html_content = render_to_string("email/confirmacion.html", context)

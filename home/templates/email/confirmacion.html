@@ -1,51 +1,53 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Confirmación de Pedido - EntertainPet</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Pedido - EntertainPet</title>
 </head>
 <body style="font-family: 'Roboto', sans-serif, Arial; background-color: #fff7f3; margin: 0; padding: 0;">
 
-	<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fff7f3;">
-		<tr>
-			<td align="center" style="padding: 20px 0;">
-				<table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 10px; border: 1px solid #ffdfd3; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 600px; width: 100%;">
-					
-					<tr>
-						<td style="background-color: #ffdfd3; padding: 18px 0 22px 0; text-align: center; border-radius: 10px 10px 0 0;">
-							<div style="margin-top:10px;">
-								<span style="display:block; color: #6b4c3b; font-size:28px; font-weight:800; letter-spacing: 1px;">EntertainPet</span>
-								<small style="display:block; color:#6b4c3b; opacity:0.9; margin-top:4px; font-size:13px;">Tu tienda de confianza para mascotas</small>
-							</div>
-						</td>
-					</tr>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fff7f3;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 10px; border: 1px solid #ffdfd3; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 600px; width: 100%;">
+                    
+                    <tr>
+                        <td style="background-color: #ffdfd3; padding: 18px 0 22px 0; text-align: center; border-radius: 10px 10px 0 0;">
+                            <div style="margin-top:10px;">
+                                <span style="display:block; color: #6b4c3b; font-size:28px; font-weight:800; letter-spacing: 1px;">EntertainPet</span>
+                                <small style="display:block; color:#6b4c3b; opacity:0.9; margin-top:4px; font-size:13px;">Tu tienda de confianza para mascotas</small>
+                            </div>
+                        </td>
+                    </tr>
 
-					<tr>
-						<td style="padding: 30px 40px 20px 40px;">
-							
-							<h1 style="color: #6b4c3b; margin-top: 0; font-size: 24px; font-weight: 700;">¡Pedido Confirmado!</h1>
-							<p style="font-size: 15px; line-height: 1.6; color: #555;">
-								¡Muchas gracias por tu compra, 
-								{% if cliente %}<strong style="color: #6b4c3b;">{{ cliente.first_name }}</strong>{% else %}cliente{% endif %}!
-								<br>Tu pedido ha sido procesado con éxito y estamos preparando el envío.
-							</p>
-							
-							<p style="font-size: 14px; line-height: 1.5; color: #555; padding-top: 15px; border-top: 1px solid #ffdfd3;">
-								<strong>Número de pedido:</strong> 
-								<span style="color: #ff6f61; font-weight: bold; display: inline-block; margin-left: 5px;">#{{ pedido.stripe_checkout_id }}</span><br>
-								<strong>Estado:</strong> 
-								<span style="color: #28a745; font-weight: bold; display: inline-block; margin-left: 5px;">{{ pedido.status }}</span>
-							</p>
-						</td>
-					</tr>
+                    <tr>
+                        <td style="padding: 30px 40px 20px 40px;">
+                            <div style="text-align:center;">
+                                <img src="cid:logo_cid" alt="EntertainPet Logo" style="height:200px; width:auto; display:block; margin: 0 auto;">
+                            </div>
+                            <h1 style="color: #6b4c3b; margin-top: 0; font-size: 24px; font-weight: 700;">¡Pedido Confirmado!</h1>
+                            <p style="font-size: 15px; line-height: 1.6; color: #555;">
+                                ¡Muchas gracias por tu compra, 
+                                {% if cliente %}<strong style="color: #6b4c3b;">{{ cliente.username }}</strong>{% else %}cliente{% endif %}!
+                                <br>Tu pedido ha sido procesado con éxito y estamos preparando el envío.
+                            </p>
+                            
+                            <p style="font-size: 14px; line-height: 1.5; color: #555; padding-top: 15px; border-top: 1px solid #ffdfd3;">
+                                <strong>Número de pedido:</strong> 
+                                <span style="color: #ff6f61; font-weight: bold; display: inline-block; margin-left: 5px;">#{{ pedido.stripe_checkout_id }}</span><br>
+                                <strong>Estado:</strong> 
+                                <span style="color: #28a745; font-weight: bold; display: inline-block; margin-left: 5px;">{{ pedido.status }}</span>
+                            </p>
+                        </td>
+                    </tr>
 
 					<tr>
 						<td align="center" style="padding: 0 40px 30px 40px;">
-							<a href="URL_DE_SEGUIMIENTO_DEL_PEDIDO/{{ pedido.id }}" target="_blank" style="display: inline-block; padding: 15px 30px; background-color: #ff6f61; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 17px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-								🚚 Seguimiento de tu Pedido AQUÍ // TODO
-							</a>
-						</td>
+											<a href="{% url 'home:seguimiento' pedido.id %}" target="_blank" style="display: inline-block; padding: 15px 30px; background-color: #ff6f61; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: 700; font-size: 17px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+												🚚 Ver seguimiento de pedido
+											</a>
+										</td>
 					</tr>
 					
 					{% if cliente and cliente.direccion %}
