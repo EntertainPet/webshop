@@ -1,10 +1,29 @@
 /* =========================================================
    TIPOGRAFÍA Y FONDO GLOBAL
 ========================================================= */
+html {
+    height: 100%;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
     background-color: #fff7f3; /* fondo pastel muy claro */
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
+
+/* Wrapper para mantener el footer abajo */
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content-wrapper {
+    flex: 1;
+}
+
 
 /* =========================================================
    NAVBAR
@@ -910,3 +929,99 @@ h2 {
     font-size: 0.8rem;
     color: #666;
 }
+
+/*ESTADO ENVIO*/
+/* Contenedor principal para centrar */
+.seguimiento-container {
+    max-width: 800px;
+    margin: 50px auto;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+.track-wrapper {
+    position: relative;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    height: 80px; /* Espacio suficiente para puntos y texto */
+}
+
+/* Las líneas (Fondo y Relleno) */
+.progress-line-background,
+.progress-line-fill {
+    position: absolute;
+    top: 15px; /* Alineado al centro vertical de los círculos (30px / 2) */
+    left: 0;
+    height: 4px;
+    border-radius: 2px;
+    z-index: -1; /* Detrás de los círculos */
+}
+
+.progress-line-background {
+    width: 100%;
+    background-color: #e0e0e0; /* Color gris claro */
+}
+
+.progress-line-fill {
+    background-color: #2ecc71; /* Color VERDE (puedes cambiarlo) */
+    transition: width 0.5s ease-in-out; /* Animación suave al cargar */
+}
+
+/* Contenedor de los pasos (Flexbox) */
+.steps-container {
+    display: flex;
+    justify-content: space-between; /* Distribuye los 3 puntos equitativamente */
+    width: 100%;
+}
+
+/* Cada item individual */
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 33.33%; /* Para asegurar centrado relativo */
+}
+
+/* El Círculo */
+.step-circle {
+    width: 30px;
+    height: 30px;
+    background-color: #fff; /* Fondo blanco para tapar la línea gris */
+    border: 4px solid #e0e0e0; /* Borde gris por defecto */
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+/* El Texto debajo */
+.step-label {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #999;
+    font-weight: 500;
+}
+
+/* --- ESTADOS ACTIVOS --- */
+
+/* Cuando un paso está activo (o completado) */
+.step-item.active .step-circle {
+    border-color: #2ecc71; /* Borde Verde */
+    background-color: #2ecc71; /* Relleno Verde */
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2); /* Efecto de brillo opcional */
+}
+
+.step-item.active .step-label {
+    color: #333; /* Texto más oscuro */
+    font-weight: bold;
+}
+
+/* Alineación específica para el primer y último elemento para que la línea calce perfecto */
+.step-item:first-child { align-items: flex-start; }
+.step-item:last-child { align-items: flex-end; }
+
+/* Ajuste de la línea para que no sobresalga de los puntos extremos */
+.progress-line-background, .progress-line-fill {
+    left: 15px; /* Mitad del ancho del círculo */
+    right: 15px;
+    width: auto; /* Sobrescribe el width 100% anterior para usar left/right */
+}
+

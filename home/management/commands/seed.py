@@ -192,22 +192,30 @@ class Command(BaseCommand):
 		self.stdout.write("✔ Carritos con items creados")
 
 		# --------------------------
-		# 6. Crear pedidos
+		# 6. Crear pedidos (uno por cada estado de envío por usuario)
 		# --------------------------
-		pedidos_user1 = [
-				[(productos[0], 2), (productos[1], 1)], 
-				[(productos[2], 1), (productos[3], 3)], 
-			]
 
-		for i, items in enumerate(pedidos_user1, start=1):
+		# Obtener dinámicamente todos los valores de estados definidos en el modelo
+		estados_envio = [value for value, _label in Pedido.EstadoEnvio.choices]
+
+		def crear_pedidos_por_estados(usuario, prefix):
+			for idx, estado in enumerate(estados_envio, start=1):
+				# Seleccionar 2-3 productos aleatorios para el pedido
+				items = []
+				for _ in range(random.randint(2, 3)):
+					prod = random.choice(productos)
+					qty = random.randint(1, 3)
+					items.append((prod, qty))
+
 				pedido = Pedido.objects.create(
-					stripe_checkout_id=f"seed_checkout_user1_{i}",
+					stripe_checkout_id=f"seed_checkout_{prefix}_{idx}",
 					cantidad=Decimal("0.00"),
 					divisa="EUR",
-					cliente_email=user1.email,
+					cliente_email=usuario.email,
 					status="Paid",
-					#estado_pedido=  
+					estado_envio=estado,
 				)
+
 				total = Decimal("0.00")
 				for prod, qty in items:
 					ItemPedido.objects.create(pedido=pedido, producto=prod, cantidad=qty)
@@ -215,25 +223,8 @@ class Command(BaseCommand):
 				pedido.cantidad = total
 				pedido.save()
 
-		pedidos_user2 = [
-				[(productos[4], 1), (productos[5], 2)], 
-				[(productos[6], 2)], 
-				[(productos[7], 1), (productos[8], 1)], 
-			]
+		crear_pedidos_por_estados(user1, "user1")
+		crear_pedidos_por_estados(user2, "user2")
 
-		for i, items in enumerate(pedidos_user2, start=1):
-				pedido = Pedido.objects.create(
-					stripe_checkout_id=f"seed_checkout_user2_{i}",
-					cantidad=Decimal("0.00"),
-					divisa="EUR",
-					cliente_email=user2.email,
-					status="Paid", 
-				)
-				total = Decimal("0.00")
-				for prod, qty in items:
-					ItemPedido.objects.create(pedido=pedido, producto=prod, cantidad=qty)
-					total += prod.precio * qty
-				pedido.cantidad = total
-				pedido.save()
-
+		self.stdout.write("✔ Pedidos por estados creados para cada usuario")
 		self.stdout.write(self.style.SUCCESS("✅ Datos generados correctametne"))

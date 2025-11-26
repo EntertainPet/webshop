@@ -16,6 +16,7 @@ urlpatterns = [
     path("guest/", views.invitado_view, name="guest"),
     path("autocomplete/", views.autocomplete_productos, name="autocomplete"),
 
+    path('pedido/seguimiento/<int:pedido_id>/', views.seguimiento_pedido, name='seguimiento'),
 
     #stripe
     path("create_checkout_session/", views.create_checkout_session, name="create_checkout_session"),
