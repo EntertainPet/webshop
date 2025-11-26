@@ -182,33 +182,49 @@ class Command(BaseCommand):
             productos.append(prod)
 
         self.stdout.write(f"✔ {len(productos)} productos creados")
-
         # --------------------------
         # 5. Crear carritos con items
         # --------------------------
+        # Carrito para user1
         carrito1 = Carrito.objects.create(cliente=user1)
         for _ in range(random.randint(2, 4)):
             producto_random = random.choice(productos)
             talla_random = producto_random.tallas.filter(stock__gt=0).first()
-            if talla_random:
-                ItemCarrito.objects.create(
-                    carrito=carrito1,
-                    producto=producto_random,
-                    talla_producto=talla_random,
-                    cantidad=random.randint(1, 2)
-                )
+            if not talla_random:
+                continue
 
+            cantidad_aleatoria = random.randint(1, 2)
+
+            item, created = ItemCarrito.objects.get_or_create(
+                carrito=carrito1,
+                producto=producto_random,
+                talla_producto=talla_random,
+                defaults={"cantidad": cantidad_aleatoria},
+            )
+            if not created:
+                # Si ya existía ese producto+talla en el carrito, sumamos cantidad
+                item.cantidad += cantidad_aleatoria
+                item.save()
+
+        # Carrito para user2
         carrito2 = Carrito.objects.create(cliente=user2)
         for _ in range(random.randint(2, 4)):
             producto_random = random.choice(productos)
             talla_random = producto_random.tallas.filter(stock__gt=0).first()
-            if talla_random:
-                ItemCarrito.objects.create(
-                    carrito=carrito2,
-                    producto=producto_random,
-                    talla_producto=talla_random,
-                    cantidad=random.randint(1, 2)
-                )
+            if not talla_random:
+                continue
+
+            cantidad_aleatoria = random.randint(1, 2)
+
+            item, created = ItemCarrito.objects.get_or_create(
+                carrito=carrito2,
+                producto=producto_random,
+                talla_producto=talla_random,
+                defaults={"cantidad": cantidad_aleatoria},
+            )
+            if not created:
+                item.cantidad += cantidad_aleatoria
+                item.save()
 
         self.stdout.write("✔ Carritos con items creados")
 
@@ -240,7 +256,7 @@ class Command(BaseCommand):
 
                 total = Decimal("0.00")
                 pedido = Pedido.objects.create(
-                    stripe_checkout_id=f"seed_checkout_{prefix}_{idx}",
+                    stripe_checkout_id=f"seed_checkout_states_{prefix}_{idx}",
                     cantidad=total,
                     divisa="EUR",
                     cliente_email=usuario.email,
