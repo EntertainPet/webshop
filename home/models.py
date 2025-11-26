@@ -115,11 +115,17 @@ class ItemCarrito(models.Model):
         return f"{self.cantidad} x {self.producto.nombre} en el carrito {self.carrito.codigo_carrito}"
 
 class Pedido(models.Model):
+    class EstadoEnvio(models.TextChoices):
+        EN_PREPARACION = "Preparing", "Preparandolo"
+        EN_CAMINO = "On the way", "En camino"
+        ENTREGADO = "Delivered", "Entregado"
     stripe_checkout_id = models.CharField(max_length=255, unique=True)
     cantidad = models.DecimalField(max_digits=10, decimal_places=2)#cantidad = precio * numero unidades
     divisa = models.CharField(max_length=10)
     cliente_email = models.EmailField()
-    status = models.CharField(max_length=20, choices=[("Pending", "Pending"), ("Paid", "Paid")])
+    estado_envio = models.CharField(max_length=20, choices=EstadoEnvio.choices,blank=True, null=True)
+    status = models.CharField(max_length=20, choices=[("Pending", "Pendiente de pago"), ("Paid", "Pagado")])
+    
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

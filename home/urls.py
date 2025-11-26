@@ -14,6 +14,7 @@ urlpatterns = [
     path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     path("register/", views.register_view, name="register"),
     path("guest/", views.invitado_view, name="guest"),
+    path('pedido/seguimiento/<int:pedido_id>/', views.seguimiento_pedido, name='seguimiento'),
 
     #stripe
     path("create_checkout_session/", views.create_checkout_session, name="create_checkout_session"),

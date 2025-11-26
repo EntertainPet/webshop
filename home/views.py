@@ -327,7 +327,8 @@ def fulfill_checkout(session, cart_code):
         cantidad=session["amount_total"],
         divisa=session["currency"],
         cliente_email=session["customer_email"],
-        status="Paid")
+        status="Paid",
+        estado_envio= Pedido.EstadoEnvio.EN_PREPARACION)
     print("pedido creado")
 
     cart = Carrito.objects.get(codigo_carrito=cart_code)
@@ -348,3 +349,15 @@ def success_view(request):
 
 def cancel_view(request):
     return render(request, "home/cancel.html")
+
+def seguimiento_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    if pedido.cliente_email != request.user.email:
+        return HttpResponse("No autorizado para ver este pedido.", status=403)
+    progreso = 0
+    if pedido.estado_envio == 'On the way':
+        progreso = 50
+    elif pedido.estado_envio == 'Delivered':
+        progreso = 100
+    return render(request, "home/estado_envio.html", {"pedido": pedido,
+                                                            "progreso": progreso})
