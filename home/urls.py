@@ -17,10 +17,13 @@ urlpatterns = [
     
     path("autocomplete/", views.autocomplete_productos, name="autocomplete"),
 
+    path('pedido/seguimiento/<int:pedido_id>/', views.seguimiento_pedido, name='seguimiento'),
 
     #stripe
     path("create_checkout_session/", views.create_checkout_session, name="create_checkout_session"),
     path("webhook/", views.my_webhook_view, name="webhook"),
     path("success/", views.success_view, name="success"),
     path("cancel/", views.cancel_view, name="cancel"),
+    path("historial/", views.OrderHistoryListView.as_view(), name="historial"),
+    path("historial/<int:pk>/", views.PedidoDetailView.as_view(), name="historial_detalle"),
 ]

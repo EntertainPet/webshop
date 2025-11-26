@@ -1,10 +1,29 @@
 /* =========================================================
    TIPOGRAFÍA Y FONDO GLOBAL
 ========================================================= */
+html {
+    height: 100%;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
     background-color: #fff7f3; /* fondo pastel muy claro */
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
 }
+
+/* Wrapper para mantener el footer abajo */
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content-wrapper {
+    flex: 1;
+}
+
 
 /* =========================================================
    NAVBAR
@@ -910,3 +929,177 @@ h2 {
     font-size: 0.8rem;
     color: #666;
 }
+
+/*ESTADO ENVIO*/
+/* Contenedor principal para centrar */
+.seguimiento-container {
+    max-width: 800px;
+    margin: 50px auto;
+    font-family: sans-serif;
+    text-align: center;
+}
+
+.track-wrapper {
+    position: relative;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    height: 80px; /* Espacio suficiente para puntos y texto */
+}
+
+/* Las líneas (Fondo y Relleno) */
+.progress-line-background,
+.progress-line-fill {
+    position: absolute;
+    top: 15px; /* Alineado al centro vertical de los círculos (30px / 2) */
+    left: 0;
+    height: 4px;
+    border-radius: 2px;
+    z-index: -1; /* Detrás de los círculos */
+}
+
+.progress-line-background {
+    width: 100%;
+    background-color: #e0e0e0; /* Color gris claro */
+}
+
+.progress-line-fill {
+    background-color: #2ecc71; /* Color VERDE (puedes cambiarlo) */
+    transition: width 0.5s ease-in-out; /* Animación suave al cargar */
+}
+
+/* Contenedor de los pasos (Flexbox) */
+.steps-container {
+    display: flex;
+    justify-content: space-between; /* Distribuye los 3 puntos equitativamente */
+    width: 100%;
+}
+
+/* Cada item individual */
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 33.33%; /* Para asegurar centrado relativo */
+}
+
+/* El Círculo */
+.step-circle {
+    width: 30px;
+    height: 30px;
+    background-color: #fff; /* Fondo blanco para tapar la línea gris */
+    border: 4px solid #e0e0e0; /* Borde gris por defecto */
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+/* El Texto debajo */
+.step-label {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #999;
+    font-weight: 500;
+}
+
+/* --- ESTADOS ACTIVOS --- */
+
+/* Cuando un paso está activo (o completado) */
+.step-item.active .step-circle {
+    border-color: #2ecc71; /* Borde Verde */
+    background-color: #2ecc71; /* Relleno Verde */
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2); /* Efecto de brillo opcional */
+}
+
+.step-item.active .step-label {
+    color: #333; /* Texto más oscuro */
+    font-weight: bold;
+}
+
+/* Alineación específica para el primer y último elemento para que la línea calce perfecto */
+.step-item:first-child { align-items: flex-start; }
+.step-item:last-child { align-items: flex-end; }
+
+/* Ajuste de la línea para que no sobresalga de los puntos extremos */
+.progress-line-background, .progress-line-fill {
+    left: 15px; /* Mitad del ancho del círculo */
+    right: 15px;
+    width: auto; /* Sobrescribe el width 100% anterior para usar left/right */
+}
+
+
+/* =========================================================
+   HISTORIAL DE PEDIDOS
+   Estilos personalizados para la lista y detalle del pedido
+ ========================================================= */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+}
+.order-card {
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    background-color: #fff;
+}
+.order-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+.order-meta {
+    font-size: 0.95rem;
+    color: #6b4c3b;
+}
+.order-amount {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #6b4c3b;
+}
+.order-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.order-status.paid { background-color: #d3f8e2; color: #0f6b3b; }
+.order-status.pending { background-color: #fff4cc; color: #8a5c00; }
+.order-actions {
+    display:flex;
+    gap:0.5rem;
+}
+.order-summary {
+    margin-top: 0.8rem;
+    color: #5f3f2d;
+}
+.order-item {
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+    padding:0.5rem 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.04);
+}
+.order-item img { width:48px; height:48px; object-fit:cover; border-radius:6px; }
+.order-detail-column {
+    max-width: 420px;
+}
+
+.history-card-empty {
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,235,230,0.4), rgba(255,250,240,0.2));
+    padding: 2rem;
+    text-align:center;
+}
+
+.btn-secondary-outline{
+    border:1px solid rgba(107,76,59,.08);
+    padding: .4rem .8rem;
+    background:#fff;
+    color:#6b4c3b;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px){
+    .order-top { flex-direction: column; align-items: flex-start; }
+    .order-detail-column { max-width: 100%; width:100%; }
+}
+
