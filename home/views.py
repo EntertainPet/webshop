@@ -2,7 +2,7 @@ from django.contrib.auth import login
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, FormView
 from django.http import HttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
@@ -11,9 +11,17 @@ from django.db.models.functions import Coalesce
 
 import uuid
 
+from django.template.loader import render_to_string
+from django.core.mail import send_mail, EmailMultiAlternatives
+from email.mime.image import MIMEImage
+import os
+from django.http import HttpResponse
+from django.templatetags.static import static
+import urllib.request
+
 from .forms import ClienteRegistrationForm
 
-from .models import Categoria, Marca, Producto, Carrito, ItemCarrito, Pedido, ItemPedido
+from .models import Categoria, Cliente, Marca, Producto, Carrito, ItemCarrito, Pedido, ItemPedido
 
 
 from django.conf import settings
@@ -278,8 +286,39 @@ class CheckoutPagoView(LoginRequiredMixin, TemplateView):
 
 class CheckoutConfirmacionView(LoginRequiredMixin, TemplateView):
     template_name = "home/checkout_confirmacion.html"
+    
+def enviar_correo(pedido):
+    asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
+    FROM_EMAIL = "entertainpet2025@gmail.com"
+    to_email = [pedido.cliente_email]
+    
+    dom = "http://localhost:8000"
+    seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
 
+    items_con_subtotal = [
+        {
+            "producto": item.producto,
+            "cantidad": item.cantidad,
+            "subtotal": item.producto.precio_final * item.cantidad,
+            "imagen_url": getattr(item.producto.imagenes.filter(es_principal=True).first(), "imagen", None),
+        }
+        for item in pedido.pedido_items.select_related("producto")
+    ]
 
+    cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
+
+    context = {
+        "pedido": pedido,
+        "items_con_subtotal": items_con_subtotal,
+        "cliente": cliente,
+        "seguimiento_url": seguimiento_url,
+    }
+
+    html_content = render_to_string("email/confirmacion.html", context)
+    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
+    correo.attach_alternative(html_content, "text/html")
+
+    correo.send(fail_silently=False)
 class OrderHistoryListView(LoginRequiredMixin, ListView):
     model = Pedido
     template_name = "home/historial_pedidos.html"
@@ -453,10 +492,13 @@ def fulfill_checkout(session, cart_code):
         orderitem = ItemPedido.objects.create(pedido=order, producto=item.producto, 
                                              cantidad=item.cantidad)
     
+    try:
+        enviar_correo(order)
+    except Exception as e:
+        print("Error enviando correo:", e)
+        
     cart.delete()
 
-
-from django.shortcuts import render
 def success_view(request):
 
     return render(request, "home/success.html")
