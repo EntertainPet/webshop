@@ -48,19 +48,18 @@
                             {% endif %}
                         </a>
                     </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home:historial' %}">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                    </li>
+                    {% endif %}
 
                 </ul>
 
-                <form class="search-box d-flex align-items-center position-relative" method="get" action="{% url 'home:catalogo' %}">
-                    <input type="text" name="q" class="search-input" placeholder="Buscar productos..." autocomplete="off" id="navbar-search">
-                    
-                    <!-- Contenedor donde aparecerán las sugerencias -->
-                    <div class="autocomplete-results" id="autocomplete-box"></div>
-
-                    <button class="btn btn-search toggle-search" type="button">
-                        <i class="bi bi-search"></i>
-                    </button>
-                    <button class="btn btn-search submit-search" type="submit">
+                <form class="d-flex me-3" method="get" action="{% url 'home:catalogo' %}">
+                    <button class="btn btn-search" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
                 </form>

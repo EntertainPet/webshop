@@ -1025,3 +1025,81 @@ h2 {
     width: auto; /* Sobrescribe el width 100% anterior para usar left/right */
 }
 
+
+/* =========================================================
+   HISTORIAL DE PEDIDOS
+   Estilos personalizados para la lista y detalle del pedido
+ ========================================================= */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+}
+.order-card {
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    background-color: #fff;
+}
+.order-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+.order-meta {
+    font-size: 0.95rem;
+    color: #6b4c3b;
+}
+.order-amount {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #6b4c3b;
+}
+.order-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.order-status.paid { background-color: #d3f8e2; color: #0f6b3b; }
+.order-status.pending { background-color: #fff4cc; color: #8a5c00; }
+.order-actions {
+    display:flex;
+    gap:0.5rem;
+}
+.order-summary {
+    margin-top: 0.8rem;
+    color: #5f3f2d;
+}
+.order-item {
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+    padding:0.5rem 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.04);
+}
+.order-item img { width:48px; height:48px; object-fit:cover; border-radius:6px; }
+.order-detail-column {
+    max-width: 420px;
+}
+
+.history-card-empty {
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,235,230,0.4), rgba(255,250,240,0.2));
+    padding: 2rem;
+    text-align:center;
+}
+
+.btn-secondary-outline{
+    border:1px solid rgba(107,76,59,.08);
+    padding: .4rem .8rem;
+    background:#fff;
+    color:#6b4c3b;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px){
+    .order-top { flex-direction: column; align-items: flex-start; }
+    .order-detail-column { max-width: 100%; width:100%; }
+}
+
