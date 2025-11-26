@@ -795,3 +795,139 @@ h2 {
         position: static;
     }
 }
+
+/* =========================================================
+   DETALLE DE PRODUCTO – BOTONES
+========================================================= */
+
+/* Botón "Volver al catálogo" en forma de pill */
+.detalle-back-btn {
+    border-radius: 999px;
+    padding: 8px 20px;
+    border-color: #ffdfd3;
+    color: #6b4c3b;
+    background-color: #fff7f3;
+    font-weight: 500;
+}
+
+.detalle-back-btn:hover {
+    background-color: #ffdfd3;
+    border-color: #ffb55a;
+    color: #6b4c3b;
+}
+
+/* Botón secundario tipo pill (por ejemplo "Ver carrito") */
+.detalle-secondary-pill {
+    border-radius: 999px;
+    padding: 12px 24px;
+    border-color: #ffdfd3;
+    background-color: #ffffff;
+    color: #6b4c3b;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+.detalle-secondary-pill:hover {
+    background-color: #ffdfd3;
+    border-color: #ffb55a;
+    color: #6b4c3b;
+}
+
+/* Selector de tallas */
+.talla-selector-detalle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 4px;
+}
+
+.talla-btn-detalle {
+    padding: 10px 14px;
+    border: 2px solid #222222;
+    border-radius: 6px;
+    background: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #222222;
+    transition: background-color 0.15s ease, color 0.15s ease,
+                transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.talla-btn-detalle small {
+    display: block;
+    font-size: 0.75rem;
+    margin-top: 2px;
+    color: #666666;
+}
+
+/* Hover / seleccionado / deshabilitado (NO afecta a la lógica JS) */
+.talla-btn-detalle:hover:not(:disabled) {
+    background-color: #fff7f3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.talla-btn-detalle.selected {
+    background-color: #ff6f61;
+    border-color: #ff6f61;
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(255, 111, 97, 0.5);
+}
+
+.talla-btn-detalle:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    box-shadow: none;
+}
+
+/* Selector de cantidad */
+.cantidad-selector-detalle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 16px;
+}
+
+/* Botones + y − redondos */
+.btn-cantidad {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid #ff6f61;
+    background-color: #ffffff;
+    color: #ff6f61;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease,
+                color 0.15s ease,
+                transform 0.15s ease,
+                box-shadow 0.15s ease;
+}
+
+.btn-cantidad:hover {
+    background-color: #ff6f61;
+    color: #ffffff;
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(255, 111, 97, 0.45);
+}
+
+.btn-cantidad:active {
+    transform: scale(0.95);
+    box-shadow: 0 3px 8px rgba(255, 111, 97, 0.4);
+}
+
+/* Input cantidad */
+.cantidad-input-detalle {
+    max-width: 80px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #ffdfd3;
+    padding: 6px 8px;
+    background-color: #ffffff;
+}

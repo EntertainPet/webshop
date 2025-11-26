@@ -361,50 +361,6 @@
 
 </div>
 
-<!-- Modal para selección de talla y cantidad -->
-<div class="modal-overlay" id="tallaModal">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeTallaModal()">&times;</button>
-      <h3 id="modalProductoNombre"></h3>
-      
-      <form id="addToCartForm" method="post" action="">
-        {% csrf_token %}
-        
-        <div id="tallasContainer"></div>
-        
-        <div class="cantidad-selector">
-          <label style="font-weight: 600; color: #6b4c3b;">Cantidad:</label>
-          <button type="button" class="cantidad-btn" onclick="decreaseCantidad()">−</button>
-          <input type="number" name="cantidad" id="cantidadInput" class="cantidad-input" value="1" min="1" readonly>
-          <button type="button" class="cantidad-btn" onclick="increaseCantidad()">+</button>
-        </div>
-        
-        <input type="hidden" name="talla_producto_id" id="tallaProductoIdInput">
-        
-        <button type="submit" class="btn btn-cart w-100 mt-3">
-          Confirmar y añadir
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Data de tallas en JSON -->
-  <script id="tallasData" type="application/json">
-  {
-    {% for p in productos %}
-      "{{ p.pk }}": [
-        {% for t in p.tallas.all %}
-          {
-            "id": {{ t.pk }},
-            "talla": "{{ t.talla|escapejs }}",
-            "stock": {{ t.stock }}
-          }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ]{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  }
-  </script>
-
 {% endblock %}
 
 {% block extra_scripts %}

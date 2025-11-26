@@ -72,8 +72,13 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    <a href="{% url 'home:catalogo' %}" class="detalle-link">← Volver al catálogo</a>
+  <div class="container my-4">
+
+  <a href="{% url 'home:catalogo' %}"
+    class="btn btn-outline-secondary mb-3 d-inline-flex">
+      <i class="bi bi-arrow-left me-2"></i>Volver al catálogo
+  </a>
+
 
     {% if messages %}
       <div class="mb-4 mt-3">
@@ -158,14 +163,25 @@
           </div>
 
           <div style="margin-top:20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <button type="submit" class="add-btn">Añadir al carrito</button>
+            <button type="submit" class="btn btn-cart btn-add-to-cart"><i class="bi bi-cart-plus me-1"></i>Añadir al carrito</button>
             <a href="{% url 'home:carrito' %}" class="btn btn-outline-secondary">Ver carrito</a>
           </div>
         </form>
 
-        <div style="margin-top:18px;color:var(--gris)">
-          <p><strong>SKU:</strong> {{ producto.pk }}</p>
-          <p><strong>Stock:</strong> {% if producto.stock %}{{ producto.stock }} unidades{% else %}Sin stock{% endif %}</p>
+        <div class="mt-4 p-3" style="background:#fff7e6;border-radius:12px;border:1px solid #f0c36d;color:#6b4c3b;">
+          
+          <p class="mb-1" style="font-size:0.9rem;">
+            <strong>SKU:</strong> {{ producto.pk }}
+          </p>
+          
+          <p class="mb-0" style="font-size:0.9rem;">
+            <strong>Stock:</strong>
+            {% if producto.stock %}
+              <span style="color:#28a745;">{{ producto.stock }} unidades</span>
+            {% else %}
+              <span style="color:#dc3545;">Sin stock</span>
+            {% endif %}
+          </p>
         </div>
       </div>
     </div>

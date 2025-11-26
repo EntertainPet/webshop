@@ -14,6 +14,9 @@ urlpatterns = [
     path("carrito/add/<int:pk>/", views.add_to_cart, name="carrito_add"),
     path("carrito/update/<int:item_id>/", views.update_cart_item, name="carrito_update"),
     path("carrito/remove/<int:item_id>/", views.remove_from_cart, name="carrito_remove"),
+    # Carrito de sesión (usuarios no autenticados)
+    path("carrito/session/update/", views.carrito_update_session_item, name="carrito_update_session_item"),
+    path("carrito/session/remove/", views.carrito_remove_session_item, name="carrito_remove_session_item"),
     
     # Autenticación
     path("login/", auth_views.LoginView.as_view(), name="login"),

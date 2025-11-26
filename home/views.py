@@ -351,6 +351,73 @@ def remove_from_cart(request, item_id):
     
     return redirect("home:carrito")
 
+def remove_from_cart(request, item_id):
+    """Elimina un item del carrito."""
+    if request.user.is_authenticated:
+        ItemCarrito.objects.filter(id=item_id, carrito__cliente=request.user).delete()
+        messages.success(request, "Producto eliminado del carrito.")
+    else:
+        # Para sesión, item_id es el "key"
+        key = str(item_id)
+        if 'cart' in request.session and key in request.session['cart']:
+            del request.session['cart'][key]
+            request.session.modified = True
+            messages.success(request, "Producto eliminado del carrito.")
+    
+    return redirect("home:carrito")
+
+
+# CARRITO DE SESIÓN
+from django.views.decorators.http import require_POST
+
+@require_POST
+def carrito_update_session_item(request):
+    """Actualizar cantidad de item en carrito de sesión (usuarios no autenticados)"""
+    key = request.POST.get('key')
+    action = request.POST.get('action')
+    
+    cart = request.session.get('cart', {})
+    
+    if key in cart:
+        if action == 'increase':
+            # Verificar stock antes de aumentar
+            try:
+                producto_id, talla_producto_id = key.split('-')
+                talla = TallaProducto.objects.get(pk=int(talla_producto_id))
+                if cart[key] < talla.stock:
+                    cart[key] += 1
+                    messages.success(request, 'Cantidad actualizada')
+                else:
+                    messages.warning(request, 'No hay más stock disponible')
+            except (ValueError, TallaProducto.DoesNotExist):
+                messages.error(request, 'Producto no encontrado')
+        elif action == 'decrease':
+            if cart[key] > 1:
+                cart[key] -= 1
+                messages.success(request, 'Cantidad actualizada')
+            else:
+                messages.warning(request, 'La cantidad mínima es 1')
+        
+        request.session['cart'] = cart
+        request.session.modified = True
+    
+    return redirect('home:carrito')
+
+
+@require_POST
+def carrito_remove_session_item(request):
+    """Eliminar item del carrito de sesión (usuarios no autenticados)"""
+    key = request.POST.get('key')
+    
+    cart = request.session.get('cart', {})
+    
+    if key in cart:
+        del cart[key]
+        request.session['cart'] = cart
+        request.session.modified = True
+        messages.success(request, 'Producto eliminado del carrito')
+    
+    return redirect('home:carrito')
 
 class CartView(TemplateView):
     template_name = "cart.html"
