@@ -40,25 +40,35 @@
             </button>
         </div>
 
-        <form method="get" action="{% url 'home:catalogo' %}" class="d-flex align-items-center filter-top-search">
-            {# Mantener filtros activos al buscar de nuevo #}
+        <form method="get"
+            action="{% url 'home:catalogo' %}"
+            class="d-flex align-items-center filter-top-search position-relative">
+
+            {# Mantener filtros activos #}
             {% for key, value in request.GET.items %}
                 {% if key != 'q' %}
                     <input type="hidden" name="{{ key }}" value="{{ value }}">
                 {% endif %}
             {% endfor %}
 
-            <div class="input-group">
+            <div class="input-group position-relative">
                 <input type="text"
-                       class="form-control filter-search-input"
-                       name="q"
-                       placeholder="Buscar juguete..."
-                       value="{{ search }}">
+                    class="form-control filter-search-input"
+                    name="q"
+                    placeholder="Buscar juguete..."
+                    value="{{ search }}"
+                    autocomplete="off"
+                    id="catalog-search">
+
                 <button class="btn btn-search" type="submit">
                     <i class="bi bi-search"></i>
                 </button>
+
+                <!-- RESULTADOS DEL AUTOCOMPLETADO -->
+                <div class="autocomplete-results" id="catalog-autocomplete"></div>
             </div>
         </form>
+
     </div>
 
 
@@ -183,6 +193,12 @@
             {% for producto in productos_destacados %}
             <div class="swiper-slide">
                 <div class="card shadow-sm product-card">
+                    {% comment %}Badge de stock{% endcomment %}
+                    {% if producto.stock_total <= 0 %}
+                        <span class="badge badge-out-of-stock">Agotado</span>
+                    {% elif producto.stock_total < 5 %}
+                        <span class="badge badge-low-stock">Últimas unidades</span>
+                    {% endif %}
 
                     {% with img=producto.imagenes.first %}
                         {% if img %}
@@ -191,7 +207,7 @@
                     {% endwith %}
 
                     <div class="card-body text-center">
-                        <h5>{{ producto.nombre }}</h5>
+                        <h5 class="product-title mb-1 text-truncate">{{ producto.nombre }}</h5>
 
                         {% if producto.precio_oferta %}
                             <p class="text-muted"><del>${{ producto.precio }}</del>
@@ -200,7 +216,22 @@
                             <p class="fw-bold">${{ producto.precio }}</p>
                         {% endif %}
 
-                        <a href="{{ producto.get_absolute_url }}" class="btn btn-search mt-2">Ver más</a>
+                        <div class="mt-auto d-flex gap-2">
+                            <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-secondary btn-sm w-50">
+                                Ver más
+                            </a>
+
+                            {% if producto.stock_total <= 0 %}
+                                <!-- botón deshabilitado -->
+                                <button class="btn btn-cart btn-sm w-50 disabled" disabled>
+                                    Agotado
+                                </button>
+                            {% else %}
+                                <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
+                                    <i class="bi bi-cart-plus me-1"></i> Añadir
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
 
                 </div>
@@ -259,6 +290,12 @@
 
         <div class="col-md-3 col-sm-6">
           <div class="card product-card h-100">
+              {% comment %}Badge de stock{% endcomment %}
+              {% if producto.stock_total <= 0 %}
+                <span class="badge badge-out-of-stock">Agotado</span>
+              {% elif producto.stock_total < 5 %}
+                <span class="badge badge-low-stock">Últimas unidades</span>
+              {% endif %}
 
               {% with img=producto.imagenes.first %}
                   {% if img %}
@@ -285,13 +322,22 @@
                   {% endif %}
 
                   <div class="mt-auto d-flex gap-2">
-                      <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-secondary btn-sm w-50">
-                          Ver más
-                      </a>
-                      <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
-                          <i class="bi bi-cart-plus me-1"></i> Añadir
-                      </a>
+                    <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-secondary btn-sm w-50">
+                        Ver más
+                    </a>
+
+                    {% if producto.stock_total <= 0 %}
+                        <!-- botón deshabilitado -->
+                        <button class="btn btn-cart btn-sm w-50 disabled" disabled>
+                            Agotado
+                        </button>
+                    {% else %}
+                        <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
+                            <i class="bi bi-cart-plus me-1"></i> Añadir
+                        </a>
+                    {% endif %}
                   </div>
+
               </div>
 
           </div>
@@ -355,6 +401,69 @@
 
 
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("catalog-search");
+    const resultsBox = document.getElementById("catalog-autocomplete");
+
+    if (!searchInput) return;
+
+    let debounceTimer = null;
+
+    function hideResults() {
+        resultsBox.style.display = "none";
+        resultsBox.innerHTML = "";
+    }
+
+    searchInput.addEventListener("input", () => {
+        const q = searchInput.value.trim();
+
+        if (q === "") {
+            hideResults();
+            return;
+        }
+
+        clearTimeout(debounceTimer);
+
+        debounceTimer = setTimeout(() => {
+            fetch(`/autocomplete/?q=${encodeURIComponent(q)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        hideResults();
+                        return;
+                    }
+
+                    resultsBox.innerHTML = "";
+                    resultsBox.style.display = "block";
+
+                    data.forEach(item => {
+                        const div = document.createElement("div");
+                        div.classList.add("autocomplete-item");
+
+                        div.innerHTML = `
+                            ${item.imagen ? `<img src="${item.imagen}">` : ""}
+                            <div>
+                                <div class="autocomplete-name">${item.nombre}</div>
+                                <div class="autocomplete-price">$${item.precio}</div>
+                            </div>
+                        `;
+
+                        div.addEventListener("click", () => {
+                            window.location.href = "/producto/" + item.slug + "/";
+                        });
+
+                        resultsBox.appendChild(div);
+                    });
+                });
+        }, 250);
+    });
+
+    document.addEventListener("click", e => {
+        if (!resultsBox.contains(e.target) && e.target !== searchInput) hideResults();
+    });
+});
+</script>
 
 {% endblock %}
 

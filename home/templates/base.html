@@ -50,12 +50,19 @@
 
                 </ul>
 
-                <form class="d-flex me-3" method="get" action="{% url 'home:catalogo' %}">
-                    <button class="btn btn-search" type="submit">
+                <form class="search-box d-flex align-items-center position-relative" method="get" action="{% url 'home:catalogo' %}">
+                    <input type="text" name="q" class="search-input" placeholder="Buscar productos..." autocomplete="off" id="navbar-search">
+                    
+                    <!-- Contenedor donde aparecerán las sugerencias -->
+                    <div class="autocomplete-results" id="autocomplete-box"></div>
+
+                    <button class="btn btn-search toggle-search" type="button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                    <button class="btn btn-search submit-search" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
                 </form>
-
                 <ul class="navbar-nav mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link" href="{% url 'home:login' %}">Login</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'home:register' %}">Register</a></li>
@@ -78,5 +85,95 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchBox = document.querySelector(".search-box");
+            const toggleBtn = document.querySelector(".toggle-search");
+            const submitBtn = document.querySelector(".submit-search");
+
+            toggleBtn.addEventListener("click", function() {
+                searchBox.classList.toggle("active");
+
+                const input = searchBox.querySelector(".search-input");
+                input.focus();
+
+                // Ocultar la lupa de toggle cuando la caja esté activa
+                if (searchBox.classList.contains("active")) {
+                    toggleBtn.style.display = "none";
+                    submitBtn.style.display = "block"; 
+                } else {
+                    toggleBtn.style.display = "block";
+                    submitBtn.style.display = "none"; 
+                }
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.getElementById("navbar-search");
+            const resultsBox = document.getElementById("autocomplete-box");
+            const searchBox = document.querySelector(".search-box");
+
+            let lastQuery = "";
+            let debounceTimer = null;
+
+            function hideResults() {
+                resultsBox.style.display = "none";
+                resultsBox.innerHTML = "";
+            }
+
+            searchInput.addEventListener("input", function () {
+                const q = this.value.trim();
+
+                if (q === "") {
+                    hideResults();
+                    return;
+                }
+
+                // evitar demasiadas peticiones → debounce
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    fetch(`/autocomplete/?q=${encodeURIComponent(q)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                hideResults();
+                                return;
+                            }
+
+                            resultsBox.innerHTML = "";
+                            resultsBox.style.display = "block";
+
+                            data.forEach(item => {
+                                const div = document.createElement("div");
+                                div.classList.add("autocomplete-item");
+
+                                div.innerHTML = `
+                                    ${item.imagen ? `<img src="${item.imagen}">` : ""}
+                                    <div>
+                                        <div class="autocomplete-name">${item.nombre}</div>
+                                        <div class="autocomplete-price">$${item.precio}</div>
+                                    </div>
+                                `;
+
+                                div.addEventListener("click", () => {
+                                    window.location.href = "/producto/" + item.slug + "/";
+                                });
+
+                                resultsBox.appendChild(div);
+                            });
+                        });
+                }, 250); // 250ms debounce
+            });
+
+            // cerrar sugerencias al hacer click fuera
+            document.addEventListener("click", e => {
+                if (!searchBox.contains(e.target)) hideResults();
+            });
+        });
+    </script>
+
+
 </body>
 </html>

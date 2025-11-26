@@ -6,6 +6,8 @@ from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, FormView
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Sum, F
+from django.db.models.functions import Coalesce
 
 import uuid
 
@@ -23,6 +25,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from django.http import JsonResponse
 
 from home import models
 
@@ -104,6 +107,11 @@ class ProductListView(ListView):
         color = self.request.GET.getlist("color", [])
         material = self.request.GET.getlist("material", [])
 
+        qs = qs.annotate(
+                stock_tallas=Sum("tallas__stock"),
+            ).annotate(
+                stock_total=Coalesce("stock_tallas", F("stock"))
+            )
         if q:
             qs = qs.filter(
                 Q(nombre__icontains=q) |
@@ -153,6 +161,23 @@ class ProductListView(ListView):
         ctx["max_value"] = self.request.GET.get("max", "")
 
         return ctx
+    
+
+def autocomplete_productos(request):
+    q = request.GET.get("q", "")
+    productos = Producto.objects.filter(
+        Q(nombre__icontains=q) | Q(descripcion__icontains=q),
+        esta_disponible=True
+    )[:6]
+
+    data = [{
+        "nombre": p.nombre,
+        "slug": p.slug,
+        "precio": float(p.precio),
+        "imagen": p.imagenes.first().imagen if p.imagenes.exists() else None
+    } for p in productos]
+
+    return JsonResponse(data, safe=False)
 
 
 class ProductDetailView(DetailView):
