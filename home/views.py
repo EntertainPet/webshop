@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, FormView
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
@@ -26,6 +26,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.http import JsonResponse
+from django.db.models import Count
 
 from home import models
 
@@ -63,6 +64,11 @@ def invitado_view(request):
     nuevo_cliente.set_unusable_password()
     nuevo_cliente.save()
     login(request, nuevo_cliente)
+    
+    if not request.session.get("cart_code"):
+        cart_code = f"CRT-{uuid.uuid4().hex[:8].upper()}"
+        Carrito.objects.create(codigo_carrito=cart_code)
+        request.session["cart_code"] = cart_code
     return redirect("home:catalogo")
 
 def register_view(request):
@@ -76,7 +82,10 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            Carrito.objects.get_or_create(cliente=user)
+            if not request.session.get("cart_code"):
+                cart_code = f"CRT-{uuid.uuid4().hex[:8].upper()}"
+                Carrito.objects.create(codigo_carrito=cart_code)
+                request.session["cart_code"] = cart_code
             return redirect("home:catalogo")
     return render(request, "registration/registro.html", {"form": form})
 
@@ -269,6 +278,87 @@ class CheckoutPagoView(LoginRequiredMixin, TemplateView):
 
 class CheckoutConfirmacionView(LoginRequiredMixin, TemplateView):
     template_name = "home/checkout_confirmacion.html"
+
+
+class OrderHistoryListView(LoginRequiredMixin, ListView):
+    model = Pedido
+    template_name = "home/historial_pedidos.html"
+    context_object_name = "pedidos"
+    paginate_by = 10
+
+    def get_queryset(self):
+        qs = (
+            Pedido.objects.filter(cliente_email=self.request.user.email)
+            .annotate(items_count=Count('pedido_items'))
+            .order_by("-fecha_creacion")
+        )
+        q = self.request.GET.get("q", "")
+        status = self.request.GET.get("status", "")
+        if q:
+            qs = qs.filter(Q(stripe_checkout_id__icontains=q))
+        if status:
+            qs = qs.filter(status__iexact=status)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["status_counts"] = (
+            Pedido.objects.filter(cliente_email=self.request.user.email)
+            .values("status")
+            .annotate(count=Count("id"))
+        )
+        ctx["selected_status"] = self.request.GET.get("status", "")
+        ctx["q"] = self.request.GET.get("q", "")
+        # Calculate friendly display amounts (try to detect cents returned by Stripe)
+        for pedido in ctx.get('pedidos', []):
+            try:
+                amount = float(pedido.cantidad)
+                pedido.display_amount = amount / 100.0 if amount > 1000 else amount
+            except Exception:
+                pedido.display_amount = pedido.cantidad
+        return ctx
+
+
+class PedidoDetailView(LoginRequiredMixin, DetailView):
+    model = Pedido
+    template_name = "home/pedido_detalle.html"
+    context_object_name = "pedido"
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.cliente_email != self.request.user.email:
+            raise Http404
+        return obj
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        pedido = self.get_object()
+        # compute display amount -- Stripe returns cents in amount_total; try to make a readable amount
+        try:
+            amount = float(pedido.cantidad)
+            if amount > 1000:
+                # likely cents
+                display_amount = amount / 100.0
+            else:
+                display_amount = amount
+        except Exception:
+            display_amount = pedido.cantidad
+        ctx["display_amount"] = display_amount
+        # Build items detail for the template with computed subtotals
+        items_list = []
+        for item in pedido.pedido_items.all():
+            unit_price = float(item.producto.precio_final)
+            subtotal = unit_price * int(item.cantidad)
+            items_list.append({
+                "producto": item.producto,
+                "cantidad": item.cantidad,
+                "unit_price": unit_price,
+                "subtotal": subtotal,
+            })
+        ctx["items_list"] = items_list
+        # Total sum computed from items
+        ctx["total_sum"] = sum(i.get("subtotal", 0) for i in items_list)
+        return ctx
 
 
 @api_view(['POST'])
