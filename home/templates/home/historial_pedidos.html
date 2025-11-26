@@ -48,11 +48,11 @@
                             <div class="text-truncate" style="max-width:320px; font-weight:600">#{{ pedido.pk }} — {{ pedido.stripe_checkout_id }}</div>
                         </div>
                         <div class="text-end">
-                            <div class="order-amount">${{ pedido.display_amount|floatformat:2 }} <small class="text-muted">{{ pedido.divisa }}</small></div>
+                            <div class="order-amount">{{ pedido.display_amount|floatformat:2 }} <small class="text-muted">{{ pedido.divisa }}</small></div>
                             {% if pedido.status == 'Paid' %}
-                                <div class="order-status paid mt-1">Paid</div>
+                                <div class="order-status paid mt-1">{{ pedido.get_status_display }}</div>
                             {% else %}
-                                <div class="order-status pending mt-1">Pending</div>
+                                <div class="order-status pending mt-1">{{ pedido.get_status_display }}</div>
                             {% endif %}
                         </div>
                     </div>
