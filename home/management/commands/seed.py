@@ -71,7 +71,10 @@ class Command(BaseCommand):
             ("Reptiles", "Terrarios, sustratos, alimento"),
             ("Ropa", "Ropa y accesorios para mascotas"),
         ]
-        categorias = {nombre: Categoria.objects.create(nombre=nombre, descripcion=desc) for nombre, desc in categorias_data}
+        categorias = {
+            nombre: Categoria.objects.create(nombre=nombre, descripcion=desc)
+            for nombre, desc in categorias_data
+        }
         self.stdout.write("✔ Categorías creadas")
 
         # --------------------------
@@ -86,7 +89,7 @@ class Command(BaseCommand):
         self.stdout.write("✔ Marcas creadas")
 
         # --------------------------
-        # 4. Productos 
+        # 4. Productos
         # --------------------------
         productos_data = [
             ("Nike Pro Max", "Zapatillas deportivas diseñadas para perros activos, resistentes al agua y con suela antideslizante que protege las patas durante cualquier terreno.", "Ropa", "Kong", Decimal("34.99"), "https://s.alicdn.com/@sc04/kf/Hcb31b84cf15f41a1b92db766fe68106aY/Customized-Pet-Dog-Shoes-High-End-Materials-Waterproof-AJ-Shoes-4PCS-Set-Dog-Nikedog-Shoes.png_300x300.jpg", ["XS", "S", "M", "L"], True),
@@ -128,7 +131,7 @@ class Command(BaseCommand):
             ("Tetra EasyBalance Test Kit", "Kit completo para medir pH, nitritos y nitratos en acuarios, permitiendo mantener un agua equilibrada y saludable para los peces.", "Peces", "Tetra", Decimal("23.01"), "https://m.media-amazon.com/images/I/616+XyhivhL.jpg", [], False),
             ("Tetra SafeStart 250 ml", "Inoculante biológico que ayuda a establecer colonias de bacterias beneficiosas en acuarios nuevos, asegurando un ecosistema estable y saludable.", "Peces", "Tetra", Decimal("16.89"), "https://m.media-amazon.com/images/I/81H2ThiOgJL.jpg", [], False),
             ("Jaula para transporte Savic Dog Residence con cojín", "Jaula portátil y cómoda para transportar perros de manera segura, con acolchado suave y ventilación adecuada.", "Perros", "Savic", Decimal("134.99"), "https://media.zooplus.com/bilder/1/400/76342_pla_3294_4007_dr_107ht_1.jpg?width=400&format=webp", [], False),
-            ("Gorro", "Gorro suave y cálido para perros, protege la cabeza del frío y añade estilo durante los paseos.", "Ropa", "Beaphar", Decimal("12.99"), "https://www.sparkpaws.es/cdn/shop/files/20230917SP19926_600x.jpg?v=1758241855", ["XS", "S", "M", "L"], False)
+            ("Gorro", "Gorro suave y cálido para perros, protege la cabeza del frío y añade estilo durante los paseos.", "Ropa", "Beaphar", Decimal("12.99"), "https://www.sparkpaws.es/cdn/shop/files/20230917SP19926_600x.jpg?v=1758241855", ["XS", "S", "M", "L"], False),
         ]
 
         productos = []
@@ -145,7 +148,7 @@ class Command(BaseCommand):
                 nombre=nombre,
                 descripcion=desc,
                 precio=precio,
-                stock=producto_stock_general, 
+                stock=producto_stock_general,
                 categoria=categoria,
                 marca=marca,
                 es_destacado=es_destacado
@@ -156,34 +159,33 @@ class Command(BaseCommand):
                 imagen=img_url,
                 es_principal=True
             )
-            
+
             if cat_nombre == "Ropa" and tallas_data:
                 total_stock_tallas = 0
                 for talla in tallas_data:
                     stock_talla = random.randint(2, 8)
                     TallaProducto.objects.create(
-                        producto=prod, 
+                        producto=prod,
                         talla=talla,
-                        stock=stock_talla 
+                        stock=stock_talla
                     )
-                    total_stock_tallas += stock_talla 
+                    total_stock_tallas += stock_talla
                 prod.stock = total_stock_tallas
                 prod.save()
             else:
                 TallaProducto.objects.create(
-                    producto=prod, 
+                    producto=prod,
                     talla="Única",
                     stock=producto_stock_general
                 )
-            
+
             productos.append(prod)
 
         self.stdout.write(f"✔ {len(productos)} productos creados")
 
         # --------------------------
-        # 5. Crear carritos con items (ACTUALIZADO)
+        # 5. Crear carritos con items
         # --------------------------
-        # Carrito para user1
         carrito1 = Carrito.objects.create(cliente=user1)
         for _ in range(random.randint(2, 4)):
             producto_random = random.choice(productos)
@@ -196,7 +198,6 @@ class Command(BaseCommand):
                     cantidad=random.randint(1, 2)
                 )
 
-        # Carrito para user2
         carrito2 = Carrito.objects.create(cliente=user2)
         for _ in range(random.randint(2, 4)):
             producto_random = random.choice(productos)
@@ -212,27 +213,75 @@ class Command(BaseCommand):
         self.stdout.write("✔ Carritos con items creados")
 
         # --------------------------
-        # 6. Crear pedidos (ACTUALIZADO)
+        # 6. Crear pedidos
+        #    (combina versión antigua + versión por estados)
         # --------------------------
+
+        # Versión nueva: lista de estados y helper
+        estados_envio = [
+            "Pendiente",
+            "En preparación",
+            "Enviado",
+            "Entregado",
+        ]
+
+        def crear_pedidos_por_estados(usuario, prefix):
+            """
+            Crea un pedido por cada estado de envío, con productos aleatorios.
+            """
+            for idx, estado in enumerate(estados_envio, start=1):
+                items = []
+                for _ in range(random.randint(2, 3)):
+                    prod = random.choice(productos)
+                    qty = random.randint(1, 3)
+                    talla_random = prod.tallas.filter(stock__gt=0).first()
+                    talla_value = talla_random.talla if talla_random else "Única"
+                    items.append((prod, qty, talla_value))
+
+                total = Decimal("0.00")
+                pedido = Pedido.objects.create(
+                    stripe_checkout_id=f"seed_checkout_{prefix}_{idx}",
+                    cantidad=total,
+                    divisa="EUR",
+                    cliente_email=usuario.email,
+                    status="Paid",
+                    estado_envio=estado,
+                    codigo_seguimiento=f"TRACK-{uuid.uuid4().hex[:8].upper()}",
+                )
+
+                for prod, qty, talla in items:
+                    ItemPedido.objects.create(
+                        pedido=pedido,
+                        producto=prod,
+                        cantidad=qty,
+                        talla=talla,
+                    )
+                    total += prod.precio * qty
+
+                pedido.cantidad = total
+                pedido.save()
+
+        # Versión antigua: pedidos fijos de ejemplo
         pedidos_user1 = [
-            [(productos[0], 2, "M"), (productos[1], 1, "Única")], 
-            [(productos[2], 1, "Única"), (productos[3], 3, "Única")], 
+            [(productos[0], 2, "M"), (productos[1], 1, "Única")],
+            [(productos[2], 1, "Única"), (productos[3], 3, "Única")],
         ]
 
         for i, items in enumerate(pedidos_user1, start=1):
+            total = Decimal("0.00")
             pedido = Pedido.objects.create(
                 stripe_checkout_id=f"seed_checkout_user1_{i}",
-                cantidad=Decimal("0.00"),
+                cantidad=total,
                 divisa="EUR",
                 cliente_email=user1.email,
                 status="Paid",
+                estado_envio="Entregado",
                 codigo_seguimiento=f"TRACK-{uuid.uuid4().hex[:8].upper()}"
             )
-            total = Decimal("0.00")
             for prod, qty, talla in items:
                 ItemPedido.objects.create(
-                    pedido=pedido, 
-                    producto=prod, 
+                    pedido=pedido,
+                    producto=prod,
                     cantidad=qty,
                     talla=talla
                 )
@@ -241,25 +290,26 @@ class Command(BaseCommand):
             pedido.save()
 
         pedidos_user2 = [
-            [(productos[4], 1, "S"), (productos[5], 2, "Única")], 
-            [(productos[6], 2, "Única")], 
-            [(productos[7], 1, "Única"), (productos[8], 1, "L")], 
+            [(productos[4], 1, "S"), (productos[5], 2, "Única")],
+            [(productos[6], 2, "Única")],
+            [(productos[7], 1, "Única"), (productos[8], 1, "L")],
         ]
 
         for i, items in enumerate(pedidos_user2, start=1):
+            total = Decimal("0.00")
             pedido = Pedido.objects.create(
                 stripe_checkout_id=f"seed_checkout_user2_{i}",
-                cantidad=Decimal("0.00"),
+                cantidad=total,
                 divisa="EUR",
                 cliente_email=user2.email,
                 status="Paid",
+                estado_envio="Enviado",
                 codigo_seguimiento=f"TRACK-{uuid.uuid4().hex[:8].upper()}"
             )
-            total = Decimal("0.00")
             for prod, qty, talla in items:
                 ItemPedido.objects.create(
-                    pedido=pedido, 
-                    producto=prod, 
+                    pedido=pedido,
+                    producto=prod,
                     cantidad=qty,
                     talla=talla
                 )
@@ -267,4 +317,10 @@ class Command(BaseCommand):
             pedido.cantidad = total
             pedido.save()
 
+        # Llamar también a la versión genérica por estados
+        crear_pedidos_por_estados(user1, "user1")
+        crear_pedidos_por_estados(user2, "user2")
+
+        self.stdout.write("✔ Pedidos fijos de ejemplo creados")
+        self.stdout.write("✔ Pedidos por estados creados para cada usuario")
         self.stdout.write(self.style.SUCCESS("✅ Datos generados correctamente"))

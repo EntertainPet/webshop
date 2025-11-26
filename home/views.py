@@ -8,6 +8,11 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db.models import Q
+from django.views.generic import TemplateView, ListView, DetailView, FormView
+from django.http import HttpResponse, Http404
+from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Sum, F
+from django.db.models.functions import Coalesce
 
 import uuid
 import secrets
@@ -21,7 +26,14 @@ from .models import (
 from django.conf import settings
 import stripe
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
+from django.http import JsonResponse
+from django.db.models import Count
+
+from home import models
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.WEBHOOK_SECRET
@@ -154,6 +166,10 @@ def invitado_view(request):
     # Fusionar carrito de sesión
     merge_session_cart_to_user(request, nuevo_cliente)
     
+    if not request.session.get("cart_code"):
+        cart_code = f"CRT-{uuid.uuid4().hex[:8].upper()}"
+        Carrito.objects.create(codigo_carrito=cart_code)
+        request.session["cart_code"] = cart_code
     return redirect("home:catalogo")
 
 
@@ -174,6 +190,10 @@ def register_view(request):
             # Fusionar carrito de sesión
             merge_session_cart_to_user(request, user)
             
+            if not request.session.get("cart_code"):
+                cart_code = f"CRT-{uuid.uuid4().hex[:8].upper()}"
+                Carrito.objects.create(codigo_carrito=cart_code)
+                request.session["cart_code"] = cart_code
             return redirect("home:catalogo")
     return render(request, "registration/registro.html", {"form": form})
 
@@ -199,6 +219,11 @@ class ProductListView(ListView):
         color = self.request.GET.getlist("color", [])
         material = self.request.GET.getlist("material", [])
 
+        qs = qs.annotate(
+                stock_tallas=Sum("tallas__stock"),
+            ).annotate(
+                stock_total=Coalesce("stock_tallas", F("stock"))
+            )
         if q:
             qs = qs.filter(Q(nombre__icontains=q) | Q(descripcion__icontains=q))
         if categoria:
@@ -228,6 +253,23 @@ class ProductListView(ListView):
         ctx["selected_colores"] = self.request.GET.getlist("color")
         ctx["selected_materiales"] = self.request.GET.getlist("material")
         return ctx
+    
+
+def autocomplete_productos(request):
+    q = request.GET.get("q", "")
+    productos = Producto.objects.filter(
+        Q(nombre__icontains=q) | Q(descripcion__icontains=q),
+        esta_disponible=True
+    )[:6]
+
+    data = [{
+        "nombre": p.nombre,
+        "slug": p.slug,
+        "precio": float(p.precio),
+        "imagen": p.imagenes.first().imagen if p.imagenes.exists() else None
+    } for p in productos]
+
+    return JsonResponse(data, safe=False)
 
 
 class ProductDetailView(DetailView):
@@ -500,7 +542,90 @@ def process_payment_view(request):
     return redirect("home:carrito")
 
 
+class OrderHistoryListView(LoginRequiredMixin, ListView):
+    model = Pedido
+    template_name = "home/historial_pedidos.html"
+    context_object_name = "pedidos"
+    paginate_by = 10
+
+    def get_queryset(self):
+        qs = (
+            Pedido.objects.filter(cliente_email=self.request.user.email)
+            .annotate(items_count=Count('pedido_items'))
+            .order_by("-fecha_creacion")
+        )
+        q = self.request.GET.get("q", "")
+        status = self.request.GET.get("status", "")
+        if q:
+            qs = qs.filter(Q(stripe_checkout_id__icontains=q))
+        if status:
+            qs = qs.filter(status__iexact=status)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["status_counts"] = (
+            Pedido.objects.filter(cliente_email=self.request.user.email)
+            .values("status")
+            .annotate(count=Count("id"))
+        )
+        ctx["selected_status"] = self.request.GET.get("status", "")
+        ctx["q"] = self.request.GET.get("q", "")
+        # Calculate friendly display amounts (try to detect cents returned by Stripe)
+        for pedido in ctx.get('pedidos', []):
+            try:
+                amount = float(pedido.cantidad)
+                pedido.display_amount = amount / 100.0 if amount > 1000 else amount
+            except Exception:
+                pedido.display_amount = pedido.cantidad
+        return ctx
+
+
+class PedidoDetailView(LoginRequiredMixin, DetailView):
+    model = Pedido
+    template_name = "home/pedido_detalle.html"
+    context_object_name = "pedido"
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.cliente_email != self.request.user.email:
+            raise Http404
+        return obj
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        pedido = self.get_object()
+        # compute display amount -- Stripe returns cents in amount_total; try to make a readable amount
+        try:
+            amount = float(pedido.cantidad)
+            if amount > 1000:
+                # likely cents
+                display_amount = amount / 100.0
+            else:
+                display_amount = amount
+        except Exception:
+            display_amount = pedido.cantidad
+        ctx["display_amount"] = display_amount
+        # Build items detail for the template with computed subtotals
+        items_list = []
+        for item in pedido.pedido_items.all():
+            unit_price = float(item.producto.precio_final)
+            subtotal = unit_price * int(item.cantidad)
+            items_list.append({
+                "producto": item.producto,
+                "cantidad": item.cantidad,
+                "unit_price": unit_price,
+                "subtotal": subtotal,
+            })
+        ctx["items_list"] = items_list
+        # Total sum computed from items
+        ctx["total_sum"] = sum(i.get("subtotal", 0) for i in items_list)
+        return ctx
+
+
 @api_view(['POST'])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def create_checkout_session(request):
     """Crea sesión de checkout de Stripe."""
     cart_code = request.data.get("cart_code")
@@ -508,6 +633,8 @@ def create_checkout_session(request):
     carrito = Carrito.objects.get(codigo_carrito=cart_code)
     
     try:
+
+        cart = Carrito.objects.get(codigo_carrito=cart_code)
         checkout_session = stripe.checkout.Session.create(
             customer_email=email,
             payment_method_types=['card'],
@@ -573,8 +700,10 @@ def fulfill_checkout(session, cart_code):
         divisa=session["currency"],
         cliente_email=session["customer_email"],
         status="Paid",
-        codigo_seguimiento=codigo_seguimiento
+        codigo_seguimiento=codigo_seguimiento,
+        estado_envio= Pedido.EstadoEnvio.EN_PREPARACION
     )
+    print("pedido creado")
 
     carrito = Carrito.objects.get(codigo_carrito=cart_code)
     for item in carrito.carrito_items.all():
@@ -598,3 +727,15 @@ def success_view(request):
 
 def cancel_view(request):
     return render(request, "home/cancel.html")
+
+def seguimiento_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    if pedido.cliente_email != request.user.email:
+        return HttpResponse("No autorizado para ver este pedido.", status=403)
+    progreso = 0
+    if pedido.estado_envio == 'On the way':
+        progreso = 50
+    elif pedido.estado_envio == 'Delivered':
+        progreso = 100
+    return render(request, "home/estado_envio.html", {"pedido": pedido,
+                                                            "progreso": progreso})
