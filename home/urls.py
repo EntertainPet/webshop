@@ -22,4 +22,6 @@ urlpatterns = [
     path("webhook/", views.my_webhook_view, name="webhook"),
     path("success/", views.success_view, name="success"),
     path("cancel/", views.cancel_view, name="cancel"),
+    path("historial/", views.OrderHistoryListView.as_view(), name="historial"),
+    path("historial/<int:pk>/", views.PedidoDetailView.as_view(), name="historial_detalle"),
 ]
