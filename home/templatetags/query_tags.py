@@ -1,0 +1,15 @@
+# home/templatetags/query_tags.py
+from django import template
+
+register = template.Library()
+
+@register.simple_tag(takes_context=True)
+def query_transform(context, **kwargs):
+    """
+    Devuelve la query string actual sustituyendo/añadiendo
+    solo los parámetros que se pasen en kwargs.
+    """
+    query = context["request"].GET.copy()
+    for k, v in kwargs.items():
+        query[k] = v
+    return query.urlencode()

@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.text import slugify
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 
 class Cliente(AbstractUser):
     telefono = models.CharField(max_length=20, blank=False)
@@ -73,6 +75,7 @@ class Producto(models.Model):
     @property
     def precio_final(self):
         return self.precio_oferta if self.precio_oferta else self.precio
+    
 
 
 class ImagenProducto(models.Model):
