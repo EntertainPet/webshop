@@ -15,6 +15,9 @@ urlpatterns = [
     path("register/", views.register_view, name="register"),
     path("guest/", views.invitado_view, name="guest"),
     
+    path("autocomplete/", views.autocomplete_productos, name="autocomplete"),
+
+
     #stripe
     path("create_checkout_session/", views.create_checkout_session, name="create_checkout_session"),
     path("webhook/", views.my_webhook_view, name="webhook"),

@@ -6,6 +6,8 @@ from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, FormView
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Sum, F
+from django.db.models.functions import Coalesce
 
 import uuid
 
@@ -27,8 +29,11 @@ import stripe
 
 from rest_framework.response import Response
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+from django.http import JsonResponse
 
 from home import models
 
@@ -102,7 +107,6 @@ class ProductListView(ListView):
     def get_queryset(self):
         qs = super().get_queryset().filter(esta_disponible=True)
 
-        # --- Obtener parámetros GET ---
         q = self.request.GET.get("q", "")
         categoria = self.request.GET.getlist("categoria", [])
         marca = self.request.GET.getlist("marca", [])
@@ -111,14 +115,17 @@ class ProductListView(ListView):
         color = self.request.GET.getlist("color", [])
         material = self.request.GET.getlist("material", [])
 
-        # --- Búsqueda ---
+        qs = qs.annotate(
+                stock_tallas=Sum("tallas__stock"),
+            ).annotate(
+                stock_total=Coalesce("stock_tallas", F("stock"))
+            )
         if q:
             qs = qs.filter(
                 Q(nombre__icontains=q) |
                 Q(descripcion__icontains=q)
             )
 
-        # --- Filtros ---
         if categoria:
             qs = qs.filter(categoria__id__in=categoria)
 
@@ -127,32 +134,59 @@ class ProductListView(ListView):
 
         if material:
             qs = qs.filter(material__in=material)
-        
+
         if color:
             qs = qs.filter(color__in=color)
 
         if precio_min:
-            qs = qs.filter(precio__gte = precio_min)
+            qs = qs.filter(precio__gte=precio_min)
 
         if precio_max:
-            qs = qs.filter(precio__lte =precio_max)
+            qs = qs.filter(precio__lte=precio_max)
 
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+
         ctx["categorias"] = Categoria.objects.all()
         ctx["marcas"] = Marca.objects.all()
-        ctx["color"] = Producto.objects.exclude(color = "").values_list("color", flat=True).distinct()
-        ctx["material"] = Producto.objects.exclude(material = "").values_list("material", flat=True).distinct()
+        ctx["color"] = Producto.objects.exclude(color="").values_list("color", flat=True).distinct()
+        ctx["material"] = Producto.objects.exclude(material="").values_list("material", flat=True).distinct()
+
+        ctx["productos_destacados"] = Producto.objects.filter(
+            es_destacado=True,
+            esta_disponible=True
+        )[:12]  # Slider
+
+        # Selected
         ctx["search"] = self.request.GET.get("q", "")
-
-
         ctx["selected_categorias"] = self.request.GET.getlist("categoria")
         ctx["selected_marcas"] = self.request.GET.getlist("marca")
         ctx["selected_colores"] = self.request.GET.getlist("color")
         ctx["selected_materiales"] = self.request.GET.getlist("material")
+        ctx["min_value"] = self.request.GET.get("min", "")
+        ctx["max_value"] = self.request.GET.get("max", "")
+
         return ctx
+    
+
+def autocomplete_productos(request):
+    q = request.GET.get("q", "")
+    productos = Producto.objects.filter(
+        Q(nombre__icontains=q) | Q(descripcion__icontains=q),
+        esta_disponible=True
+    )[:6]
+
+    data = [{
+        "nombre": p.nombre,
+        "slug": p.slug,
+        "precio": float(p.precio),
+        "imagen": p.imagenes.first().imagen if p.imagenes.exists() else None
+    } for p in productos]
+
+    return JsonResponse(data, safe=False)
+
 
 class ProductDetailView(DetailView):
     model = Producto
@@ -273,11 +307,14 @@ def enviar_correo(pedido):
 
     correo.send(fail_silently=False)
 @api_view(['POST'])
+@authentication_classes([SessionAuthentication, BasicAuthentication])
+@permission_classes([IsAuthenticated])
 def create_checkout_session(request):
     cart_code = request.data.get("cart_code")
     email = request.data.get("email")
-    cart = Carrito.objects.get(codigo_carrito=cart_code)
     try:
+
+        cart = Carrito.objects.get(codigo_carrito=cart_code)
         checkout_session = stripe.checkout.Session.create(
             customer_email= email,
             payment_method_types=['card'],
