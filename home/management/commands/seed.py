@@ -235,10 +235,9 @@ class Command(BaseCommand):
 
         # Versión nueva: lista de estados y helper
         estados_envio = [
-            "Pendiente",
-            "En preparación",
-            "Enviado",
-            "Entregado",
+            "Preparing",
+            "On the way", 
+            "Delivered",
         ]
 
         def crear_pedidos_por_estados(usuario, prefix):
@@ -291,7 +290,7 @@ class Command(BaseCommand):
                 divisa="EUR",
                 cliente_email=user1.email,
                 status="Paid",
-                estado_envio="Entregado",
+                estado_envio="Delivered",
                 codigo_seguimiento=f"TRACK-{uuid.uuid4().hex[:8].upper()}"
             )
             for prod, qty, talla in items:
@@ -319,7 +318,7 @@ class Command(BaseCommand):
                 divisa="EUR",
                 cliente_email=user2.email,
                 status="Paid",
-                estado_envio="Enviado",
+                estado_envio="On the way",
                 codigo_seguimiento=f"TRACK-{uuid.uuid4().hex[:8].upper()}"
             )
             for prod, qty, talla in items:
