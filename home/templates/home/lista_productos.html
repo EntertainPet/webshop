@@ -90,15 +90,18 @@
                     <div class="col-12 col-lg-3">
                         <h5 class="filter-title mb-3">Color</h5>
                         <div class="d-flex flex-column gap-1">
-                            {% for c in color %}
+                            {% for color_obj in colores %} 
                                 <label class="filter-color-option">
                                     <input type="checkbox"
-                                           name="color"
-                                           value="{{ c }}"
-                                           class="d-none"
-                                           {% if c in selected_colores %}checked{% endif %}>
-                                    <span class="filter-color-dot filter-color-{{ c|lower|slugify }}"></span>
-                                    <span class="filter-link-text">{{ c }}</span>
+                                        name="color"
+                                        value="{{ color_obj.id }}"
+                                        class="d-none"
+                                        {% if color_obj.id in selected_colores %}checked{% endif %}>
+                                    
+                                    <span class="filter-color-dot filter-color-{{ color_obj.nombre|lower|slugify }}"
+                                        {% if color_obj.codigo_hex %}style="background-color: {{ color_obj.codigo_hex }};"{% endif %}></span>
+                                    
+                                    <span class="filter-link-text">{{ color_obj.nombre }}</span> 
                                 </label>
                             {% empty %}
                                 <span class="text-muted small">Sin colores definidos.</span>
@@ -269,7 +272,7 @@
     {% endif %}
 
     <!-- 📦 LISTA NORMAL DE PRODUCTOS -->
-    <h2 class="section-title mt-5 mb-4 text-center">Productos</h2>
+    <h2 class="section-title mt-5 mb-4 text-center" id="catalogo">Productos</h2>
 
     <div class="row g-4">
         {% for producto in productos %}

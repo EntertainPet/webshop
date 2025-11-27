@@ -35,6 +35,15 @@ class Marca(models.Model):
     def __str__(self):
         return self.nombre
 
+class Color(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+    codigo_hex = models.CharField(max_length=7, blank=True, help_text="Ej: #FF0000 para rojo") 
+
+    def __str__(self):
+        return self.nombre
+    
+    class Meta:
+        verbose_name_plural = "Colores"
 
 class Producto(models.Model):
     nombre = models.CharField(max_length=200)
@@ -45,7 +54,7 @@ class Producto(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name="productos")
     marca = models.ForeignKey(Marca, on_delete=models.PROTECT, related_name="productos")
     genero = models.CharField(max_length=50, blank=True)
-    color = models.CharField(max_length=50, blank=True)
+    colores = models.ManyToManyField(Color, blank=True, related_name="productos")
     material = models.CharField(max_length=50, blank=True)
     stock = models.PositiveIntegerField(default=0)
     esta_disponible = models.BooleanField(default=True)
