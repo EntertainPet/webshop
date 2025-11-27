@@ -474,6 +474,30 @@ def enviar_correo(pedido):
     
     dom = "http://localhost:8000"
     seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
+    items_con_subtotal = [
+        {
+            "producto": item.producto,
+            "cantidad": item.cantidad,
+            "subtotal": item.producto.precio_final * item.cantidad,
+            "imagen_url": getattr(item.producto.imagenes.filter(es_principal=True).first(), "imagen", None),
+        }
+        for item in pedido.pedido_items.select_related("producto")
+    ]
+
+    cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
+
+    context = {
+        "pedido": pedido,
+        "items_con_subtotal": items_con_subtotal,
+        "cliente": cliente,
+        "seguimiento_url": seguimiento_url,
+    }
+
+    html_content = render_to_string("email/confirmacion.html", context)
+    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
+    correo.attach_alternative(html_content, "text/html")
+
+    correo.send(fail_silently=False)
 
 @require_POST
 def carrito_remove_session_item(request):
@@ -569,31 +593,6 @@ def process_payment_view(request):
     messages.info(request, "Redirigiendo a pasarela de pago...")
     # Por ahora redirect temporal
     return redirect("home:carrito")
-
-    items_con_subtotal = [
-        {
-            "producto": item.producto,
-            "cantidad": item.cantidad,
-            "subtotal": item.producto.precio_final * item.cantidad,
-            "imagen_url": getattr(item.producto.imagenes.filter(es_principal=True).first(), "imagen", None),
-        }
-        for item in pedido.pedido_items.select_related("producto")
-    ]
-
-    cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
-
-    context = {
-        "pedido": pedido,
-        "items_con_subtotal": items_con_subtotal,
-        "cliente": cliente,
-        "seguimiento_url": seguimiento_url,
-    }
-
-    html_content = render_to_string("email/confirmacion.html", context)
-    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
-    correo.attach_alternative(html_content, "text/html")
-
-    correo.send(fail_silently=False)
 class OrderHistoryListView(LoginRequiredMixin, ListView):
     model = Pedido
     template_name = "home/historial_pedidos.html"
