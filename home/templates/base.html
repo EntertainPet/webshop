@@ -32,22 +32,6 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home:catalogo' %}">
-                            <i class="bi bi-house-fill"></i>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link cart-wrapper" href="{% url 'home:carrito' %}">
-                            <i class="bi bi-cart-fill"></i>
-                            {% if cart_count > 0 %}
-                                <span class="badge cart-badge bg-danger">
-                                    {{ cart_count }}
-                                    <span class="visually-hidden">productos en el carrito</span>
-                                </span>
-                            {% endif %}
-                        </a>
-                    </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home:historial' %}">
@@ -86,8 +70,20 @@
                     </form>
                 {% else %}
                     <ul class="navbar-nav mb-2 mb-lg-0">
+
                         <li class="nav-item"><a class="nav-link" href="{% url 'home:login' %}">Login</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'home:register' %}">Register</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link cart-wrapper" href="{% url 'home:carrito' %}">
+                                <i class="bi bi-cart-fill"></i>
+                                {% if cart_count > 0 %}
+                                    <span class="badge cart-badge bg-danger">
+                                        {{ cart_count }}
+                                        <span class="visually-hidden">productos en el carrito</span>
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
                     </ul>
                 {% endif %}
                 

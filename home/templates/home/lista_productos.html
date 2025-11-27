@@ -55,23 +55,6 @@
                     <input type="hidden" name="{{ key }}" value="{{ value }}">
                 {% endif %}
             {% endfor %}
-
-            <div class="input-group position-relative">
-                <input type="text"
-                    class="form-control filter-search-input"
-                    name="q"
-                    placeholder="Buscar juguete..."
-                    value="{{ search }}"
-                    autocomplete="off"
-                    id="catalog-search">
-
-                <button class="btn btn-search" type="submit">
-                    <i class="bi bi-search"></i>
-                </button>
-
-                <!-- RESULTADOS DEL AUTOCOMPLETADO -->
-                <div class="autocomplete-results" id="catalog-autocomplete"></div>
-            </div>
         </form>
 
     </div>
