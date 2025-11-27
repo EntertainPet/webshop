@@ -37,14 +37,14 @@
                             <i class="bi bi-house-fill"></i>
                         </a>
                     </li>
-                    <li class="nav-item position-relative">
-                        <a class="nav-link" href="{% url 'home:carrito' %}">
+                    <li class="nav-item">
+                        <a class="nav-link cart-wrapper" href="{% url 'home:carrito' %}">
                             <i class="bi bi-cart-fill"></i>
-                            {% if carrito_count > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                {{ carrito_count }}
-                                <span class="visually-hidden">productos en el carrito</span>
-                            </span>
+                            {% if cart_count > 0 %}
+                                <span class="badge cart-badge bg-danger">
+                                    {{ cart_count }}
+                                    <span class="visually-hidden">productos en el carrito</span>
+                                </span>
                             {% endif %}
                         </a>
                     </li>
@@ -185,7 +185,7 @@
                                 `;
 
                                 div.addEventListener("click", () => {
-                                    window.location.href = "/producto/" + item.slug + "/";
+                                    window.location.href = "/catalogo/" + item.slug + "/";
                                 });
 
                                 resultsBox.appendChild(div);

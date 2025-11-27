@@ -21,7 +21,7 @@
           {% endif %}
       <a href="{% url 'home:carrito' %}" class="cart-badge">
         <img src="{% static 'img/cart.svg' %}" alt="Carrito" class="cart-icon">
-        <span class="cart-count">0</span>
+        <span class="cart-count">{{ cart_count }}</span>
       </a>
       {% if user.is_authenticated %}
       {% if user.is_anonymous_user %}
@@ -34,7 +34,7 @@
         <button type="submit" class="logout-btn">Logout</button>
       </form>
     {% else %}
-    <a href="{% url 'home:login' %}">Iniciar Sesión / Registarse</a>
+    <a href="{% url 'home:login' %}">Iniciar Sesión / Registrarse</a>
     {% endif %}
   </div>
-  </header>
+</header>

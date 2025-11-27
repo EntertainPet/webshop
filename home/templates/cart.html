@@ -7,120 +7,254 @@
 <div class="container">
   <h2 class="mt-4" style="color:var(--marron-oscuro)">Tu cesta</h2>
 
+  {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
   <div class="cart-page">
     <section>
       <div class="cart-list">
-        {% if carrito %}
-          {% comment %}Intentar recorrer los items del carrito con diferentes nombres conocidos{% endcomment %}
-          {% if carrito.items.all %}
-            {% for item in carrito.items.all %}
-              <div class="cart-item">
-                <div class="mini-img">
-                  {% if item.producto.image %}
-                    <img src="{{ item.producto.image.url }}" alt="{{ item.producto.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">
-                  {% else %}
-                    🖼️
-                  {% endif %}
-                </div>
-                <div class="meta">
-                  <h5>{{ item.producto.name }}</h5>
-                  <div class="price">{{ item.producto.price }} €</div>
-                </div>
-                <div class="controls">
-                  <label>Cantidad</label>
-                  <form method="post" action="#">
-                    {% csrf_token %}
-                    <input type="number" name="cantidad" min="0" value="{{ item.cantidad }}">
-                    <button class="add-btn" type="submit">Actualizar</button>
-                  </form>
-                  <form method="post" action="#">
-                    {% csrf_token %}
-                    <button type="submit" style="background:none;border:none;color:var(--danger);text-decoration:underline;margin-top:6px">Eliminar</button>
-                  </form>
+        {% if cart_items %}
+          {% for item in cart_items %}
+            <div class="cart-item">
+              <div class="mini-img">
+                {% if item.producto.imagenes.first %}
+                  <img src="{{ item.producto.imagenes.first.imagen }}" alt="{{ item.producto.nombre }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">
+                {% else %}
+                  🖼️
+                {% endif %}
+              </div>
+              
+              <div class="meta">
+                <h5>{{ item.producto.nombre }}</h5>
+                
+                {% if item.talla_producto %}
+                  <p style="color:#666;font-size:0.9rem;margin:4px 0;">
+                    Talla: <strong>{{ item.talla_producto.talla }}</strong>
+                  </p>
+                {% endif %}
+                
+                <div class="price">{{ item.producto.precio_final }} €</div>
+                <div style="font-size:0.85rem;color:var(--gris);">
+                  Subtotal: <strong>{{ item.subtotal }} €</strong>
                 </div>
               </div>
-            {% endfor %}
-          {% else %}
-            {% if carrito.itemcarrito_set.all %}
-              {% for item in carrito.itemcarrito_set.all %}
-                <div class="cart-item">
-                  <div class="mini-img">🖼️</div>
-                  <div class="meta">
-                    <h5>{{ item.producto.name }}</h5>
-                    <div class="price">{{ item.producto.price }} €</div>
-                  </div>
-                  <div class="controls">
-                    <label>Cantidad</label>
-                    <input type="number" min="0" value="{{ item.cantidad }}">
-                    <a href="{% url 'home:carrito_remove' item.id %}" style="font-size:0.85rem;color:var(--danger);text-decoration:underline;margin-top:6px">Eliminar</a>
-                  </div>
+              
+              <div class="controls">
+                <label style="font-weight:600;margin-bottom:8px;display:block;">Cantidad</label>
+                
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                  {# BOTÓN DISMINUIR #}
+                  {% if item.id %}
+                    {# Usuario autenticado #}
+                    <form method="post" action="{% url 'home:carrito_update' item.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="decrease">
+                      <button type="submit" class="btn-cantidad-cart">−</button>
+                    </form>
+                  {% else %}
+                    {# Usuario invitado (sesión) - usar formulario inline con JavaScript #}
+                    <button type="button" class="btn-cantidad-cart" onclick="updateSessionCart('{{ item.key }}', 'decrease')">−</button>
+                  {% endif %}
+                  
+                  <span style="font-size:18px;font-weight:600;min-width:40px;text-align:center;">{{ item.cantidad }}</span>
+                  
+                  {# BOTÓN AUMENTAR #}
+                  {% if item.id %}
+                    {# Usuario autenticado #}
+                    <form method="post" action="{% url 'home:carrito_update' item.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="increase">
+                      <button type="submit" class="btn-cantidad-cart">+</button>
+                    </form>
+                  {% else %}
+                    {# Usuario invitado (sesión) #}
+                    <button type="button" class="btn-cantidad-cart" onclick="updateSessionCart('{{ item.key }}', 'increase')">+</button>
+                  {% endif %}
                 </div>
-              {% endfor %}
-            {% else %}
-              <p>No hay productos en el carrito.</p>
-            {% endif %}
-          {% endif %}
+                
+                {# BOTÓN ELIMINAR #}
+                {% if item.id %}
+                  {# Usuario autenticado #}
+                  <form method="post" action="{% url 'home:carrito_remove' item.id %}" style="margin-top:8px;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-eliminar-cart">
+                      Eliminar
+                    </button>
+                  </form>
+                {% else %}
+                  {# Usuario invitado (sesión) #}
+                  <button type="button" class="btn-eliminar-cart" onclick="removeSessionItem('{{ item.key }}')">
+                    Eliminar
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
         {% else %}
-          {% if cart_items %}
-            {% for item in cart_items %}
-              <div class="cart-item">
-                <div class="mini-img">
-                  {% if item.producto.imagenes.first %}
-                    <img src="{{ item.producto.imagenes.first.imagen }}" alt="{{ item.producto.nombre }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">
-                  {% else %}
-                    🖼️
-                  {% endif %}
-                </div>
-                <div class="meta">
-                  <h5>{{ item.producto.nombre }}</h5>
-                  <div class="price">{{ item.producto.precio_final }} €</div>
-                </div>
-                <div class="controls">
-                  <label>Cantidad</label>
-                  <input type="number" min="0" value="{{ item.cantidad }}">
-                  <a href="{% url 'home:carrito_remove' item.producto.pk %}" style="font-size:0.85rem;color:var(--danger);text-decoration:underline;margin-top:6px">Eliminar</a>
-                </div>
-              </div>
-            {% endfor %}
-          {% else %}
-            <p>No hay productos en el carrito.</p>
-          {% endif %}
+          <div style="background:#fff7e6;border:1px dashed #f0c36d;padding:20px;border-radius:8px;text-align:center;">
+            <p style="font-size:1.1rem;margin:0;color:var(--marron-oscuro);">
+              <strong>Tu carrito está vacío</strong>
+            </p>
+            <p style="margin:8px 0 16px;color:#666;">¡Explora nuestro catálogo y añade productos!</p>
+            <a href="{% url 'home:catalogo' %}" class="add-btn">Ir al catálogo</a>
+          </div>
         {% endif %}
       </div>
     </section>
 
+    <!-- Resumen SIEMPRE visible -->
     <aside class="order-summary">
       <h4>Resumen de la cesta</h4>
       <div class="summary-row">
-        <span>Productos ({% if carrito %}{{ carrito.items.count }}{% else %}{{ cart_items|length|default:0 }}{% endif %})</span>
-        <strong>€ {{ total|default:"0.00" }}</strong>
+        <span>Productos ({{ cantidad_items|default:0 }})</span>
+        <strong>{{ total|floatformat:2|default:"0.00" }} €</strong>
       </div>
       <div class="summary-row">
         <span>Gastos envío</span>
-        <span>€ 4,50</span>
+        <span>4,50 €</span>
       </div>
       <div class="summary-row">
         <span>IVA (21%)</span>
-        <span>€ {{ total|default:"0.00" }}</span>
+        <span>{{ total|floatformat:2|default:"0.00" }} €</span>
       </div>
       <hr style="border:none;border-top:1px solid #eee;margin:10px 0">
       <div class="summary-row">
         <strong>Total</strong>
-        <strong>€ {{ total|default:"0.00" }}</strong>
+        <strong>{{ total|floatformat:2|default:"0.00" }} €</strong>
       </div>
 
-      <div style="margin-top:12px">
-        <a href="#final" class="step-pill">Finalizar compra</a>
-      </div>
+      {% if cart_items %}
+        <div style="margin-top:16px;">
+          {% if user.is_authenticated %}
+            <a href="{% url 'home:process_payment' %}" class="step-pill" style="display:block;text-align:center;text-decoration:none;">
+              Finalizar compra
+            </a>
+          {% else %}
+            <a href="{% url 'home:guest_checkout' %}" class="step-pill" style="display:block;text-align:center;text-decoration:none;">
+              Finalizar compra
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+      
+      <p style="margin-top:12px;font-size:0.85rem;color:#666;text-align:center;">
+        Política de devoluciones: <strong>no se contemplan devoluciones</strong>.
+      </p>
     </aside>
   </div>
 
-  <section id="final" style="margin-top:18px">
-    <div class="checkout-section">
-      <h3 style="color:var(--marron-oscuro)">Confirmación</h3>
-      <p>Al completar el pago recibirás un correo electrónico con los datos del producto comprado, importe y dirección de entrega (esto es una maqueta, en una integración real el correo se enviaría automáticamente).</p>
-      <p class="small-note" style="margin-top:8px;color:var(--gris)">Política de devoluciones: <strong>no se contemplan devoluciones</strong>.</p>
-    </div>
-  </section>
+  <!-- Sección de Confirmación -->
+  <div class="checkout-section">
+    <h3 style="color:var(--marron-oscuro);margin-bottom:12px;">Confirmación</h3>
+    <p style="color:#666;margin-bottom:8px;">
+      Al completar el pago recibirás un correo electrónico con los datos del producto comprado, importe y dirección de entrega (esto es una maqueta, en una integración real el correo se enviaría automáticamente).
+    </p>
+    <p style="margin-top:8px;color:var(--gris);font-size:0.9rem;">
+      Política de devoluciones: <strong>no se contemplan devoluciones</strong>.
+    </p>
+  </div>
 </div>
+
+<!-- Formularios ocultos para sesión -->
+<form id="sessionUpdateForm" method="post" action="{% url 'home:carrito_add' 0 %}" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="session_key" id="sessionKeyInput">
+  <input type="hidden" name="session_action" id="sessionActionInput">
+</form>
+
+<style>
+  .btn-cantidad-cart {
+    width: 36px;
+    height: 36px;
+    border: 2px solid #ff6f61;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff6f61;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn-cantidad-cart:hover {
+    background: #ff6f61;
+    color: white;
+    transform: scale(1.1);
+  }
+  
+  .btn-eliminar-cart {
+    background: none;
+    border: none;
+    color: #dc3545;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+  }
+  
+  .btn-eliminar-cart:hover {
+    color: #a71d2a;
+  }
+</style>
+
+<script>
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function updateSessionCart(key, action) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "home:carrito_update_session_item" %}';
+    
+    const csrfToken = getCookie('csrftoken');
+    
+    form.innerHTML = `
+      <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+      <input type="hidden" name="key" value="${key}">
+      <input type="hidden" name="action" value="${action}">
+    `;
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function removeSessionItem(key) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "home:carrito_remove_session_item" %}';
+    
+    const csrfToken = getCookie('csrftoken');
+    
+    form.innerHTML = `
+      <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+      <input type="hidden" name="key" value="${key}">
+    `;
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+</script>
 {% endblock %}
