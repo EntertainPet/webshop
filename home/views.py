@@ -290,19 +290,31 @@ def add_to_cart(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
     talla_producto_id = request.POST.get("talla_producto_id")
     cantidad = int(request.POST.get("cantidad", 1))
-    
-    if not talla_producto_id:
-        messages.error(request, "Debes seleccionar una talla.")
+
+    # Validación correcta de talla
+    if not talla_producto_id or talla_producto_id in ["", "None", None]:
+        messages.error(request, "Debes seleccionar una talla antes de añadir el producto.")
         return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
+
+    try:
+        talla_producto = TallaProducto.objects.get(pk=int(talla_producto_id), producto=producto)
+    except (ValueError, TallaProducto.DoesNotExist):
+        messages.error(request, "La talla seleccionada no es válida.")
+        return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
+
     
-    talla_producto = get_object_or_404(TallaProducto, pk=talla_producto_id, producto=producto)
-    
-    # Validar stock disponible
+       # Helper to build stock message
+    def build_stock_message(talla_producto, producto):
+        if talla_producto.talla == "Única" or producto.tallas.count() <= 1:
+            return f"Solo quedan {talla_producto.stock} unidades disponibles."
+        return f"Solo quedan {talla_producto.stock} unidades disponibles de la talla {talla_producto.talla}."
+
+    # Validate available stock
     if cantidad > talla_producto.stock:
-        messages.error(request, f"Solo quedan {talla_producto.stock} unidades disponibles de la talla {talla_producto.talla}.")
+        messages.error(request, build_stock_message(talla_producto, producto))
         return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
     
-    # Usuario autenticado
+    # Authenticated user
     if request.user.is_authenticated:
         carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
         item, created = ItemCarrito.objects.get_or_create(
@@ -314,13 +326,13 @@ def add_to_cart(request, pk):
         if not created:
             nueva_cantidad = item.cantidad + cantidad
             if nueva_cantidad > talla_producto.stock:
-                messages.error(request, f"Solo quedan {talla_producto.stock} unidades disponibles de la talla {talla_producto.talla}.")
+                messages.error(request, build_stock_message(talla_producto, producto))
                 return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
             item.cantidad = nueva_cantidad
             item.save()
         messages.success(request, f"{producto.nombre} añadido al carrito.")
     else:
-        # Usuario anónimo: sesión
+        # Anonymous user: session
         if 'cart' not in request.session:
             request.session['cart'] = {}
         
@@ -329,7 +341,7 @@ def add_to_cart(request, pk):
         nueva_cantidad = current_qty + cantidad
         
         if nueva_cantidad > talla_producto.stock:
-            messages.error(request, f"Solo quedan {talla_producto.stock} unidades disponibles de la talla {talla_producto.talla}.")
+            messages.error(request, build_stock_message(talla_producto, producto))
             return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
         
         request.session['cart'][key] = nueva_cantidad
@@ -337,7 +349,6 @@ def add_to_cart(request, pk):
         messages.success(request, f"{producto.nombre} añadido al carrito.")
     
     return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
-
 
 def update_cart_item(request, item_id):
     """Actualiza la cantidad de un item en el carrito."""

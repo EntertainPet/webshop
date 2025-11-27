@@ -75,6 +75,41 @@ body {
     opacity: 0.8;
 }
 
+/* ---- Badge del carrito en navbar ---- */
+.cart-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.cart-wrapper .bi-cart-fill {
+    font-size: 1.2rem;          /* tamaño cómodo del icono */
+}
+
+.cart-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(45%, -45%);
+
+    min-width: 18px;
+    height: 18px;
+
+    padding: 0;
+    border-radius: 999px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    color: #fff;
+    background-color: #dc3545;
+
+    box-shadow: 0 0 0 2px #fbe4db; /* el color de fondo de la navbar */
+}
+
 /* =========================================================
    FOOTER
 ========================================================= */
