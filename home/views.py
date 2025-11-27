@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView
@@ -298,7 +299,16 @@ def add_to_cart(request, pk):
     
     producto = get_object_or_404(Producto, pk=pk)
     talla_producto_id = request.POST.get("talla_producto_id")
-    cantidad = int(request.POST.get("cantidad", 1))
+    
+    # Validación de cantidad con límite máximo de seguridad
+    try:
+        cantidad = int(request.POST.get("cantidad", 1))
+        if cantidad <= 0 or cantidad > 99:  # Límite de seguridad
+            messages.error(request, "La cantidad debe estar entre 1 y 99.")
+            return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
+    except (ValueError, TypeError):
+        messages.error(request, "Cantidad no válida.")
+        return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
 
     # Validación correcta de talla
     if not talla_producto_id or talla_producto_id in ["", "None", None]:
@@ -413,21 +423,6 @@ def remove_from_cart(request, item_id):
     
     return redirect("home:carrito")
 
-def remove_from_cart(request, item_id):
-    """Elimina un item del carrito."""
-    if request.user.is_authenticated:
-        ItemCarrito.objects.filter(id=item_id, carrito__cliente=request.user).delete()
-        messages.success(request, "Producto eliminado del carrito.")
-    else:
-        # Para sesión, item_id es el "key"
-        key = str(item_id)
-        if 'cart' in request.session and key in request.session['cart']:
-            del request.session['cart'][key]
-            request.session.modified = True
-            messages.success(request, "Producto eliminado del carrito.")
-    
-    return redirect("home:carrito")
-
 
 # CARRITO DE SESIÓN
 from django.views.decorators.http import require_POST
@@ -475,6 +470,30 @@ def enviar_correo(pedido):
     
     dom = "http://localhost:8000"
     seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
+    items_con_subtotal = [
+        {
+            "producto": item.producto,
+            "cantidad": item.cantidad,
+            "subtotal": item.producto.precio_final * item.cantidad,
+            "imagen_url": getattr(item.producto.imagenes.filter(es_principal=True).first(), "imagen", None),
+        }
+        for item in pedido.pedido_items.select_related("producto")
+    ]
+
+    cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
+
+    context = {
+        "pedido": pedido,
+        "items_con_subtotal": items_con_subtotal,
+        "cliente": cliente,
+        "seguimiento_url": seguimiento_url,
+    }
+
+    html_content = render_to_string("email/confirmacion.html", context)
+    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
+    correo.attach_alternative(html_content, "text/html")
+
+    correo.send(fail_silently=False)
 
 @require_POST
 def carrito_remove_session_item(request):
@@ -535,8 +554,20 @@ def guest_checkout_view(request):
     
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
+        
+        # Validación más robusta del email
         if not email:
             messages.error(request, "Debes ingresar un email válido.")
+            return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
+        
+        # Verificar formato del email
+        if "@" not in email or "." not in email.split("@")[-1]:
+            messages.error(request, "El formato del email no es válido.")
+            return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
+        
+        # Verificar longitud del email
+        if len(email) > 254:  # RFC 5321 limit
+            messages.error(request, "El email es demasiado largo.")
             return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
         
         # Generar código de seguimiento
@@ -571,30 +602,7 @@ def process_payment_view(request):
     # Por ahora redirect temporal
     return redirect("home:carrito")
 
-    items_con_subtotal = [
-        {
-            "producto": item.producto,
-            "cantidad": item.cantidad,
-            "subtotal": item.producto.precio_final * item.cantidad,
-            "imagen_url": getattr(item.producto.imagenes.filter(es_principal=True).first(), "imagen", None),
-        }
-        for item in pedido.pedido_items.select_related("producto")
-    ]
 
-    cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
-
-    context = {
-        "pedido": pedido,
-        "items_con_subtotal": items_con_subtotal,
-        "cliente": cliente,
-        "seguimiento_url": seguimiento_url,
-    }
-
-    html_content = render_to_string("email/confirmacion.html", context)
-    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
-    correo.attach_alternative(html_content, "text/html")
-
-    correo.send(fail_silently=False)
 class OrderHistoryListView(LoginRequiredMixin, ListView):
     model = Pedido
     template_name = "home/historial_pedidos.html"
@@ -785,8 +793,10 @@ def success_view(request):
 def cancel_view(request):
     return render(request, "home/cancel.html")
 
+@login_required
 def seguimiento_pedido(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id)
+    # Verificar que el usuario es el dueño del pedido
     if pedido.cliente_email != request.user.email:
         return HttpResponse("No autorizado para ver este pedido.", status=403)
     progreso = 0

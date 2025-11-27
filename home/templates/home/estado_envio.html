@@ -15,9 +15,9 @@
         {% if progreso == 0 %}
             <div class="progress-line-fill" style="width: 0%;"></div>
         {% elif progreso == 50 %}
-            <div class="progress-line-fill" style="width: 50%;"></div>
+            <div class="progress-line-fill" style="width: calc(50% - 15px);"></div>
         {% elif progreso == 100 %}
-            <div class="progress-line-fill" style="width: 100%;"></div>
+            <div class="progress-line-fill" style="width: calc(100% - 30px);"></div>
         {% endif %}
         
         <div class="steps-container">
