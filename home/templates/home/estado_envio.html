@@ -1,0 +1,67 @@
+{% extends "base.html" %} 
+{% load static %}
+
+{% block title %}Estado de Envío - EntertainPet{% endblock %}
+{% block content %}
+
+<div class="seguimiento-container text-center"> <h2 class="mb-2">Seguimiento del Pedido #{{ pedido.id }}</h2>
+    <p class="subtexto text-muted mb-5">Estado actual: <span class="fw-bold text-dark">{{ pedido.get_estado_envio_display }}</span></p>
+
+    {% with status=pedido.estado_envio %}
+    <div class="track-wrapper mb-5">
+        
+        <div class="progress-line-background"></div>
+        
+        {% if progreso == 0 %}
+            <div class="progress-line-fill" style="width: 0%;"></div>
+        {% elif progreso == 50 %}
+            <div class="progress-line-fill" style="width: 50%;"></div>
+        {% elif progreso == 100 %}
+            <div class="progress-line-fill" style="width: 100%;"></div>
+        {% endif %}
+        
+        <div class="steps-container">
+            
+            <div class="step-item active"> 
+                <div class="step-circle"></div>
+                <div class="step-label">En Preparación</div>
+            </div>
+
+            <div class="step-item {% if status == 'On the way' or status == 'Delivered' %}active{% endif %}">
+                <div class="step-circle"></div>
+                <div class="step-label">En camino</div>
+            </div>
+
+            <div class="step-item {% if status == 'Delivered' %}active{% endif %}">
+                <div class="step-circle"></div>
+                <div class="step-label">Entregado</div>
+            </div>
+
+        </div>
+    </div>
+    {% endwith %}
+    
+    <div class="card mx-auto shadow-sm border-0" style="max-width: 400px; background-color: #fff;">
+        <div class="card-body p-4 text-start"> <h6 class="card-subtitle mb-3 text-muted text-uppercase small text-center">Detalles de la compra</h6>
+            
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                <span class="text-secondary"><i class="bi bi-calendar3 me-2"></i>Fecha</span>
+                <span class="fw-medium">{{ pedido.fecha_creacion|date:"d M Y" }}</span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center pt-1">
+                <span class="text-secondary"><i class="bi bi-credit-card me-2"></i>Total</span>
+                <span class="fs-5 fw-bold text-success">{{ pedido.cantidad }} {{ pedido.divisa }}</span>
+            </div>
+
+        </div>
+        <div class="card-footer bg-transparent border-0 pb-4 pt-0">
+            <a href="{% url 'home:catalogo' %}" class="btn btn-outline-dark btn-sm rounded-pill px-4 w-100">
+                Volver a la tienda
+            </a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

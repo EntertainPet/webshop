@@ -10,9 +10,7 @@
 <section class="hero-section">
     <div class="hero-left">
         <img src="{% static 'img/logo.png' %}" alt="EntertainPet" class="hero-logo">
-        
         <p class="hero-slogan">"Juguetes que llenan de alegría a tu mascota"</p>
-
         <a href="#catalogo" class="btn btn-search hero-btn">Comprar Ahora</a>
     </div>
 </section>
@@ -22,10 +20,18 @@
 {% block inner_content %}
 
 <div class="container mt-5">
-
-
-    <div class="container mt-5">
-    <div class="container mt-5">
+    
+    <!-- Mensajes (CORREGIDO) -->
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <!-- Barra superior: Filtros + Buscador -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
@@ -40,27 +46,35 @@
             </button>
         </div>
 
-        <form method="get" action="{% url 'home:catalogo' %}" class="d-flex align-items-center filter-top-search">
-            {# Mantener filtros activos al buscar de nuevo #}
+        <form method="get"
+            action="{% url 'home:catalogo' %}"
+            class="d-flex align-items-center filter-top-search position-relative">
+
             {% for key, value in request.GET.items %}
                 {% if key != 'q' %}
                     <input type="hidden" name="{{ key }}" value="{{ value }}">
                 {% endif %}
             {% endfor %}
 
-            <div class="input-group">
+            <div class="input-group position-relative">
                 <input type="text"
-                       class="form-control filter-search-input"
-                       name="q"
-                       placeholder="Buscar juguete..."
-                       value="{{ search }}">
+                    class="form-control filter-search-input"
+                    name="q"
+                    placeholder="Buscar juguete..."
+                    value="{{ search }}"
+                    autocomplete="off"
+                    id="catalog-search">
+
                 <button class="btn btn-search" type="submit">
                     <i class="bi bi-search"></i>
                 </button>
+
+                <!-- RESULTADOS DEL AUTOCOMPLETADO -->
+                <div class="autocomplete-results" id="catalog-autocomplete"></div>
             </div>
         </form>
-    </div>
 
+    </div>
 
     <!-- Sección de filtros desplegable -->
     <div class="collapse" id="filterCollapse">
@@ -76,13 +90,13 @@
                                    class="form-control form-control-sm filter-price-input"
                                    name="min"
                                    placeholder="Mín."
-                                   value="{{ min_value }}">
+                                   value="{{ request.GET.min }}">
                             <span class="text-muted">–</span>
                             <input type="number"
                                    class="form-control form-control-sm filter-price-input"
                                    name="max"
                                    placeholder="Máx."
-                                   value="{{ max_value }}">
+                                   value="{{ request.GET.max }}">
                         </div>
                         <p class="small text-muted mb-0">
                             Introduce un rango o déjalo vacío para ver todos.
@@ -178,7 +192,7 @@
 
     <!-- 🏆 SLIDER DE PRODUCTOS DESTACADOS -->
     {% if productos_destacados %}
-    <h2 id = "catalogo" class="section-title text-center my-4">Productos Destacados</h2>
+    <h2 id="catalogo" class="section-title text-center my-4">Productos Destacados</h2>
 
     <div class="swiper mySwiper">
         <div class="swiper-wrapper">
@@ -186,6 +200,12 @@
             {% for producto in productos_destacados %}
             <div class="swiper-slide">
                 <div class="card shadow-sm product-card">
+                    {% comment %}Badge de stock{% endcomment %}
+                    {% if producto.stock_total <= 0 %}
+                        <span class="badge badge-out-of-stock">Agotado</span>
+                    {% elif producto.stock_total < 5 %}
+                        <span class="badge badge-low-stock">Últimas unidades</span>
+                    {% endif %}
 
                     {% with img=producto.imagenes.first %}
                         {% if img %}
@@ -194,7 +214,7 @@
                     {% endwith %}
 
                     <div class="card-body text-center">
-                        <h5>{{ producto.nombre }}</h5>
+                        <h5 class="product-title mb-1 text-truncate">{{ producto.nombre }}</h5>
 
                         {% if producto.precio_oferta %}
                             <p class="text-muted"><del>${{ producto.precio }}</del>
@@ -203,7 +223,22 @@
                             <p class="fw-bold">${{ producto.precio }}</p>
                         {% endif %}
 
-                        <a href="{{ producto.get_absolute_url }}" class="btn btn-search mt-2">Ver más</a>
+                        <div class="mt-auto d-flex gap-2">
+                            <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-secondary btn-sm w-50">
+                                Ver más
+                            </a>
+
+                            {% if producto.stock_total <= 0 %}
+                                <!-- botón deshabilitado -->
+                                <button class="btn btn-cart btn-sm w-50 disabled" disabled>
+                                    Agotado
+                                </button>
+                            {% else %}
+                                <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
+                                    <i class="bi bi-cart-plus me-1"></i> Añadir
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
 
                 </div>
@@ -253,15 +288,20 @@
 
     {% endif %}
 
-
     <!-- 📦 LISTA NORMAL DE PRODUCTOS -->
-    <h2 class="section-title mt-5 mb-4 text-center">Productos</h2>
+    <h2 class="section-title mt-5 mb-4 text-center" id="catalogo">Productos</h2>
 
     <div class="row g-4">
         {% for producto in productos %}
 
         <div class="col-md-3 col-sm-6">
           <div class="card product-card h-100">
+              {% comment %}Badge de stock{% endcomment %}
+              {% if producto.stock_total <= 0 %}
+                <span class="badge badge-out-of-stock">Agotado</span>
+              {% elif producto.stock_total < 5 %}
+                <span class="badge badge-low-stock">Últimas unidades</span>
+              {% endif %}
 
               {% with img=producto.imagenes.first %}
                   {% if img %}
@@ -288,18 +328,26 @@
                   {% endif %}
 
                   <div class="mt-auto d-flex gap-2">
-                      <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-secondary btn-sm w-50">
-                          Ver más
-                      </a>
-                      <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
-                          <i class="bi bi-cart-plus me-1"></i> Añadir
-                      </a>
+                    <a href="{{ producto.get_absolute_url }}" class="btn btn-outline-secondary btn-sm w-50">
+                        Ver más
+                    </a>
+
+                    {% if producto.stock_total <= 0 %}
+                        <!-- botón deshabilitado -->
+                        <button class="btn btn-cart btn-sm w-50 disabled" disabled>
+                            Agotado
+                        </button>
+                    {% else %}
+                        <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
+                            <i class="bi bi-cart-plus me-1"></i> Añadir
+                        </a>
+                    {% endif %}
                   </div>
+
               </div>
 
           </div>
       </div>
-
 
         {% empty %}
             <p class="text-center">No hay productos disponibles.</p>
@@ -355,9 +403,301 @@
         </nav>
     {% endif %}
 
-
-
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("catalog-search");
+    const resultsBox = document.getElementById("catalog-autocomplete");
+
+    if (!searchInput) return;
+
+    let debounceTimer = null;
+
+    function hideResults() {
+        resultsBox.style.display = "none";
+        resultsBox.innerHTML = "";
+    }
+
+    searchInput.addEventListener("input", () => {
+        const q = searchInput.value.trim();
+
+        if (q === "") {
+            hideResults();
+            return;
+        }
+
+        clearTimeout(debounceTimer);
+
+        debounceTimer = setTimeout(() => {
+            fetch(`/autocomplete/?q=${encodeURIComponent(q)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        hideResults();
+                        return;
+                    }
+
+                    resultsBox.innerHTML = "";
+                    resultsBox.style.display = "block";
+
+                    data.forEach(item => {
+                        const div = document.createElement("div");
+                        div.classList.add("autocomplete-item");
+
+                        div.innerHTML = `
+                            ${item.imagen ? `<img src="${item.imagen}">` : ""}
+                            <div>
+                                <div class="autocomplete-name">${item.nombre}</div>
+                                <div class="autocomplete-price">$${item.precio}</div>
+                            </div>
+                        `;
+
+                        div.addEventListener("click", () => {
+                            window.location.href = "/catalogo/" + item.slug + "/";
+                        });
+
+                        resultsBox.appendChild(div);
+                    });
+                });
+        }, 250);
+    });
+
+    document.addEventListener("click", e => {
+        if (!resultsBox.contains(e.target) && e.target !== searchInput) hideResults();
+    });
+});
+</script>
 
 {% endblock %}
 
+{% block extra_scripts %}
+{{ block.super }}
+<style>
+  /* Modal para selector de tallas */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal-overlay.active {
+    display: flex;
+  }
+  
+  .modal-content {
+    background: white;
+    border-radius: 18px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+    position: relative;
+  }
+  
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #8b6a55;
+    line-height: 1;
+  }
+  
+  .modal-content h3 {
+    color: #6b4c3b;
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  
+  .talla-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+  }
+  
+  .talla-btn {
+    padding: 12px;
+    border: 2px solid #ffdfd3;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    color: #6b4c3b;
+  }
+  
+  .talla-btn:hover:not(:disabled) {
+    border-color: #ff6f61;
+    background: #fff7f3;
+  }
+  
+  .talla-btn.selected {
+    border-color: #ff6f61;
+    background: #ff6f61;
+    color: white;
+  }
+  
+  .talla-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+  }
+  
+  .talla-btn small {
+    display: block;
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  
+  .cantidad-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  
+  .cantidad-btn {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #ff6f61;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff6f61;
+    transition: all 0.2s;
+  }
+  
+  .cantidad-btn:hover {
+    background: #ff6f61;
+    color: white;
+  }
+  
+  .cantidad-input {
+    width: 60px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    border: 2px solid #ffdfd3;
+    border-radius: 10px;
+    padding: 8px;
+  }
+</style>
+
+<script>
+  const tallasData = JSON.parse(document.getElementById('tallasData').textContent);
+  let selectedTallaId = null;
+  let maxStock = 0;
+  
+  function openTallaModal(productoId, productoNombre, tieneTallas) {
+    const modal = document.getElementById('tallaModal');
+    const form = document.getElementById('addToCartForm');
+    const nombreEl = document.getElementById('modalProductoNombre');
+    const tallasContainer = document.getElementById('tallasContainer');
+    const cantidadInput = document.getElementById('cantidadInput');
+    
+    nombreEl.textContent = productoNombre;
+    form.action = `/carrito/add/${productoId}/`;
+    cantidadInput.value = 1;
+    selectedTallaId = null;
+    
+    tallasContainer.innerHTML = '';
+    
+    const tallas = tallasData[productoId] || [];
+    
+    if (tallas.length === 1 && tallas[0].talla === "Única") {
+      tallasContainer.innerHTML = '<p style="color:#8b6a55;margin:12px 0;">Este producto no requiere talla.</p>';
+      selectedTallaId = tallas[0].id;
+      maxStock = tallas[0].stock;
+      document.getElementById('tallaProductoIdInput').value = selectedTallaId;
+    } else {
+      tallasContainer.innerHTML = '<label style="font-weight:600;display:block;margin-bottom:12px;color:#6b4c3b;">Selecciona talla:</label><div class="talla-selector"></div>';
+      const selectorDiv = tallasContainer.querySelector('.talla-selector');
+      
+      tallas.forEach(t => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'talla-btn';
+        btn.disabled = t.stock === 0;
+        
+        const tallaText = document.createElement('span');
+        tallaText.textContent = t.talla;
+        btn.appendChild(tallaText);
+        
+        if (t.stock > 0) {
+          const stockInfo = document.createElement('small');
+          stockInfo.textContent = `${t.stock} disp.`;
+          stockInfo.style.color = '#8b6a55';
+          btn.appendChild(stockInfo);
+        } else {
+          const stockInfo = document.createElement('small');
+          stockInfo.textContent = 'Agotado';
+          stockInfo.style.color = '#999';
+          btn.appendChild(stockInfo);
+        }
+        
+        btn.onclick = () => selectTalla(t.id, t.stock, btn);
+        selectorDiv.appendChild(btn);
+      });
+    }
+    
+    modal.classList.add('active');
+  }
+  
+  function closeTallaModal() {
+    document.getElementById('tallaModal').classList.remove('active');
+  }
+  
+  function selectTalla(tallaId, stock, btnElement) {
+    selectedTallaId = tallaId;
+    maxStock = stock;
+    
+    document.querySelectorAll('.talla-btn').forEach(b => b.classList.remove('selected'));
+    btnElement.classList.add('selected');
+    
+    document.getElementById('tallaProductoIdInput').value = tallaId;
+    document.getElementById('cantidadInput').value = 1;
+  }
+  
+  function increaseCantidad() {
+    const input = document.getElementById('cantidadInput');
+    const current = parseInt(input.value);
+    if (current < maxStock) {
+      input.value = current + 1;
+    }
+  }
+  
+  function decreaseCantidad() {
+    const input = document.getElementById('cantidadInput');
+    const current = parseInt(input.value);
+    if (current > 1) {
+      input.value = current - 1;
+    }
+  }
+  
+  document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+    if (!selectedTallaId) {
+      //e.preventDefault();
+      //alert('Por favor selecciona una talla.');
+    }
+  });
+  
+  document.getElementById('tallaModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeTallaModal();
+    }
+  });
+</script>
+{% endblock %}

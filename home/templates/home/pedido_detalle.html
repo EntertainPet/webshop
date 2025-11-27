@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Pedido - {{ pedido.stripe_checkout_id }} - EntertainPet{% endblock %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <h1 class="mb-1">Pedido: {{ pedido.stripe_checkout_id }}</h1>
+        <p class="text-muted">Fecha: {{ pedido.fecha_creacion|date:"SHORT_DATETIME_FORMAT" }}</p>
+        <p>
+            <strong>Estado:</strong>
+            {% if pedido.status == 'Paid' %}
+                <span class="badge bg-success">{{ pedido.get_status_display }}</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">{{ pedido.get_status_display }}</span>
+            {% endif %}
+        </p>
+    </div>
+</section>
+{% endblock %}
+
+{% block inner_content %}
+<div class="container">
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3">Items del pedido</h5>
+                    {% for item in items_list %}
+                        <div class="order-item">
+                            {% with img=item.producto.imagenes.first %}
+                                {% if img %}
+                                    <img src="{{ img.imagen }}" alt="{{ item.producto.nombre }}" class="rounded">
+                                {% endif %}
+                            {% endwith %}
+                            <div style="flex:1;">
+                                <div class="fw-semibold">{{ item.producto.nombre }}</div>
+                                {% if item.producto.descripcion %}
+                                    <div class="text-muted small">{{ item.producto.descripcion|truncatewords:12 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="text-end" style="min-width:120px;">
+                                <div><span class="text-muted small">{{ item.cantidad }} x</span> <strong>{{ item.unit_price|floatformat:2 }}€</strong></div>
+                                <div class="text-muted small">Subtotal: <strong>{{ item.subtotal|floatformat:2 }}€</strong></div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted">Este pedido no tiene items asociados.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="order-detail-column">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <h6 class="mb-2">Resumen del pedido</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Subtotal</span>
+                            <span><strong>{{ total_sum|floatformat:2 }} {{ pedido.divisa }}</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Método</span>
+                            <span class="text-muted small">Stripe</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Total</span>
+                            <span class="fs-5 fw-bold">{{ display_amount|floatformat:2 }} {{ pedido.divisa }}</span>
+                        </div>
+                        <div class="mt-3">
+                            <a href="#" class="btn btn-cart w-100 mb-2">Descargar factura</a>
+                            <a href ="{% url 'home:seguimiento' pedido.id %}" class="btn btn-cart w-100 mb-2">Seguimiento de pedido</a>
+                            <a href="{% url 'home:historial' %}" class="btn btn-outline-secondary w-100">Volver al historial</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="mb-2">Estado del pedido</h6>
+                        <div class="d-flex gap-2 align-items-center mb-2">
+                            {% if pedido.status == 'Paid' %}
+                                <div class="order-status paid">{{ pedido.get_status_display }}</div>
+                            {% else %}
+                                <div class="order-status pending">{{ pedido.get_status_display }}</div>
+                            {% endif %}
+                            <div class="text-muted small">Creado: {{ pedido.fecha_creacion|date:"SHORT_DATETIME_FORMAT" }}</div>
+                        </div>
+                        <p class="text-muted small mb-0">Si necesitas asistencia, contacta con soporte@entertainpet.test</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

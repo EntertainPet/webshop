@@ -2,14 +2,16 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from decimal import Decimal
 import random
+import uuid
 
 from home.models import (
     Categoria, Marca, Producto, ImagenProducto,
     TallaProducto, Carrito, ItemCarrito,
-    Pedido, ItemPedido, Color
+        Pedido, ItemPedido
 )
 
 User = get_user_model()
+
 
 class Command(BaseCommand):
     help = "Seed database with realistic pet-store sample data"
@@ -27,7 +29,7 @@ class Command(BaseCommand):
         TallaProducto.objects.all().delete()
         ImagenProducto.objects.all().delete()
         Producto.objects.all().delete()
-        Color.objects.all().delete() 
+        # Color model not present; Producto stores a `color` CharField
         Categoria.objects.all().delete()
         Marca.objects.all().delete()
         User.objects.filter(is_superuser=False).delete()
@@ -84,22 +86,7 @@ class Command(BaseCommand):
         marcas = {nombre: Marca.objects.create(nombre=nombre) for nombre in marcas_nombres}
         self.stdout.write("✔ Marcas creadas")
 
-        # --------------------------
-        # 4. Colores
-        # --------------------------
-        colores_data = [
-            ("Rojo", "#FF0000"), ("Azul", "#0000FF"),
-            ("Verde", "#008000"), ("Negro", "#000000"),
-            ("Blanco", "#FFFFFF"), ("Amarillo", "#FFFF00"),
-            ("Gris", "#808080"), ("Naranja", "#FFA500"),
-            ("Rosa", "#FFC0CB"),
-        ]
-        colores_map = {}
-        for nombre, hex_code in colores_data:
-            colores_map[nombre] = Color.objects.create(nombre=nombre, codigo_hex=hex_code)
-
-        colores_list = list(colores_map.values())
-        self.stdout.write("✔ Colores creados")
+        # No Color model: we'll store simple color names on Producto.color
 
         # --------------------------
         # 5. Productos 
@@ -240,8 +227,10 @@ class Command(BaseCommand):
                 material=material or "Otros"
             )
 
+            # Si hay colores, guardar el primero como valor representativo en el campo `color`
             if color_nombres:
-                prod.colores.set([colores_map[c] for c in color_nombres if c in colores_map])
+                prod.color = color_nombres[0]
+                prod.save()
 
             ImagenProducto.objects.create(producto=prod, imagen=img_url, es_principal=True)
 
@@ -259,37 +248,140 @@ class Command(BaseCommand):
             productos.append(prod)
 
         # --------------------------
-        # 6. Crear carritos con items
+        # 6. Crear carritos con items (carritos genéricos)
         # --------------------------
         for i in range(2):
             carrito = Carrito.objects.create(codigo_carrito=f"CRT-{i+1:03d}")
             for _ in range(random.randint(1, 5)):
+                producto_choice = random.choice(productos)
+                talla_choice = producto_choice.tallas.first()
+                if not talla_choice:
+                    talla_choice = TallaProducto.objects.create(producto=producto_choice, talla="Única", stock=producto_choice.stock)
                 ItemCarrito.objects.create(
                     carrito=carrito,
-                    producto=random.choice(productos),
+                    producto=producto_choice,
+                    talla_producto=talla_choice,
                     cantidad=random.randint(1, 3)
                 )
         self.stdout.write("✔ Carritos creados")
 
         # --------------------------
-        # 7. Crear pedidos
+        # 7. Crear pedidos para usuarios (simplificado y compatible con modelos actuales)
         # --------------------------
+        def crear_pedidos_para_usuario(usuario, n=3):
+            for i in range(1, n + 1):
+                seleccion = [random.choice(productos) for _ in range(random.randint(1, 4))]
+                total = Decimal("0.00")
+                pedido = Pedido.objects.create(
+                    stripe_checkout_id=f"seed_{usuario.username}_{i}_{uuid.uuid4().hex[:6]}",
+                    cantidad=total,
+                    divisa="EUR",
+                    cliente_email=usuario.email,
+                    status=random.choice(["Paid", "Pending"]),
+                )
+                for prod in seleccion:
+                    qty = random.randint(1, 3)
+                    ItemPedido.objects.create(pedido=pedido, producto=prod, cantidad=qty)
+                    total += prod.precio * qty
+                pedido.cantidad = total
+                pedido.save()
+
+        crear_pedidos_para_usuario(user1, n=3)
+        crear_pedidos_para_usuario(user2, n=3)
+
+        # --------------------------
+        # 8. Carritos asociados a usuarios (no existe relación en modelo Carrito, crear carritos identificados por usuario)
+        # --------------------------
+        for u in (user1, user2):
+            cart_code = f"CRT-{u.username}-{uuid.uuid4().hex[:6].upper()}"
+            carrito = Carrito.objects.create(codigo_carrito=cart_code)
+            for _ in range(random.randint(1, 4)):
+                producto_choice = random.choice(productos)
+                talla_choice = producto_choice.tallas.first()
+                if not talla_choice:
+                    talla_choice = TallaProducto.objects.create(producto=producto_choice, talla="Única", stock=producto_choice.stock)
+                ItemCarrito.objects.create(
+                    carrito=carrito,
+                    producto=producto_choice,
+                    talla_producto=talla_choice,
+                    cantidad=random.randint(1, 2),
+                )
+
+        self.stdout.write("✔ Carritos con items creados")
+
+        # --------------------------
+        # 6. Crear pedidos
+        #    (combina versión antigua + versión por estados)
+        # --------------------------
+
+        # Versión nueva: lista de estados y helper
+        estados_envio = [
+            "Pendiente",
+            "En preparación",
+            "Enviado",
+            "Entregado",
+        ]
+
+        def crear_pedidos_por_estados(usuario, prefix):
+            """
+            Crea un pedido por cada estado de envío, con productos aleatorios.
+            """
+            for idx, estado in enumerate(estados_envio, start=1):
+                items = []
+                for _ in range(random.randint(2, 3)):
+                    prod = random.choice(productos)
+                    qty = random.randint(1, 3)
+                    talla_random = prod.tallas.filter(stock__gt=0).first()
+                    talla_value = talla_random.talla if talla_random else "Única"
+                    items.append((prod, qty, talla_value))
+
+                total = Decimal("0.00")
+                pedido = Pedido.objects.create(
+                    stripe_checkout_id=f"seed_checkout_states_{prefix}_{idx}",
+                    cantidad=total,
+                    divisa="EUR",
+                    cliente_email=usuario.email,
+                    status="Paid",
+                    estado_envio=estado,
+                    codigo_seguimiento=f"TRACK-{uuid.uuid4().hex[:8].upper()}",
+                )
+
+                for prod, qty, talla in items:
+                    ItemPedido.objects.create(
+                        pedido=pedido,
+                        producto=prod,
+                        cantidad=qty,
+                        talla=talla,
+                    )
+                    total += prod.precio * qty
+
+                pedido.cantidad = total
+                pedido.save()
+
+        # Versión antigua: pedidos fijos de ejemplo
         pedidos_user1 = [
-            [(productos[0], 2), (productos[1], 1)],  
-            [(productos[5], 1), (productos[8], 3)],  
+            [(productos[0], 2, "M"), (productos[1], 1, "Única")],
+            [(productos[2], 1, "Única"), (productos[3], 3, "Única")],
         ]
 
         for i, items in enumerate(pedidos_user1, start=1):
+            total = Decimal("0.00")
             pedido = Pedido.objects.create(
                 stripe_checkout_id=f"seed_checkout_user1_{i}",
-                cantidad=Decimal("0.00"),
+                cantidad=total,
                 divisa="EUR",
                 cliente_email=user1.email,
                 status="Paid",
+                estado_envio="Entregado",
+                codigo_seguimiento=f"TRACK-{uuid.uuid4().hex[:8].upper()}"
             )
-            total = Decimal("0.00")
-            for prod, qty in items:
-                ItemPedido.objects.create(pedido=pedido, producto=prod, cantidad=qty)
+            for prod, qty, talla in items:
+                ItemPedido.objects.create(
+                    pedido=pedido,
+                    producto=prod,
+                    cantidad=qty,
+                    talla=talla
+                )
                 total += prod.precio * qty
             pedido.cantidad = total
             pedido.save()
@@ -303,16 +395,24 @@ class Command(BaseCommand):
         for i, items in enumerate(pedidos_user2, start=1):
             pedido = Pedido.objects.create(
                 stripe_checkout_id=f"seed_checkout_user2_{i}",
-                cantidad=Decimal("0.00"),
+                cantidad=total,
                 divisa="EUR",
                 cliente_email=user2.email,
-                status="Paid", 
+                status="Paid",
+                estado_envio="Enviado",
+                codigo_seguimiento=f"TRACK-{uuid.uuid4().hex[:8].upper()}"
             )
             total = Decimal("0.00")
             for prod, qty in items:
-                ItemPedido.objects.create(pedido=pedido, producto=prod, cantidad=qty)
+                ItemPedido.objects.create(pedido=pedido, producto=prod, cantidad=qty, talla=talla)
                 total += prod.precio * qty
             pedido.cantidad = total
             pedido.save()
 
-        self.stdout.write(self.style.SUCCESS("✅ Datos generados correctametne"))
+        # Llamar también a la versión genérica por estados
+        crear_pedidos_por_estados(user1, "user1")
+        crear_pedidos_por_estados(user2, "user2")
+
+        self.stdout.write("✔ Pedidos fijos de ejemplo creados")
+        self.stdout.write("✔ Pedidos por estados creados para cada usuario")
+        self.stdout.write(self.style.SUCCESS("✅ Datos generados correctamente"))

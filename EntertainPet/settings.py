@@ -23,8 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-#*dnr@#5voq^z+yun*)oyzqvt-)+2q2q53^l89yv*zx_@l)u!e'
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -68,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'home.context_processors.cart_counter',
             ],
         },
     },
@@ -128,9 +131,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
-WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
+
 # **Clave para el usuario personalizado**
 AUTH_USER_MODEL = 'home.Cliente'
 
@@ -138,3 +139,11 @@ AUTH_USER_MODEL = 'home.Cliente'
 LOGIN_URL = 'home:login'
 LOGIN_REDIRECT_URL = 'home:catalogo'
 LOGOUT_REDIRECT_URL = 'home:catalogo'
+
+# Envío de correos
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'entertainpet2025@gmail.com'
+EMAIL_HOST_PASSWORD = 'agqz vtmx ycfe gjpu'
