@@ -469,7 +469,8 @@ def enviar_correo(pedido):
     to_email = [pedido.cliente_email]
     
     dom = "http://localhost:8000"
-    seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
+    seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token])   
+    
     items_con_subtotal = [
         {
             "producto": item.producto,
@@ -799,6 +800,16 @@ def seguimiento_pedido(request, pedido_id):
     # Verificar que el usuario es el dueño del pedido
     if pedido.cliente_email != request.user.email:
         return HttpResponse("No autorizado para ver este pedido.", status=403)
+    progreso = 0
+    if pedido.estado_envio == 'On the way':
+        progreso = 50
+    elif pedido.estado_envio == 'Delivered':
+        progreso = 100
+    return render(request, "home/estado_envio.html", {"pedido": pedido,
+                                                            "progreso": progreso})
+
+def seguimiento_pedido_token(request, token):
+    pedido = Pedido.objects.get(seguimiento_token=token)
     progreso = 0
     if pedido.estado_envio == 'On the way':
         progreso = 50

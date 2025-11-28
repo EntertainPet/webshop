@@ -1,3 +1,4 @@
+import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.text import slugify
@@ -158,7 +159,7 @@ class Pedido(models.Model):
     codigo_seguimiento = models.CharField(max_length=50, blank=True, null=True)
     estado_envio = models.CharField(max_length=20, choices=EstadoEnvio.choices,blank=True, null=True)
     status = models.CharField(max_length=20, choices=[("Pending", "Pendiente de pago"), ("Paid", "Pagado")])
-    
+    seguimiento_token = models.UUIDField(default=uuid.uuid4,editable=False,unique=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -147,3 +147,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'entertainpet2025@gmail.com'
 EMAIL_HOST_PASSWORD = 'agqz vtmx ycfe gjpu'
+SITE_DOMAIN = "http://127.0.0.1:8000"

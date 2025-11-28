@@ -31,7 +31,8 @@ urlpatterns = [
     # Stripe
     path("autocomplete/", views.autocomplete_productos, name="autocomplete"),
     path('pedido/seguimiento/<int:pedido_id>/', views.seguimiento_pedido, name='seguimiento'),
-
+    path('pedido/seguimiento/token/<uuid:token>/', views.seguimiento_pedido_token, name='seguimiento_token'),
+    
     #stripe
     path("create_checkout_session/", views.create_checkout_session, name="create_checkout_session"),
     path("webhook/", views.my_webhook_view, name="webhook"),

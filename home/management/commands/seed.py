@@ -7,7 +7,7 @@ import uuid
 from home.models import (
     Categoria, Marca, Producto, ImagenProducto,
     TallaProducto, Carrito, ItemCarrito,
-        Pedido, ItemPedido
+    Color, Pedido, ItemPedido
 )
 
 User = get_user_model()
@@ -23,13 +23,13 @@ class Command(BaseCommand):
         # 0. Limpiar datos anteriores
         # --------------------------
         ItemPedido.objects.all().delete()
-        Pedido.objects.all().delete()
         ItemCarrito.objects.all().delete()
+        ImagenProducto.objects.all().delete()
+        Pedido.objects.all().delete()
         Carrito.objects.all().delete()
         TallaProducto.objects.all().delete()
-        ImagenProducto.objects.all().delete()
+        Color.objects.all().delete()
         Producto.objects.all().delete()
-        # Color model not present; Producto stores a `color` CharField
         Categoria.objects.all().delete()
         Marca.objects.all().delete()
         User.objects.filter(is_superuser=False).delete()
@@ -86,7 +86,22 @@ class Command(BaseCommand):
         marcas = {nombre: Marca.objects.create(nombre=nombre) for nombre in marcas_nombres}
         self.stdout.write("✔ Marcas creadas")
 
-        # No Color model: we'll store simple color names on Producto.color
+        #--------------------------
+        # 4. Colores
+        # --------------------------
+        colores_data = [
+            ("Rojo", "#FF0000"), ("Azul", "#0000FF"),
+            ("Verde", "#008000"), ("Negro", "#000000"),
+            ("Blanco", "#FFFFFF"), ("Amarillo", "#FFFF00"),
+            ("Gris", "#808080"), ("Naranja", "#FFA500"),
+            ("Rosa", "#FFC0CB"),
+        ]
+        colores_map = {}
+        for nombre, hex_code in colores_data:
+            colores_map[nombre] = Color.objects.create(nombre=nombre, codigo_hex=hex_code)
+
+        colores_list = list(colores_map.values())
+        self.stdout.write("✔ Colores creados")
 
         # --------------------------
         # 5. Productos 
