@@ -474,7 +474,7 @@ def enviar_correo(pedido):
     FROM_EMAIL = "entertainpet2025@gmail.com"
     to_email = [pedido.cliente_email]
     
-    dom = "http://localhost:8000"
+    dom = "https://webshop-1p46.onrender.com"
     seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token])   
     
     items_con_subtotal = [
@@ -834,7 +834,7 @@ def enviar_correo(pedido):
     FROM_EMAIL = "entertainpet2025@gmail.com"
     to_email = [pedido.cliente_email]
     
-    dom = "http://localhost:8000"
+    dom = "https://webshop-1p46.onrender.com"
     seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token])   
     
     items_con_subtotal = [
@@ -865,7 +865,7 @@ def enviar_correo(pedido):
     FROM_EMAIL = "entertainpet2025@gmail.com"
     to_email = [pedido.cliente_email]
     
-    dom = "http://localhost:8000"
+    dom = "https://webshop-1p46.onrender.com"
     seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
     
 def fulfill_checkout(session, cart_code):
