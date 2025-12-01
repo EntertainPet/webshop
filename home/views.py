@@ -584,7 +584,7 @@ def invitado_compra_view(request):
     factory = APIRequestFactory()
     stripe_request = factory.post(
         '/create_checkout_session/', 
-        {"cart_code": cart_code, "email": nuevo_cliente.email}, 
+        {"cart_code": cart_code}, 
         format='json'
     )
 
