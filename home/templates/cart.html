@@ -133,9 +133,15 @@
 
       {% if cart_items %}
         <div style="margin-top:16px;">
+          {% if user.is_authenticated %}
             <button id="finalizarCompraBtn" type="button" class="step-pill" style="width:100%;padding:14px;font-size:1rem;">
                Finalizar compra
               </button>
+          {% else %}
+           <a href="{% url 'home:guestBuy' %}" class="step-pill" style="display:block;text-align:center;text-decoration:none;">
+              Finalizar compra
+            </a>
+          {% endif %}
         </div>
       {% endif %}
       

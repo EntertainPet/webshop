@@ -33,7 +33,7 @@ DEBUG = True
 
 #CUANDO DESPLEGUEMOS EN RENDER HAY QUE AÑADIR EL HOST EN ESTOS DOS CAMPOS
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ["https://b088253c0943.ngrok-free.app"]
+CSRF_TRUSTED_ORIGINS = ["https://275d4c00135b.ngrok-free.app"]
 
 
 # Application definition
@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 CORS_ALLOWED_ORIGINS = [
-    "https://b088253c0943.ngrok-free.app",
+    "https://275d4c00135b.ngrok-free.app",
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

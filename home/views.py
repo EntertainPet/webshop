@@ -466,14 +466,6 @@ def carrito_update_session_item(request):
 
 class CheckoutConfirmacionView(LoginRequiredMixin, TemplateView):
     template_name = "home/checkout_confirmacion.html"
-    
-def enviar_correo(pedido):
-    asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
-    FROM_EMAIL = "entertainpet2025@gmail.com"
-    to_email = [pedido.cliente_email]
-    
-    dom = "http://localhost:8000"
-    seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
 
 @require_POST
 def carrito_remove_session_item(request):
@@ -524,6 +516,58 @@ class CartView(TemplateView):
         
         return ctx
 
+def invitado_compra_view(request):
+    """Crea un usuario invitado temporal y lo autentica, y procesa la compra correctamente."""
+
+    # 1. Crear usuario invitado
+    nuevo_cliente = Cliente.objects.create(
+        username=f"guest_{uuid.uuid4().hex[:8]}",
+        email=f"guest_{uuid.uuid4().hex[:8]}@example.com",
+        telefono="0000000000",
+        direccion="Dirección de prueba",
+        ciudad="Ciudad de prueba",
+        codigo_postal="00000",
+        is_anonymous_user=True
+    )
+    nuevo_cliente.set_unusable_password()
+    nuevo_cliente.save()
+    login(request, nuevo_cliente)
+
+    # 2. Fusionar carrito de sesión al usuario
+    merge_session_cart_to_user(request, nuevo_cliente)
+
+    # 3. OBTENER el carrito real del usuario
+    carrito = Carrito.objects.filter(cliente=nuevo_cliente).first()
+
+    if not carrito:
+        return JsonResponse({"error": "El usuario no tiene carrito"}, status=400)
+
+    cart_code = carrito.codigo_carrito
+
+    # 4. Enviar cart_code correcto al endpoint de Stripe
+    endpoint = "http://127.0.0.1:8000/create_checkout_session/"
+
+    body = { "cart_code": cart_code }
+
+    response = requests.post(
+        endpoint,
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(body)
+    )
+
+    try:
+        json_data = response.json()
+    except:
+        return JsonResponse({"error": "Respuesta no válida del endpoint"}, status=500)
+
+    redirect_url = json_data.get("data", {}).get("url")
+
+    if not redirect_url:
+        return JsonResponse({"error": "Stripe no devolvió URL"}, status=500)
+
+    return redirect(redirect_url)
+
+
 
 # ============================================
 # CHECKOUT
@@ -564,6 +608,8 @@ def guest_checkout_view(request):
     
     return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
 
+import requests
+import json
 
 def process_payment_view(request):
     """Procesa el pago y redirige a Stripe."""
@@ -580,8 +626,33 @@ def process_payment_view(request):
     
     # Aquí iría la lógica de Stripe checkout
     messages.info(request, "Redirigiendo a pasarela de pago...")
-    # Por ahora redirect temporal
-    return redirect("home:carrito")
+    # Enviar POST
+    print(codigo_carrito)
+    print(email)
+    endpoint = "http://127.0.0.1:8000/create_checkout_session/"
+    body = {
+            "cart_code": codigo_carrito,
+            "email": email
+        }
+    response = requests.post(
+        endpoint,
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(body)
+    )
+
+    try:
+        json_data = response.json()
+    except:
+        return JsonResponse({"error": "Respuesta no válida del endpoint"}, status=500)
+
+    redirect_url = json_data.get("data", {}).get("url")
+
+    if not redirect_url:
+        return JsonResponse({"error": "Stripe no devolvió URL"}, status=500)
+
+    # Redirigir a Stripe
+    return redirect(redirect_url)
+   
 
     items_con_subtotal = [
         {
@@ -758,6 +829,15 @@ def my_webhook_view(request):
     return HttpResponse(status=200)
 
 
+    
+def enviar_correo(pedido):
+    asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
+    FROM_EMAIL = "entertainpet2025@gmail.com"
+    to_email = [pedido.cliente_email]
+    
+    dom = "http://localhost:8000"
+    seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
+    
 def fulfill_checkout(session, cart_code):
     """Crea el pedido tras pago exitoso."""
     codigo_seguimiento = secrets.token_urlsafe(8).upper()
