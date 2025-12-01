@@ -5,3 +5,4 @@ stripe
 djangorestframework
 django-cors-headers
 gunicorn
+whitenoise
