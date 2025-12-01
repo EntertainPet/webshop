@@ -580,7 +580,7 @@ def invitado_compra_view(request):
     cart_code = carrito.codigo_carrito
 
     # 4. Enviar cart_code correcto al endpoint de Stripe
-    endpoint = "http://127.0.0.1:8000/create_checkout_session/"
+    endpoint = "https://webshop-1p46.onrender.com/create_checkout_session/"
 
     body = { "cart_code": cart_code }
 

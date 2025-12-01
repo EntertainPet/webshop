@@ -212,7 +212,7 @@
     
   document.getElementById("finalizarCompraBtn").addEventListener("click", async () => {
 
-      const endpoint = "http://127.0.0.1:8000/create_checkout_session/";
+      const endpoint = "https://webshop-1p46.onrender.com/create_checkout_session/";
       
       const cartCode = "{{ codigo_carrito }}";
       const userEmail = "{{ client_email|default:'' }}";
