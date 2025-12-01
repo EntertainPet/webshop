@@ -35,7 +35,7 @@ DEBUG = True
 
 #CUANDO DESPLEGUEMOS EN RENDER HAY QUE AÑADIR EL HOST EN ESTOS DOS CAMPOS
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ["https://webshop-1p46.onrender.com/"]
+CSRF_TRUSTED_ORIGINS = ["https://webshop-1p46.onrender.com"]
 
 
 # Application definition
@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 CORS_ALLOWED_ORIGINS = [
-    "https://webshop-1p46.onrender.com/",
+    "https://webshop-1p46.onrender.com",
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
