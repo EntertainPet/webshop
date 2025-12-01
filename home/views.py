@@ -551,6 +551,7 @@ class CartView(TemplateView):
         
         return ctx
 
+from rest_framework.test import APIRequestFactory
 def invitado_compra_view(request):
     """Crea un usuario invitado temporal y lo autentica, y procesa la compra correctamente."""
 
@@ -580,27 +581,30 @@ def invitado_compra_view(request):
     cart_code = carrito.codigo_carrito
 
     # 4. Enviar cart_code correcto al endpoint de Stripe
-    endpoint = "https://webshop-1p46.onrender.com/create_checkout_session/"
-
-    body = { "cart_code": cart_code }
-
-    response = requests.post(
-        endpoint,
-        headers={"Content-Type": "application/json"},
-        data=json.dumps(body)
+    factory = APIRequestFactory()
+    stripe_request = factory.post(
+        '/create_checkout_session/', 
+        {"cart_code": cart_code, "email": nuevo_cliente.email}, 
+        format='json'
     )
 
-    try:
-        json_data = response.json()
-    except:
-        return JsonResponse({"error": "Respuesta no válida del endpoint"}, status=500)
+    # IMPORTANTE: Copiar host y esquema del request actual para que 
+    # Stripe reciba las URLs de success/cancel correctas del dominio real
+    stripe_request.META['HTTP_HOST'] = request.META['HTTP_HOST']
+    stripe_request.META['wsgi.url_scheme'] = request.scheme
 
-    redirect_url = json_data.get("data", {}).get("url")
+    # 5. Llamar a la vista directamente como función
+    response = create_checkout_session(stripe_request)
 
-    if not redirect_url:
-        return JsonResponse({"error": "Stripe no devolvió URL"}, status=500)
-
-    return redirect(redirect_url)
+    if response.status_code == 200:
+        # Al ser llamada interna, response.data mantiene el objeto Python original
+        # (El objeto Session de Stripe)
+        checkout_session = response.data['data']
+        
+        # Accedemos a la propiedad url del objeto Stripe y redirigimos
+        return redirect(checkout_session.url)
+    else:
+        return JsonResponse(response.data, status=response.status_code)
 
 
 
@@ -766,8 +770,6 @@ def create_checkout_session(request):
     carrito = Carrito.objects.get(codigo_carrito=cart_code)
     
     try:
-
-        cart = Carrito.objects.get(codigo_carrito=cart_code)
         checkout_session = stripe.checkout.Session.create(
             customer_email=email,
             payment_method_types=['card'],
