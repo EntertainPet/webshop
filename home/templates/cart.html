@@ -138,9 +138,9 @@
                Finalizar compra
               </button>
           {% else %}
-           <a href="{% url 'home:guestBuy' %}" class="step-pill" style="display:block;text-align:center;text-decoration:none;">
+           <a href="#" id="guestBuyBtn" class="step-pill" style="display:block;text-align:center;text-decoration:none;">
               Finalizar compra
-            </a>
+          </a>
           {% endif %}
         </div>
       {% endif %}
@@ -209,6 +209,23 @@
 </style>
 
 <script>
+
+  document.getElementById("guestBuyBtn").addEventListener("click", async function (e) {
+    e.preventDefault();
+
+    const response = await fetch("{% url 'home:guestBuy' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+        }
+    });
+
+    const data = await response.json();
+
+    if (response.redirected) {
+        window.location.href = response.url;
+    }
+});
     
   document.getElementById("finalizarCompraBtn").addEventListener("click", async () => {
 

@@ -550,7 +550,10 @@ class CartView(TemplateView):
         ctx["client_email"] = client_email
         
         return ctx
+    
+from django.views.decorators.http import require_POST
 
+@require_POST
 def invitado_compra_view(request):
     """Crea un usuario invitado temporal y lo autentica, y procesa la compra correctamente."""
 
