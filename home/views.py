@@ -474,7 +474,7 @@ def enviar_correo(pedido):
     FROM_EMAIL = "entertainpet2025@gmail.com"
     to_email = [pedido.cliente_email]
     
-    dom = "https://webshop-1p46.onrender.com"
+    dom = "http://localhost:8000"
     seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token])   
     
     items_con_subtotal = [
@@ -550,45 +550,10 @@ class CartView(TemplateView):
         ctx["client_email"] = client_email
         
         return ctx
-    
-def crear_sesion_stripe(cart_code, email, request):
-    """Crea directamente la sesión de Stripe sin hacer HTTP a la misma app."""
-    carrito = Carrito.objects.get(codigo_carrito=cart_code)
-    checkout_session = stripe.checkout.Session.create(
-        customer_email=email,
-        payment_method_types=['card'],
-        line_items=[
-            {
-                'price_data': {
-                    'currency': 'eur',
-                    'product_data': {'name': item.producto.nombre},
-                    'unit_amount': int(item.producto.precio_final * 100),
-                },
-                'quantity': item.cantidad,
-            }
-            for item in carrito.carrito_items.all()
-        ] + [
-            {
-                'price_data': {
-                    'currency': 'eur',
-                    'product_data': {'name': 'Gastos de envío'},
-                    'unit_amount': 450,
-                },
-                'quantity': 1,
-            }
-        ],
-        mode='payment',
-        success_url=request.build_absolute_uri("/success/") + "?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url=request.build_absolute_uri("/cancel/"),
-        metadata={"cart_code": cart_code}
-    )
-    return checkout_session.url
 
-
-@require_POST
 def invitado_compra_view(request):
     """Crea un usuario invitado temporal y lo autentica, y procesa la compra correctamente."""
-    
+
     # 1. Crear usuario invitado
     nuevo_cliente = Cliente.objects.create(
         username=f"guest_{uuid.uuid4().hex[:8]}",
@@ -606,19 +571,36 @@ def invitado_compra_view(request):
     # 2. Fusionar carrito de sesión al usuario
     merge_session_cart_to_user(request, nuevo_cliente)
 
-    # 3. Obtener carrito real del usuario
+    # 3. OBTENER el carrito real del usuario
     carrito = Carrito.objects.filter(cliente=nuevo_cliente).first()
+
     if not carrito:
         return JsonResponse({"error": "El usuario no tiene carrito"}, status=400)
 
-    # 4. Crear sesión de Stripe directamente
+    cart_code = carrito.codigo_carrito
+
+    # 4. Enviar cart_code correcto al endpoint de Stripe
+    endpoint = "https://webshop-1p46.onrender.com/create_checkout_session/"
+
+    body = { "cart_code": cart_code }
+
+    response = requests.post(
+        endpoint,
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(body)
+    )
+
     try:
-        redirect_url = crear_sesion_stripe(cart_code=carrito.codigo_carrito, email=nuevo_cliente.email, request=request)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        json_data = response.json()
+    except:
+        return JsonResponse({"error": "Respuesta no válida del endpoint"}, status=500)
+
+    redirect_url = json_data.get("data", {}).get("url")
+
+    if not redirect_url:
+        return JsonResponse({"error": "Stripe no devolvió URL"}, status=500)
 
     return redirect(redirect_url)
-
 
 
 
@@ -852,7 +834,7 @@ def enviar_correo(pedido):
     FROM_EMAIL = "entertainpet2025@gmail.com"
     to_email = [pedido.cliente_email]
     
-    dom = "https://webshop-1p46.onrender.com"
+    dom = "http://localhost:8000"
     seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token])   
     
     items_con_subtotal = [
@@ -883,7 +865,7 @@ def enviar_correo(pedido):
     FROM_EMAIL = "entertainpet2025@gmail.com"
     to_email = [pedido.cliente_email]
     
-    dom = "https://webshop-1p46.onrender.com"
+    dom = "http://localhost:8000"
     seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
     
 def fulfill_checkout(session, cart_code):
