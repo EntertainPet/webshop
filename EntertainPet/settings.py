@@ -33,7 +33,7 @@ DEBUG = True
 
 #CUANDO DESPLEGUEMOS EN RENDER HAY QUE AÑADIR EL HOST EN ESTOS DOS CAMPOS
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ["https://0686e37fcb6f.ngrok-free.app"]
+CSRF_TRUSTED_ORIGINS = ["https://275d4c00135b.ngrok-free.app"]
 
 
 # Application definition
@@ -45,18 +45,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home'
+    'home',
+    'corsheaders',
 ]
-
+CORS_ALLOWED_ORIGINS = [
+    "https://275d4c00135b.ngrok-free.app",
+]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # <-- añadir aquí
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'EntertainPet.urls'
 

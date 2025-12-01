@@ -24,10 +24,6 @@ urlpatterns = [
     path("register/", views.register_view, name="register"),
     path("guest/", views.invitado_view, name="guest"),
     
-    # Checkout
-    path("checkout/guest/", views.guest_checkout_view, name="guest_checkout"),
-    path("checkout/process/", views.process_payment_view, name="process_payment"),
-    
     # Stripe
     path("autocomplete/", views.autocomplete_productos, name="autocomplete"),
     path('pedido/seguimiento/<int:pedido_id>/', views.seguimiento_pedido, name='seguimiento'),
@@ -35,6 +31,7 @@ urlpatterns = [
     
     #stripe
     path("create_checkout_session/", views.create_checkout_session, name="create_checkout_session"),
+    path("guestBuy/", views.invitado_compra_view, name="guestBuy"),
     path("webhook/", views.my_webhook_view, name="webhook"),
     path("success/", views.success_view, name="success"),
     path("cancel/", views.cancel_view, name="cancel"),

@@ -134,11 +134,11 @@
       {% if cart_items %}
         <div style="margin-top:16px;">
           {% if user.is_authenticated %}
-            <a href="{% url 'home:process_payment' %}" class="step-pill" style="display:block;text-align:center;text-decoration:none;">
-              Finalizar compra
-            </a>
+            <button id="finalizarCompraBtn" type="button" class="step-pill" style="width:100%;padding:14px;font-size:1rem;">
+               Finalizar compra
+              </button>
           {% else %}
-            <a href="{% url 'home:guest_checkout' %}" class="step-pill" style="display:block;text-align:center;text-decoration:none;">
+           <a href="{% url 'home:guestBuy' %}" class="step-pill" style="display:block;text-align:center;text-decoration:none;">
               Finalizar compra
             </a>
           {% endif %}
@@ -209,6 +209,55 @@
 </style>
 
 <script>
+    
+  document.getElementById("finalizarCompraBtn").addEventListener("click", async () => {
+
+      const endpoint = "http://127.0.0.1:8000/create_checkout_session/";
+      
+      const cartCode = "{{ codigo_carrito }}";
+      const userEmail = "{{ client_email|default:'' }}";
+
+      var body;
+  
+      if(!userEmail){
+         body = {
+          cart_code: cartCode
+      };
+      } else {
+         body = {
+          cart_code: cartCode,
+          email: userEmail
+      };
+      }
+      
+
+      try {
+          const response = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRFToken": getCookie("csrftoken")
+              },
+              body: JSON.stringify(body)
+          });
+
+          const json = await response.json();
+          console.log(json);
+
+          const redirectUrl = json?.data?.url;
+
+          if (!redirectUrl) {
+              console.error("No URL en JSON", json);
+              return;
+          }
+
+          window.location.href = redirectUrl;
+
+      } catch (error) {
+          console.error("Error en fetch:", error);
+      }
+
+  });
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

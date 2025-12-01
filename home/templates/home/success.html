@@ -1,6 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
 
+{% block title %}¡Compra Exitosa! - EntertainPet{% endblock %}
 
-  <h1>¡Pago completado!</h1>
-  <p>Gracias por tu compra.</p>
-  <p>Total:</p>
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <!-- Tarjeta de Confirmación -->
+            <div class="card shadow-sm border-0 rounded-4 text-center p-4 p-md-5">
+                
+                <!-- Icono de éxito animado -->
+                <div class="mb-4">
+                    <div class="success-icon-bg mx-auto d-flex align-items-center justify-content-center">
+                        <i class="bi bi-check-lg check-icon"></i>
+                    </div>
+                </div>
 
+                <!-- Título -->
+                <h1 class="fw-bold mb-3" style="color: #6b4c3b;">¡Pago completado!</h1>
+                
+                <!-- Mensaje -->
+                <p class="text-muted mb-4">
+                    Gracias por confiar en <strong>EntertainPet</strong>. <br>
+                    Hemos enviado un correo de confirmación a <strong>{{ pedido.cliente_email }}</strong>.
+                </p>
+
+                <!-- Sección del Resumen del Pedido -->
+                {% if pedido %}
+                <div class="order-summary py-3 px-4 mb-4 mx-auto rounded-3" style="background-color: #fff7f3; max-width: 350px;">
+                    <p class="mb-2 small text-uppercase text-muted fw-bold">Resumen del Pedido</p>
+                    
+                    <!-- Referencia -->
+                    <div class="mb-3 border-bottom pb-2">
+                        <small class="text-muted d-block">Referencia de seguimiento:</small>
+                        <span class="fw-bold text-dark font-monospace">{{ pedido.codigo_seguimiento }}</span>
+                    </div>
+
+                    <!-- Lista de productos (Compacta) -->
+                    <ul class="list-unstyled text-start mb-3 small">
+                    {% for item in pedido.pedido_items.all %}
+                        <li class="d-flex justify-content-between mb-1">
+                            <span class="text-truncate" style="max-width: 200px;">
+                                {{ item.producto.nombre }}
+                            </span>
+                            <span class="fw-bold">x{{ item.cantidad }}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+
+                    <!-- Total -->
+                    <div class="border-top pt-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-muted">Total Pagado:</span>
+                        <span class="fs-5 fw-bold" style="color: #ff6f61;">{{ pedido.cantidad }} €</span>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Fallback por si hay retraso en la base de datos -->
+                <div class="alert alert-light" role="alert">
+                    Tu pedido se está generando en nuestro sistema. Recibirás los detalles por correo en breve.
+                </div>
+                {% endif %}
+
+                <!-- Botones de Acción -->
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mt-2">
+                    <a href="{% url 'home:catalogo' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Seguir comprando
+                    </a>
+                    
+                    {% if pedido %}
+                        <!-- Enlace directo al seguimiento del pedido recién creado -->
+<!--                       
+                    
+                        <i class="bi bi-box-seam me-2"></i>Ver estado del envío -->
+                    {% else %}
+                        <!-- Enlace genérico si no hay pedido cargado aún -->
+                        <a href="/" class="btn btn-cart text-white">
+                            <i class="bi bi-house me-2"></i>Volver al inicio
+                        </a>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+    /* Estilos específicos para la página de éxito */
+    
+    /* Círculo de fondo del icono */
+    .success-icon-bg {
+        width: 80px;
+        height: 80px;
+        background-color: #d1e7dd; /* Verde suave bootstrap success-light */
+        border-radius: 50%;
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    /* El check */
+    .check-icon {
+        font-size: 40px;
+        color: #198754; /* Verde bootstrap success */
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Reutilizando tus colores de marca */
+    .btn-cart {
+        background-color: #ff6f61;
+        border-color: #ff6f61;
+        color: white;
+    }
+    
+    .btn-cart:hover {
+        background-color: #e65b50;
+        border-color: #e65b50;
+        color: white;
+    }
+
+    /* Animación simple para el check */
+    @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
+<script>
+    if (pedido){
+        console.log("Pedido confirmado ID:", "{{ pedido.id }}");
+        console.log("Seguimiento:", "{{ pedido.codigo_seguimiento }}");
+    }
+    else{
+
+        console.log("Pedido aún procesándose o no encontrado.");
+    }
+</script>
+{% endblock %}

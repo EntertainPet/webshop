@@ -1,2 +1,98 @@
-<h1>Pago cancelado</h1>
-<p>No se completó tu pago. Puedes intentar nuevamente desde tu <a href="{% url 'home:carrito' %}">carrito</a>.</p>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pago Cancelado - EntertainPet{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <!-- Tarjeta de Cancelación -->
+            <div class="card shadow-sm border-0 rounded-4 text-center p-4 p-md-5">
+                
+                <!-- Icono de cancelación animado -->
+                <div class="mb-4">
+                    <div class="cancel-icon-bg mx-auto d-flex align-items-center justify-content-center">
+                        <i class="bi bi-x-lg cancel-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Título -->
+                <h1 class="fw-bold mb-3" style="color: #6b4c3b;">¡Vaya! El pago se ha cancelado</h1>
+                
+                <!-- Mensaje -->
+                <p class="text-muted mb-4">
+                    No te preocupes, <strong>no se ha realizado ningún cargo</strong> en tu cuenta. <br>
+                    Es posible que hayas cancelado el proceso o que hubiera un problema con la tarjeta.
+                </p>
+
+                <!-- Caja de ayuda visual -->
+                <div class="py-3 px-4 mb-4 mx-auto rounded-3" style="background-color: #fff5f5; max-width: 350px;">
+                    <p class="mb-1 small text-uppercase text-muted fw-bold">¿Tu carrito?</p>
+                    <p class="mb-0 small text-muted">
+                        Tus productos siguen guardados en el carrito por si quieres intentarlo de nuevo.
+                    </p>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center mt-2">
+                    <!-- Botón secundario: Volver a la tienda -->
+                    <a href="{% url 'home:catalogo' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-shop me-2"></i>Seguir mirando
+                    </a>
+                    
+                    <!-- Botón principal: Volver al carrito -->
+                    <!-- Asegúrate de que 'home:ver_carrito' es el nombre correcto de tu url del carrito -->
+                    <a href="{% url 'home:carrito' %}" class="btn btn-retry text-black">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>Intentar de nuevo
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+    /* Estilos específicos para la página de cancelación */
+    
+    /* Círculo de fondo del icono (Rojo suave) */
+    .cancel-icon-bg {
+        width: 80px;
+        height: 80px;
+        background-color: #f8d7da; /* Rojo suave bootstrap danger-light */
+        border-radius: 50%;
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    /* La X (Rojo más fuerte) */
+    .cancel-icon {
+        font-size: 40px;
+        color: #dc3545; /* Rojo bootstrap danger */
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Botón de reintento (Usando tus colores pero quizás un poco distinto o el mismo de marca) */
+    .btn-retry {
+        background-color: #ff6f61; /* Mantenemos tu color de marca */
+        border-color: #ff6f61;
+        color: white;
+    }
+    
+    .btn-retry:hover {
+        background-color: #e65b50;
+        border-color: #e65b50;
+        color: white;
+    }
+
+    /* Animación simple (Reutilizada) */
+    @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
+{% endblock %}

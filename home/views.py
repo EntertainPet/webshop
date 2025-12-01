@@ -523,20 +523,85 @@ class CartView(TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         request = self.request
-        
+
+        # Lógica para obtener el email solo si es un usuario real
+        client_email = ""
         if request.user.is_authenticated:
+            # Verificamos que no sea un usuario invitado temporal (flag is_anonymous_user del modelo Cliente)
+            if not getattr(request.user, 'is_anonymous_user', False):
+                client_email = request.user.email
+
+            # Lógica existente del carrito autenticado
             carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
+            
             ctx["carrito"] = carrito
             ctx["cart_items"] = carrito.carrito_items.all()
             ctx["total"] = carrito.total
+            ctx["codigo_carrito"] = carrito.codigo_carrito
             ctx["cantidad_items"] = carrito.cantidad_total_items
         else:
+            # Lógica existente del carrito de sesión
             items = get_cart_items_from_session(request)
             ctx["cart_items"] = items
             ctx["total"] = sum(item["subtotal"] for item in items)
             ctx["cantidad_items"] = sum(item["cantidad"] for item in items)
         
+        # --- AÑADIDO ---
+        ctx["client_email"] = client_email
+        
         return ctx
+
+def invitado_compra_view(request):
+    """Crea un usuario invitado temporal y lo autentica, y procesa la compra correctamente."""
+
+    # 1. Crear usuario invitado
+    nuevo_cliente = Cliente.objects.create(
+        username=f"guest_{uuid.uuid4().hex[:8]}",
+        email=f"guest_{uuid.uuid4().hex[:8]}@example.com",
+        telefono="0000000000",
+        direccion="Dirección de prueba",
+        ciudad="Ciudad de prueba",
+        codigo_postal="00000",
+        is_anonymous_user=True
+    )
+    nuevo_cliente.set_unusable_password()
+    nuevo_cliente.save()
+    login(request, nuevo_cliente)
+
+    # 2. Fusionar carrito de sesión al usuario
+    merge_session_cart_to_user(request, nuevo_cliente)
+
+    # 3. OBTENER el carrito real del usuario
+    carrito = Carrito.objects.filter(cliente=nuevo_cliente).first()
+
+    if not carrito:
+        return JsonResponse({"error": "El usuario no tiene carrito"}, status=400)
+
+    cart_code = carrito.codigo_carrito
+
+    # 4. Enviar cart_code correcto al endpoint de Stripe
+    endpoint = "http://127.0.0.1:8000/create_checkout_session/"
+
+    body = { "cart_code": cart_code }
+
+    response = requests.post(
+        endpoint,
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(body)
+    )
+
+    try:
+        json_data = response.json()
+    except:
+        return JsonResponse({"error": "Respuesta no válida del endpoint"}, status=500)
+
+    redirect_url = json_data.get("data", {}).get("url")
+
+    if not redirect_url:
+        return JsonResponse({"error": "Stripe no devolvió URL"}, status=500)
+
+    return redirect(redirect_url)
+
 
 
 # ============================================
@@ -590,6 +655,8 @@ def guest_checkout_view(request):
     
     return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
 
+import requests
+import json
 
 def process_payment_view(request):
     """Procesa el pago y redirige a Stripe."""
@@ -692,8 +759,6 @@ class PedidoDetailView(LoginRequiredMixin, DetailView):
 
 
 @api_view(['POST'])
-@authentication_classes([SessionAuthentication, BasicAuthentication])
-@permission_classes([IsAuthenticated])
 def create_checkout_session(request):
     """Crea sesión de checkout de Stripe."""
     cart_code = request.data.get("cart_code")
@@ -727,7 +792,7 @@ def create_checkout_session(request):
                 }
             ],
             mode='payment',
-            success_url=request.build_absolute_uri("/success/"),
+            success_url=request.build_absolute_uri("/success/") + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=request.build_absolute_uri("/cancel/"),
             metadata={"cart_code": cart_code}
         )
@@ -742,6 +807,7 @@ def my_webhook_view(request):
     payload = request.body
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
     event = None
+    print("--- WEBHOOK RECIBIDO ---")
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
@@ -752,39 +818,99 @@ def my_webhook_view(request):
 
     if event['type'] in ['checkout.session.completed', 'checkout.session.async_payment_succeeded']:
         session = event['data']['object']
-        cart_code = session.get("metadata", {}).get("cart_code")
-        fulfill_checkout(session, cart_code)
+        try:
+            cart_code = session.get("metadata", {}).get("cart_code")
+            fulfill_checkout(session, cart_code)
+            print("🎉 Pedido creado con éxito")
+        except Exception as e:
+            print(f"❌ Error en fulfill_checkout: {e}") # DEBUG CRÍTICO
 
     return HttpResponse(status=200)
 
 
+    
+def enviar_correo(pedido):
+    asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
+    FROM_EMAIL = "entertainpet2025@gmail.com"
+    to_email = [pedido.cliente_email]
+    
+    dom = "http://localhost:8000"
+    seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token])   
+    
+    items_con_subtotal = [
+        {
+            "producto": item.producto,
+            "cantidad": item.cantidad,
+            "subtotal": item.producto.precio_final * item.cantidad,
+            "imagen_url": getattr(item.producto.imagenes.filter(es_principal=True).first(), "imagen", None),
+        }
+        for item in pedido.pedido_items.select_related("producto")
+    ]
+
+    cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
+
+    context = {
+        "pedido": pedido,
+        "items_con_subtotal": items_con_subtotal,
+        "cliente": cliente,
+        "seguimiento_url": seguimiento_url,
+    }
+
+    html_content = render_to_string("email/confirmacion.html", context)
+    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
+    correo.attach_alternative(html_content, "text/html")
+
+    correo.send(fail_silently=False)
+    asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
+    FROM_EMAIL = "entertainpet2025@gmail.com"
+    to_email = [pedido.cliente_email]
+    
+    dom = "http://localhost:8000"
+    seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
+    
 def fulfill_checkout(session, cart_code):
     """Crea el pedido tras pago exitoso."""
     codigo_seguimiento = secrets.token_urlsafe(8).upper()
+    customer_details = session.get("customer_details")
+    email = None
     
-    order = Pedido.objects.create(
-        stripe_checkout_id=session["id"],
-        cantidad=session["amount_total"] / 100,
-        divisa=session["currency"],
-        cliente_email=session["customer_email"],
-        status="Paid",
-        codigo_seguimiento=codigo_seguimiento,
-        estado_envio= Pedido.EstadoEnvio.EN_PREPARACION
-    )
-    print("pedido creado")
-
-    carrito = Carrito.objects.get(codigo_carrito=cart_code)
-    for item in carrito.carrito_items.all():
-        ItemPedido.objects.create(
-            pedido=order,
-            producto=item.producto,
-            cantidad=item.cantidad,
-            talla=item.talla_producto.talla
+    if customer_details and customer_details.get("email"):
+        email = customer_details.get("email")
+    elif session.get("customer_email"):
+        email = session.get("customer_email")
+    # Fallback por seguridad (aunque no debería ocurrir en pago exitoso)
+    if not email:
+        print("⚠️ ALERTA: No se encontró email en la sesión de Stripe.")
+        email = "no-email@found.com"
+    try:
+        order = Pedido.objects.create(
+            stripe_checkout_id=session["id"],
+            cantidad=session["amount_total"] / 100,
+            divisa=session["currency"],
+            cliente_email=email,
+            status="Pagado",
+            codigo_seguimiento=codigo_seguimiento,
+            estado_envio= Pedido.EstadoEnvio.EN_PREPARACION
         )
-        
-        # Descontar stock
-        item.talla_producto.stock -= item.cantidad
-        item.talla_producto.save()
+        print("pedido creado")
+    except Exception as e:
+        print("Error creando pedido:", e)
+
+    try:
+        carrito = Carrito.objects.get(codigo_carrito=cart_code)
+        for item in carrito.carrito_items.all():
+            ItemPedido.objects.create(
+                pedido=order,
+                producto=item.producto,
+                cantidad=item.cantidad,
+                talla=item.talla_producto.talla
+            )
+            
+            # Descontar stock
+            item.talla_producto.stock -= item.cantidad
+            item.talla_producto.save()
+    except Exception as e:
+        print("Error creando ItemPedidos", e)
     
     try:
         enviar_correo(order)
@@ -793,8 +919,27 @@ def fulfill_checkout(session, cart_code):
         
     carrito.delete()
 
+import time
+
 def success_view(request):
-    return render(request, "home/success.html")
+    session_id = request.GET.get('session_id')
+    pedido = None
+
+    if session_id:
+        # Intentamos buscar el pedido por el ID de sesión de Stripe
+        pedido = Pedido.objects.filter(stripe_checkout_id=session_id).first()
+        
+        # OPCIONAL: Pequeño "retry" por si el webhook tiene un ligero retraso (race condition)
+        # Si no es crítico, puedes omitir este bloque while
+        intentos = 0
+        while not pedido and intentos < 3:
+            time.sleep(0.5) # Espera 500ms
+            pedido = Pedido.objects.filter(stripe_checkout_id=session_id).first()
+            intentos += 1
+
+    # Ahora tienes el objeto 'pedido' disponible en el template
+    return render(request, "home/success.html", {"pedido": pedido})
+
 
 
 def cancel_view(request):
