@@ -262,6 +262,12 @@ class ProductListView(ListView):
         ctx["selected_marcas"] = self.request.GET.getlist("marca")
         ctx["selected_colores"] = [int(c) for c in self.request.GET.getlist("color") if c.isdigit()]
         ctx["selected_materiales"] = self.request.GET.getlist("material")
+        ctx["productos_destacados"] = Producto.objects.filter(
+            es_destacado=True,
+            esta_disponible=True
+        )[:12]
+        ctx["min_value"] = self.request.GET.get("min", "")
+        ctx["max_value"] = self.request.GET.get("max", "")
         return ctx
     
 
