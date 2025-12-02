@@ -524,31 +524,43 @@ class CartView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         request = self.request
 
-        # Lógica para obtener el email solo si es un usuario real
         client_email = ""
         if request.user.is_authenticated:
-            # Verificamos que no sea un usuario invitado temporal (flag is_anonymous_user del modelo Cliente)
+            # Email solo si no es invitado
             if not getattr(request.user, 'is_anonymous_user', False):
                 client_email = request.user.email
-
-            # Lógica existente del carrito autenticado
+                
             carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
-            
+
+            subtotal = float(carrito.total)
+            iva = carrito.subtotalIVA
+            envio = 4.50 if subtotal > 0 else 0.0
+            total = subtotal + iva + envio
+
             ctx["carrito"] = carrito
             ctx["cart_items"] = carrito.carrito_items.all()
-            ctx["total"] = carrito.total
+            ctx["subtotal"] = subtotal
+            ctx["subtotalIVA"] = iva
+            ctx["total"] = total
             ctx["codigo_carrito"] = carrito.codigo_carrito
             ctx["cantidad_items"] = carrito.cantidad_total_items
+
         else:
-            # Lógica existente del carrito de sesión
+            # Carrito de sesión
             items = get_cart_items_from_session(request)
             ctx["cart_items"] = items
-            ctx["total"] = sum(item["subtotal"] for item in items)
+
+            subtotal = float(sum(item["subtotal"] for item in items))
+            iva = subtotal * 0.21
+            envio = 4.50 if subtotal > 0 else 0.0
+            total = subtotal + iva + envio
+
+            ctx["subtotal"] = subtotal
+            ctx["subtotalIVA"] = iva
+            ctx["total"] = total
             ctx["cantidad_items"] = sum(item["cantidad"] for item in items)
-        
-        # --- AÑADIDO ---
+
         ctx["client_email"] = client_email
-        
         return ctx
 
 from rest_framework.test import APIRequestFactory

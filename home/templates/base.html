@@ -56,15 +56,16 @@
                     </button>
                 </form>
                 <span class="mx-2 text-secondary">|</span>
-                <a class="nav-link cart-wrapper mx-2" href="{% url 'home:carrito' %}">
-                                <i class="bi bi-cart-fill"></i>
-                                {% if cart_count > 0 %}
-                                    <span class="badge cart-badge bg-danger">
-                                        {{ cart_count }}
-                                        <span class="visually-hidden">productos en el carrito</span>
-                                    </span>
-                                {% endif %}
-                            </a>
+                    <a href="{% url 'home:carrito' %}" class="nav-link cart-wrapper mx-2">
+                        <i class="bi bi-cart-fill"></i>
+
+                        {% if cart_count > 0 %}
+                            <span class="cart-badge">
+                                {{ cart_count }}
+                                <span class="visually-hidden">productos en el carrito</span>
+                            </span>
+                        {% endif %}
+                    </a>
                 <span class="mx-2 text-secondary">|</span>
                 {% if user.is_authenticated %}
                     {% if user.is_anonymous_user %}

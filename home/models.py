@@ -129,6 +129,16 @@ class Carrito(models.Model):
     def cantidad_total_items(self):
         return sum(item.cantidad for item in self.carrito_items.all())
 
+    @property
+    def subtotalIVA(self):
+        return float(self.total) * 0.21
+
+    @property
+    def total_con_envio(self):
+        ENVIO = 4.50
+        subtotal = float(self.total)
+        return subtotal + ENVIO if subtotal > 0 else 0
+
 
 class ItemCarrito(models.Model):
     carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE, related_name="carrito_items")

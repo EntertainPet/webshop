@@ -200,10 +200,10 @@
                         <h5 class="product-title mb-1 text-truncate">{{ producto.nombre }}</h5>
 
                         {% if producto.precio_oferta %}
-                            <p class="text-muted"><del>${{ producto.precio }}</del>
-                            <span class="text-danger fw-bold ms-1">${{ producto.precio_oferta }}</span></p>
+                            <p class="text-muted"><del>{{ producto.precio }}€</del>
+                            <span class="text-danger fw-bold ms-1">{{ producto.precio_oferta }}€</span></p>
                         {% else %}
-                            <p class="fw-bold">${{ producto.precio }}</p>
+                            <p class="fw-bold">{{ producto.precio }}€</p>
                         {% endif %}
 
                         <div class="mt-auto d-flex gap-2">
@@ -298,15 +298,15 @@
                   {% if producto.precio_oferta %}
                       <p class="mb-2">
                           <span class="text-muted text-decoration-line-through">
-                              ${{ producto.precio }}
+                              {{ producto.precio }}€
                           </span>
                           <span class="ms-1 text-danger fw-semibold">
-                              ${{ producto.precio_oferta }}
+                              {{ producto.precio_oferta }}€
                           </span>
                       </p>
                   {% else %}
                       <p class="mb-2 fw-semibold text-secondary">
-                          ${{ producto.precio }}
+                          {{ producto.precio }}€
                       </p>
                   {% endif %}
 
@@ -431,7 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             ${item.imagen ? `<img src="${item.imagen}">` : ""}
                             <div>
                                 <div class="autocomplete-name">${item.nombre}</div>
-                                <div class="autocomplete-price">$${item.precio}</div>
+                                <div class="autocomplete-price">${item.precio}€</div>
                             </div>
                         `;
 
