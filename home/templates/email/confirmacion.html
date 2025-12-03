@@ -54,7 +54,7 @@
 							<p style="font-size: 13px; color: #555; line-height: 1.6; background-color: #fff7f3; padding: 15px; border-radius: 4px; border: 1px solid #ffdfd3;">
 								<strong>{{ cliente.first_name }} {{ cliente.last_name }}</strong><br>
 								{{ cliente.direccion }}, {{ cliente.ciudad }}, {{ cliente.codigo_postal }}<br>
-								Teléfono: +34 {{ cliente.telefono }}
+								Teléfono: {{ cliente.telefono }}
 							</p>
 						</td>
 					</tr>
@@ -96,7 +96,11 @@
 								{% endfor %}
 								<tr>
 									<td colspan="3" style="padding: 20px 15px; background-color: #ffe5d9; text-align: right; border-radius: 0 0 8px 8px;">
-										<p style="margin: 0; font-size: 18px; font-weight: bold; color: #6b4c3b;">TOTAL PAGADO: <span style="color: #ff6f61;">${{ pedido.cantidad }}</span></p>
+										<p style="margin: 0; font-size: 18px; font-weight: bold; color: #6b4c3b;">
+											TOTAL: <span style="color: #ff6f61;">${{ pedido.cantidad }}</span>
+											<br>
+											<small style="font-size:13px;color:#6b4c3b;margin-top:6px;display:inline-block;">Gastos de envío: <strong style="color:#ff6f61;">4,50€</strong></small>
+										</p>
 									</td>
 								</tr>
 							</table>
