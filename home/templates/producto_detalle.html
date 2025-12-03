@@ -128,6 +128,12 @@
         <form action="{% url 'home:carrito_add' producto.pk %}" method="post" id="addToCartFormDetalle">
           {% csrf_token %}
 
+          {% if not producto.stock %}
+            <div class="alert alert-danger" role="alert">
+              Producto agotado. No es posible añadir al carrito.
+            </div>
+          {% endif %}
+
           {% if producto.tallas.all|length > 1 or producto.tallas.first.talla != "Única" %}
             <div class="field" style="margin-top:16px;">
               <label style="font-weight:600;display:block;margin-bottom:8px;">Selecciona talla:</label>
@@ -155,15 +161,27 @@
 
           <div class="field" style="margin-top:16px;">
             <label style="font-weight:600;display:block;margin-bottom:8px;">Cantidad:</label>
-            <div class="cantidad-selector-detalle">
-              <button type="button" class="cantidad-btn-detalle" onclick="decreaseCantidadDetalle()">−</button>
-              <input id="cantidadInputDetalle" name="cantidad" type="number" value="1" min="1" class="cantidad-input-detalle" readonly>
-              <button type="button" class="cantidad-btn-detalle" onclick="increaseCantidadDetalle()">+</button>
-            </div>
+            {% if not producto.stock %}
+              <div class="cantidad-selector-detalle">
+                <button type="button" class="cantidad-btn-detalle" disabled>−</button>
+                <input id="cantidadInputDetalle" name="cantidad" type="number" value="0" min="0" class="cantidad-input-detalle" readonly>
+                <button type="button" class="cantidad-btn-detalle" disabled>+</button>
+              </div>
+            {% else %}
+              <div class="cantidad-selector-detalle">
+                <button type="button" class="cantidad-btn-detalle" onclick="decreaseCantidadDetalle()">−</button>
+                <input id="cantidadInputDetalle" name="cantidad" type="number" value="1" min="1" class="cantidad-input-detalle" readonly>
+                <button type="button" class="cantidad-btn-detalle" onclick="increaseCantidadDetalle()">+</button>
+              </div>
+            {% endif %}
           </div>
 
           <div style="margin-top:20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <button type="submit" class="btn btn-cart btn-add-to-cart"><i class="bi bi-cart-plus me-1"></i>Añadir al carrito</button>
+            {% if not producto.stock %}
+              <button type="button" class="btn btn-cart btn-add-to-cart" disabled>Agotado</button>
+            {% else %}
+              <button type="submit" class="btn btn-cart btn-add-to-cart"><i class="bi bi-cart-plus me-1"></i>Añadir al carrito</button>
+            {% endif %}
             <a href="{% url 'home:carrito' %}" class="btn btn-outline-secondary">Ver carrito</a>
           </div>
         </form>
