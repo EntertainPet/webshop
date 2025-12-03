@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.forms import modelformset_factory
 from django.core.files.storage import default_storage
 from django.conf import settings
+from home.models import Cliente
 
 from home.models import Categoria, Marca, Producto, ImagenProducto, Pedido, ItemPedido
 from .forms import CategoriaForm, ProductForm, ImagenProductoForm, ImagenFormSet
@@ -18,12 +19,12 @@ class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 
 class DashboardView(SuperuserRequiredMixin, TemplateView):
-    template_name = 'adminpanel/dashboard.html'
+    template_name = 'dashboard.html'
 
 
 class ProductListView(SuperuserRequiredMixin, ListView):
     model = Producto
-    template_name = 'adminpanel/product_list.html'
+    template_name = 'product_list.html'
     context_object_name = 'productos'
     paginate_by = 20
 
@@ -31,7 +32,7 @@ class ProductListView(SuperuserRequiredMixin, ListView):
 class ProductCreateView(SuperuserRequiredMixin, CreateView):
     model = Producto
     form_class = ProductForm
-    template_name = 'adminpanel/product_form.html'
+    template_name = 'product_form.html'
     success_url = reverse_lazy('adminpanel:product_list')
 
     def get_context_data(self, **kwargs):
@@ -85,7 +86,7 @@ class ProductCreateView(SuperuserRequiredMixin, CreateView):
 class ProductUpdateView(SuperuserRequiredMixin, UpdateView):
     model = Producto
     form_class = ProductForm
-    template_name = 'adminpanel/product_form.html'
+    template_name = 'product_form.html'
     success_url = reverse_lazy('adminpanel:product_list')
 
     def get_context_data(self, **kwargs):
@@ -153,20 +154,20 @@ class ProductUpdateView(SuperuserRequiredMixin, UpdateView):
 
 class ProductDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Producto
-    template_name = 'adminpanel/product_confirm_delete.html'
+    template_name = 'product_confirm_delete.html'
     success_url = reverse_lazy('adminpanel:product_list')
 
 
 class CategoriaListView(SuperuserRequiredMixin, ListView):
     model = Categoria
-    template_name = "adminpanel/categorias/list.html"
+    template_name = "categorias/list.html"
     context_object_name = "categorias"
 
 
 class CategoriaCreateView(SuperuserRequiredMixin, CreateView):
     model = Categoria
     form_class = CategoriaForm
-    template_name = "adminpanel/categorias/form.html"
+    template_name = "categorias/form.html"
     
     def get_success_url(self):
         next_url = self.request.GET.get("next")
@@ -182,7 +183,7 @@ class CategoriaCreateView(SuperuserRequiredMixin, CreateView):
 class CategoriaUpdateView(SuperuserRequiredMixin, UpdateView):
     model = Categoria
     form_class = CategoriaForm
-    template_name = "adminpanel/categorias/form.html"
+    template_name = "categorias/form.html"
     def get_success_url(self):
         next_url = self.request.GET.get("next")
         if next_url:
@@ -196,7 +197,7 @@ class CategoriaUpdateView(SuperuserRequiredMixin, UpdateView):
 
 class CategoriaDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Categoria
-    template_name = "adminpanel/categorias/categoria_confirm_delete.html"
+    template_name = "categorias/categoria_confirm_delete.html"
     success_url = reverse_lazy("adminpanel:categoria_list")
 
     def delete(self, request, *args, **kwargs):
@@ -216,7 +217,7 @@ class MarcaForm(forms.ModelForm):
 
 def marca_list(request):
     marcas = Marca.objects.all()
-    return render(request, "adminpanel/marcas/list.html", {"marcas": marcas})
+    return render(request, "marcas/list.html", {"marcas": marcas})
 
 def marca_create(request):
     next_url = request.GET.get("next")
@@ -230,7 +231,7 @@ def marca_create(request):
 
         return redirect("adminpanel:marca_list")
 
-    return render(request, "adminpanel/marcas/form.html", {
+    return render(request, "marcas/form.html", {
         "form": form,
         "next": next_url
     })
@@ -241,16 +242,16 @@ def marca_update(request, pk):
     if form.is_valid():
         form.save()
         return redirect("adminpanel:marca_list")
-    return render(request, "adminpanel/marcas/form.html", {"form": form})
+    return render(request, "marcas/form.html", {"form": form})
 
 def marca_delete(request, pk):
     marca = get_object_or_404(Marca, pk=pk)
     marca.delete()
-    return render(request, 'adminpanel/product_confirm_delete.html')
+    return render(request, 'marcas/marca_confirm_delete.html')
 
 class MarcaDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Marca
-    template_name = 'adminpanel/marcas/marca_confirm_delete.html'
+    template_name = 'marcas/marca_confirm_delete.html'
     success_url = reverse_lazy('adminpanel:marca_list')
 
 class PedidoEnvioForm(forms.ModelForm):
@@ -260,13 +261,13 @@ class PedidoEnvioForm(forms.ModelForm):
 
 class PedidoListView(SuperuserRequiredMixin, ListView):
     model = Pedido
-    template_name = "adminpanel/pedidos/pedido_list.html"
+    template_name = "pedidos/pedido_list.html"
     context_object_name = "pedidos"
     paginate_by = 20
     ordering = ["-fecha_creacion"]
 
 class PedidoDetailView(SuperuserRequiredMixin, TemplateView):
-    template_name = "adminpanel/pedidos/pedido_detail.html"
+    template_name = "pedidos/pedido_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -280,7 +281,7 @@ class PedidoDetailView(SuperuserRequiredMixin, TemplateView):
 class PedidoUpdateEnvioView(SuperuserRequiredMixin, UpdateView):
     model = Pedido
     form_class = PedidoEnvioForm
-    template_name = "adminpanel/pedidos/pedido_envio_form.html"
+    template_name = "pedidos/pedido_envio_form.html"
 
     def get_success_url(self):
         return reverse("adminpanel:pedido_detail", kwargs={"pk": self.object.pk})

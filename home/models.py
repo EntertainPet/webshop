@@ -18,6 +18,15 @@ class Cliente(AbstractUser):
     def __str__(self):
         base = self.username or self.email or "cliente"
         return f"{base} ({self.email})" if self.email else base
+    
+    def get_full_name(self):
+        return super().get_full_name()
+    
+    def get_short_name(self):
+        return super().get_short_name()
+    
+    def get_email(self):
+        return self.email
 
 
 class Categoria(models.Model):
