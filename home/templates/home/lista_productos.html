@@ -217,9 +217,12 @@
                                     Agotado
                                 </button>
                             {% else %}
-                                <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
+                                <button type="button"
+                                        class="btn btn-cart btn-sm w-50 open-add-modal"
+                                        data-product-id="{{ producto.pk }}"
+                                        data-product-name="{{ producto.nombre|escape }}">
                                     <i class="bi bi-cart-plus me-1"></i> Añadir
-                                </a>
+                                </button>
                             {% endif %}
                         </div>
                     </div>
@@ -321,9 +324,12 @@
                             Agotado
                         </button>
                     {% else %}
-                        <a href="{% url 'home:carrito_add' producto.pk %}" class="btn btn-cart btn-sm w-50">
+                        <button type="button"
+                                class="btn btn-cart btn-sm w-50 open-add-modal"
+                                data-product-id="{{ producto.pk }}"
+                                data-product-name="{{ producto.nombre|escape }}">
                             <i class="bi bi-cart-plus me-1"></i> Añadir
-                        </a>
+                        </button>
                     {% endif %}
                   </div>
 
@@ -451,10 +457,49 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-{% endblock %}
+<!-- Modal del carrito -->
+<div id="tallaModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-modal="true">
+        <button class="modal-close" type="button" onclick="closeTallaModal()">×</button>
+        <h3 id="modalProductoNombre"></h3>
+        <form id="addToCartForm" method="post">
+            {% csrf_token %}
+            <div id="tallasContainer"></div> 
+            <input type="hidden" name="talla_producto_id" id="tallaProductoIdInput">
+            <div class="cantidad-selector">
+                <button type="button" class="cantidad-btn" onclick="decreaseCantidad()">−</button>
+                <input id="cantidadInput" name="cantidad" type="number" value="1" min="1" class="cantidad-input" readonly />
+                <button type="button" class="cantidad-btn" onclick="increaseCantidad()">+</button>
+            </div>
+            <div style="text-align:right;display:flex;gap:8px;justify-content:flex-end">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeTallaModal()">Cancelar</button>
+                <button type="submit" class="btn btn-cart btn-sm">Añadir</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-{% block extra_scripts %}
-{{ block.super }}
+<!-- Datos de tallas en JSON -->
+<script id="tallasData" type="application/json">
+{
+    {% for p in productos_destacados %}
+        "{{ p.pk }}": [
+            {% for t in p.tallas.all %}
+                {"id": {{ t.pk }}, "talla": "{{ t.talla|escapejs }}", "stock": {{ t.stock }}}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]{% if not forloop.last or productos %},{% endif %}
+    {% endfor %}
+    {% for p in productos %}
+        "{{ p.pk }}": [
+            {% for t in p.tallas.all %}
+                {"id": {{ t.pk }}, "talla": "{{ t.talla|escapejs }}", "stock": {{ t.stock }}}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]{% if not forloop.last %},{% endif %}
+    {% endfor %}
+}
+</script>
 <style>
   /* Modal para selector de tallas */
   .modal-overlay {
@@ -580,107 +625,76 @@ document.addEventListener("DOMContentLoaded", () => {
 </style>
 
 <script>
-  const tallasData = JSON.parse(document.getElementById('tallasData').textContent);
+document.addEventListener('DOMContentLoaded', () => {
+  const tallasData = JSON.parse(document.getElementById('tallasData').textContent || '{}');
   let selectedTallaId = null;
   let maxStock = 0;
   
-  function openTallaModal(productoId, productoNombre, tieneTallas) {
-    const modal = document.getElementById('tallaModal');
-    const form = document.getElementById('addToCartForm');
-    const nombreEl = document.getElementById('modalProductoNombre');
-    const tallasContainer = document.getElementById('tallasContainer');
-    const cantidadInput = document.getElementById('cantidadInput');
+  window.openTallaModal = (productoId, productoNombre) => {
+    const tallas = tallasData[productoId] || [];
+    const tallaUnica = tallas.length === 1 && tallas[0].talla === "Única";
     
-    nombreEl.textContent = productoNombre;
-    form.action = `/carrito/add/${productoId}/`;
-    cantidadInput.value = 1;
+    document.getElementById('modalProductoNombre').textContent = productoNombre;
+    document.getElementById('addToCartForm').action = `/carrito/add/${productoId}/`;
+    document.getElementById('cantidadInput').value = 1;
     selectedTallaId = null;
     
-    tallasContainer.innerHTML = '';
-    
-    const tallas = tallasData[productoId] || [];
-    
-    if (tallas.length === 1 && tallas[0].talla === "Única") {
-      tallasContainer.innerHTML = '<p style="color:#8b6a55;margin:12px 0;">Este producto no requiere talla.</p>';
+    const container = document.getElementById('tallasContainer');
+    if (tallaUnica) {
+      container.innerHTML = '<p style="color:#8b6a55;margin:12px 0;">Este producto no requiere talla.</p>';
       selectedTallaId = tallas[0].id;
       maxStock = tallas[0].stock;
       document.getElementById('tallaProductoIdInput').value = selectedTallaId;
     } else {
-      tallasContainer.innerHTML = '<label style="font-weight:600;display:block;margin-bottom:12px;color:#6b4c3b;">Selecciona talla:</label><div class="talla-selector"></div>';
-      const selectorDiv = tallasContainer.querySelector('.talla-selector');
+      container.innerHTML = `
+        <label style="font-weight:600;display:block;margin-bottom:12px;color:#6b4c3b;">Selecciona talla:</label>
+        <div class="talla-selector">
+          ${tallas.map(t => `
+            <button type="button" class="talla-btn" data-id="${t.id}" data-stock="${t.stock}" ${t.stock === 0 ? 'disabled' : ''}>
+              <span>${t.talla}</span>
+              <small style="color:${t.stock > 0 ? '#8b6a55' : '#999'}">${t.stock > 0 ? t.stock + ' disp.' : 'Agotado'}</small>
+            </button>
+          `).join('')}
+        </div>
+      `;
       
-      tallas.forEach(t => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'talla-btn';
-        btn.disabled = t.stock === 0;
-        
-        const tallaText = document.createElement('span');
-        tallaText.textContent = t.talla;
-        btn.appendChild(tallaText);
-        
-        if (t.stock > 0) {
-          const stockInfo = document.createElement('small');
-          stockInfo.textContent = `${t.stock} disp.`;
-          stockInfo.style.color = '#8b6a55';
-          btn.appendChild(stockInfo);
-        } else {
-          const stockInfo = document.createElement('small');
-          stockInfo.textContent = 'Agotado';
-          stockInfo.style.color = '#999';
-          btn.appendChild(stockInfo);
-        }
-        
-        btn.onclick = () => selectTalla(t.id, t.stock, btn);
-        selectorDiv.appendChild(btn);
+      container.querySelectorAll('.talla-btn:not([disabled])').forEach(btn => {
+        btn.onclick = () => {
+          selectedTallaId = btn.dataset.id;
+          maxStock = parseInt(btn.dataset.stock);
+          container.querySelectorAll('.talla-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          document.getElementById('tallaProductoIdInput').value = selectedTallaId;
+          document.getElementById('cantidadInput').value = 1;
+        };
       });
     }
     
-    modal.classList.add('active');
-  }
+    document.getElementById('tallaModal').classList.add('active');
+  };
   
-  function closeTallaModal() {
-    document.getElementById('tallaModal').classList.remove('active');
-  }
+  window.closeTallaModal = () => document.getElementById('tallaModal').classList.remove('active');
   
-  function selectTalla(tallaId, stock, btnElement) {
-    selectedTallaId = tallaId;
-    maxStock = stock;
-    
-    document.querySelectorAll('.talla-btn').forEach(b => b.classList.remove('selected'));
-    btnElement.classList.add('selected');
-    
-    document.getElementById('tallaProductoIdInput').value = tallaId;
-    document.getElementById('cantidadInput').value = 1;
-  }
-  
-  function increaseCantidad() {
+  window.increaseCantidad = () => {
     const input = document.getElementById('cantidadInput');
-    const current = parseInt(input.value);
-    if (current < maxStock) {
-      input.value = current + 1;
-    }
-  }
+    if (parseInt(input.value) < maxStock) input.value = parseInt(input.value) + 1;
+  };
   
-  function decreaseCantidad() {
+  window.decreaseCantidad = () => {
     const input = document.getElementById('cantidadInput');
-    const current = parseInt(input.value);
-    if (current > 1) {
-      input.value = current - 1;
-    }
-  }
+    if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+  };
   
-  document.getElementById('addToCartForm').addEventListener('submit', function(e) {
-    if (!selectedTallaId) {
-      //e.preventDefault();
-      //alert('Por favor selecciona una talla.');
-    }
-  });
+  document.getElementById('tallaModal').onclick = (e) => {
+    if (e.target.id === 'tallaModal') closeTallaModal();
+  };
   
-  document.getElementById('tallaModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-      closeTallaModal();
-    }
+
+  document.querySelectorAll('.open-add-modal').forEach(btn => {
+    btn.onclick = () => openTallaModal(btn.dataset.productId, btn.dataset.productName || '');
   });
+});
 </script>
+
+</div>
 {% endblock %}
