@@ -1,0 +1,93 @@
+{% extends '../base_admin.html' %}
+
+{% block title %}Editar Cliente: {{ cliente.username }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Editar Cliente: <span class="text-primary">{{ cliente.username }}</span></h1>
+    <a href="{% url 'adminpanel:cliente_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver a la lista
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="card-title mb-4">Datos del Cliente</h5>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Nombre de usuario</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}<div class="invalid-feedback d-block">{{ form.username.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label">Nombre</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Apellidos</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono</label>
+                {{ form.telefono }}
+                {% if form.telefono.errors %}<div class="invalid-feedback d-block">{{ form.telefono.errors }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.direccion.id_for_label }}" class="form-label">Dirección</label>
+                {{ form.direccion }}
+                {% if form.direccion.errors %}<div class="invalid-feedback d-block">{{ form.direccion.errors }}</div>{% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label for="{{ form.ciudad.id_for_label }}" class="form-label">Ciudad</label>
+                    {{ form.ciudad }}
+                    {% if form.ciudad.errors %}<div class="invalid-feedback d-block">{{ form.ciudad.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.codigo_postal.id_for_label }}" class="form-label">Código Postal</label>
+                    {{ form.codigo_postal }}
+                    {% if form.codigo_postal.errors %}<div class="invalid-feedback d-block">{{ form.codigo_postal.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary" onclick="return confirm('¿Estás seguro de que quieres guardar los cambios realizados en este cliente?')">
+                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                </button>
+                <a href="{% url 'adminpanel:consultar_compras_cliente' cliente.pk %}" class="btn btn-danger">
+                    <i class="fas fa-trash me-2"></i>Ver Compras
+                </a>
+                <a href="{% url 'adminpanel:cliente_forzar_reset_password' cliente.pk %}" class="btn btn-warning" onclick="return confirm('¿Estás seguro de que quieres forzar un reseteo de contraseña para este usuario? Se generará una nueva contraseña aleatoria.')">
+                    <i class="fas fa-key me-2"></i>Forzar Cambio de Contraseña
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

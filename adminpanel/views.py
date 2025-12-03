@@ -6,10 +6,9 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib import messages
 from django.forms import modelformset_factory
 from django.core.files.storage import default_storage
-from django.conf import settings
-from home.models import Cliente
-
-from home.models import Categoria, Marca, Producto, ImagenProducto
+from django.conf import settings 
+from home.forms import ClienteUpdateForm
+from home.models import Cliente,Categoria, Marca, Pedido, Producto, ImagenProducto
 from .forms import CategoriaForm, ProductForm, ImagenProductoForm, ImagenFormSet
 
 
@@ -254,3 +253,52 @@ class MarcaDeleteView(SuperuserRequiredMixin, DeleteView):
     template_name = 'marcas/marca_confirm_delete.html'
     success_url = reverse_lazy('adminpanel:marca_list')
 
+def cliente_list(request):
+    clientes = Cliente.objects.all()
+    return render(request, "clientes/list.html", {"clientes": clientes})
+
+def cliente_detail(request, pk):
+    """
+    Vista unificada para ver y editar un cliente.
+    Muestra un formulario con los datos del cliente y procesa su actualización.
+    """
+    cliente = get_object_or_404(Cliente, pk=pk)
+    
+    if request.method == 'POST':
+        form = ClienteUpdateForm(request.POST, instance=cliente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Los datos de '{cliente.username}' se han actualizado correctamente.")
+            return redirect('adminpanel:cliente_detail', pk=cliente.pk)
+    else:
+        form = ClienteUpdateForm(instance=cliente)
+
+    return render(request, "clientes/detail.html", {
+        "cliente": cliente,
+        "form": form
+    })
+
+def cliente_forzar_reset_password(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    nuevo_password = Cliente.objects.make_random_password()
+    cliente.set_password(nuevo_password)
+    cliente.save()
+    messages.success(request, f"Nuevo password para {cliente.get_username()}: {nuevo_password}")
+    return redirect("adminpanel:cliente_list")
+
+def consultar_compras_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    compras = Pedido.objects.filter(cliente_email=cliente.email).order_by('-fecha_creacion')
+    return render(request, "clientes/compras.html", {
+        "cliente": cliente,
+        "compras": compras
+    })
+
+def cliente_update(request, pk):
+    from home.forms import ClienteRegistrationForm
+    cliente = get_object_or_404(Cliente, pk=pk)
+    form = ClienteRegistrationForm(request.POST or None, instance=cliente)
+    if form.is_valid():
+        form.save()
+        return redirect("adminpanel:cliente_list")
+    return render(request, "clientes/form.html", {"form": form})
