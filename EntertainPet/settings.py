@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,12 +30,13 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET")
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 #CUANDO DESPLEGUEMOS EN RENDER HAY QUE AÑADIR EL HOST EN ESTOS DOS CAMPOS
 ALLOWED_HOSTS = ["*"]
-CSRF_TRUSTED_ORIGINS = ["https://275d4c00135b.ngrok-free.app"]
+CSRF_TRUSTED_ORIGINS = ["https://webshop-1p46.onrender.com"]
 
 
 # Application definition
@@ -50,10 +52,11 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 CORS_ALLOWED_ORIGINS = [
-    "https://275d4c00135b.ngrok-free.app",
+    "https://webshop-1p46.onrender.com",
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # <-- añadir aquí
     'django.middleware.common.CommonMiddleware',
@@ -63,6 +66,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+#Production
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'EntertainPet.urls'
 
@@ -153,4 +163,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'entertainpet2025@gmail.com'
 EMAIL_HOST_PASSWORD = 'agqz vtmx ycfe gjpu'
-SITE_DOMAIN = "http://127.0.0.1:8000"
+SITE_DOMAIN = os.getenv("SITE_DOMAIN")

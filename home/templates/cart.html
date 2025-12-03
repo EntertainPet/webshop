@@ -115,7 +115,7 @@
       <h4>Resumen de la cesta</h4>
       <div class="summary-row">
         <span>Productos ({{ cantidad_items|default:0 }})</span>
-        <strong>{{ total|floatformat:2|default:"0.00" }} €</strong>
+        <strong>{{ subtotal |floatformat:2|default:"0.00" }} €</strong>
       </div>
       <div class="summary-row">
         <span>Gastos envío</span>
@@ -123,7 +123,7 @@
       </div>
       <div class="summary-row">
         <span>IVA (21%)</span>
-        <span>{{ total|floatformat:2|default:"0.00" }} €</span>
+        <span>{{ subtotalIVA|floatformat:2|default:"0.00" }} €</span>
       </div>
       <hr style="border:none;border-top:1px solid #eee;margin:10px 0">
       <div class="summary-row">
@@ -212,7 +212,7 @@
     
   document.getElementById("finalizarCompraBtn").addEventListener("click", async () => {
 
-      const endpoint = "http://127.0.0.1:8000/create_checkout_session/";
+      const endpoint = "https://webshop-1p46.onrender.com/create_checkout_session/";
       
       const cartCode = "{{ codigo_carrito }}";
       const userEmail = "{{ client_email|default:'' }}";

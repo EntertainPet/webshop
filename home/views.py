@@ -538,33 +538,46 @@ class CartView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         request = self.request
 
-        # Lógica para obtener el email solo si es un usuario real
         client_email = ""
         if request.user.is_authenticated:
-            # Verificamos que no sea un usuario invitado temporal (flag is_anonymous_user del modelo Cliente)
+            # Email solo si no es invitado
             if not getattr(request.user, 'is_anonymous_user', False):
                 client_email = request.user.email
-
-            # Lógica existente del carrito autenticado
+                
             carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
-            
+
+            subtotal = float(carrito.total)
+            iva = carrito.subtotalIVA
+            envio = 4.50 if subtotal > 0 else 0.0
+            total = subtotal + iva + envio
+
             ctx["carrito"] = carrito
             ctx["cart_items"] = carrito.carrito_items.all()
-            ctx["total"] = carrito.total
+            ctx["subtotal"] = subtotal
+            ctx["subtotalIVA"] = iva
+            ctx["total"] = total
             ctx["codigo_carrito"] = carrito.codigo_carrito
             ctx["cantidad_items"] = carrito.cantidad_total_items
+
         else:
-            # Lógica existente del carrito de sesión
+            # Carrito de sesión
             items = get_cart_items_from_session(request)
             ctx["cart_items"] = items
-            ctx["total"] = sum(item["subtotal"] for item in items)
+
+            subtotal = float(sum(item["subtotal"] for item in items))
+            iva = subtotal * 0.21
+            envio = 4.50 if subtotal > 0 else 0.0
+            total = subtotal + iva + envio
+
+            ctx["subtotal"] = subtotal
+            ctx["subtotalIVA"] = iva
+            ctx["total"] = total
             ctx["cantidad_items"] = sum(item["cantidad"] for item in items)
-        
-        # --- AÑADIDO ---
+
         ctx["client_email"] = client_email
-        
         return ctx
 
+from rest_framework.test import APIRequestFactory
 def invitado_compra_view(request):
     """Crea un usuario invitado temporal y lo autentica, y procesa la compra correctamente."""
 
@@ -594,27 +607,30 @@ def invitado_compra_view(request):
     cart_code = carrito.codigo_carrito
 
     # 4. Enviar cart_code correcto al endpoint de Stripe
-    endpoint = "http://127.0.0.1:8000/create_checkout_session/"
-
-    body = { "cart_code": cart_code }
-
-    response = requests.post(
-        endpoint,
-        headers={"Content-Type": "application/json"},
-        data=json.dumps(body)
+    factory = APIRequestFactory()
+    stripe_request = factory.post(
+        '/create_checkout_session/', 
+        {"cart_code": cart_code}, 
+        format='json'
     )
 
-    try:
-        json_data = response.json()
-    except:
-        return JsonResponse({"error": "Respuesta no válida del endpoint"}, status=500)
+    # IMPORTANTE: Copiar host y esquema del request actual para que 
+    # Stripe reciba las URLs de success/cancel correctas del dominio real
+    stripe_request.META['HTTP_HOST'] = request.META['HTTP_HOST']
+    stripe_request.META['wsgi.url_scheme'] = request.scheme
 
-    redirect_url = json_data.get("data", {}).get("url")
+    # 5. Llamar a la vista directamente como función
+    response = create_checkout_session(stripe_request)
 
-    if not redirect_url:
-        return JsonResponse({"error": "Stripe no devolvió URL"}, status=500)
-
-    return redirect(redirect_url)
+    if response.status_code == 200:
+        # Al ser llamada interna, response.data mantiene el objeto Python original
+        # (El objeto Session de Stripe)
+        checkout_session = response.data['data']
+        
+        # Accedemos a la propiedad url del objeto Stripe y redirigimos
+        return redirect(checkout_session.url)
+    else:
+        return JsonResponse(response.data, status=response.status_code)
 
 
 
@@ -780,8 +796,6 @@ def create_checkout_session(request):
     carrito = Carrito.objects.get(codigo_carrito=cart_code)
     
     try:
-
-        cart = Carrito.objects.get(codigo_carrito=cart_code)
         checkout_session = stripe.checkout.Session.create(
             customer_email=email,
             payment_method_types=['card'],

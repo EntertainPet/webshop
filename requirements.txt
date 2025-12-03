@@ -5,3 +5,5 @@ stripe
 djangorestframework
 django-cors-headers
 sib-api-v3-sdk
+gunicorn
+whitenoise
