@@ -47,6 +47,7 @@ from home import models
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.WEBHOOK_SECRET
+site_domain = settings.SITE_DOMAIN
 
 
 # ============================================
@@ -477,7 +478,7 @@ def get_brevo_api_instance():
     return sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
 
 def enviar_correo(pedido):
-    dom = "https://webshop-1p46.onrender.com"
+    dom = site_domain
     asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
     FROM_EMAIL = "entertainpet2025@gmail.com" 
     to_email = pedido.cliente_email
