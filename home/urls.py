@@ -19,7 +19,7 @@ urlpatterns = [
     path("carrito/session/remove/", views.carrito_remove_session_item, name="carrito_remove_session_item"),
     
     # Autenticación
-    path("login/", auth_views.LoginView.as_view(), name="login"),
+    path("login/", views.CustomLoginView.as_view(), name="login"),
     path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     path("register/", views.register_view, name="register"),
     path("guest/", views.invitado_view, name="guest"),

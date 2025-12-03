@@ -1,0 +1,152 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block header %}{% if object %}Editar producto{% else %}Crear producto{% endif %}{% endblock %}
+{% block content %}
+<div class="admin-card">
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    <div class="row g-3">
+      <div class="col-md-8">
+        <div class="form-section">
+          <div class="mb-3">
+            <label class="form-label">{{ form.nombre.label }}</label>
+            {{ form.nombre }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.slug.label }}</label>
+            {{ form.slug }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.descripcion.label }}</label>
+            {{ form.descripcion }}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-section">
+          <div class="mb-3">
+            <label class="form-label">{{ form.precio.label }}</label>
+            {{ form.precio }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.precio_oferta.label }}</label>
+            {{ form.precio_oferta }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.stock.label }}</label>
+            {{ form.stock }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.categoria.label }}</label>
+          </div>
+          <div class="mb-3 d-flex align-items-center gap-2">
+              {{ form.categoria }}
+              <a class="btn btn-sm btn-outline-primary"
+                href="{% url 'adminpanel:categoria_add' %}?next={{ request.path }}">
+                  Crear categoría
+              </a>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.marca.label }}</label>
+          </div>
+          <div class="mb-3 d-flex align-items-center gap-2">
+              {{ form.marca }}
+              <a class="btn btn-sm btn-outline-primary"
+                href="{% url 'adminpanel:marca_create' %}?next={{ request.path }}">
+                  Crear marca
+              </a>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.genero.label }}</label>
+            {{ form.genero }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{{ form.material.label }}</label>
+            {{ form.material }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">{{ form.colores.label }}</label>
+            {{ form.colores }}
+          </div>
+
+          <div class="mb-3 form-check">
+            {{ form.esta_disponible }}
+            <label class="form-check-label ms-2">{{ form.esta_disponible.label }}</label>
+          </div>
+          <div class="mb-3 form-check">
+            {{ form.es_destacado }}
+            <label class="form-check-label ms-2">{{ form.es_destacado.label }}</label>
+          </div>
+        </div>
+
+        <div class="form-section mt-3">
+          <h5>Imágenes</h5>
+          <p class="muted-note">Sube imágenes y marca una como principal. Puedes eliminar imágenes existentes.</p>
+          {% if image_formset %}
+            {{ image_formset.management_form }}
+
+            <!-- Existing images -->
+            <div class="image-grid mb-3">
+              {% for f in image_formset.forms %}
+                {% if f.instance and f.instance.pk %}
+                  <div class="image-item">
+                    <div>
+                      <img src="{{ f.instance.imagen }}" alt="{{ object.nombre }}" style="max-width: 100px;">
+                    </div>
+                    <div class="img-actions">
+                      <div class="form-check">
+                        {{ f.id }}  <!-- Campo ID oculto -->
+                        {{ f.es_principal }}
+                        <label class="form-check-label ms-2">Principal</label>
+                      </div>
+                    </div>
+                    <div class="img-actions">
+                      <div class="form-check">
+                        {{ f.DELETE }}
+                        <label class="form-check-label ms-2">Eliminar</label>
+                      </div>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+
+            <!-- New / empty forms for uploading -->
+            <div class="new-image-grid">
+              {% for f in image_formset.forms %}
+                {% if not f.instance.pk %}
+                  <div class="new-image-item">
+                    {{ f.id }}  <!-- Campo ID oculto para nuevas instancias -->
+                    <label class="form-label">{{ f.imagen_file.label }}</label>
+                    {{ f.imagen_file }}
+                    <div class="form-check">
+                      {{ f.es_principal }}
+                      <label class="form-check-label ms-2">Principal</label>
+                    </div>
+                    {{ f.DELETE }}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+
+
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn-admin" type="submit">Guardar</button>
+      <a class="btn-outline-admin" href="{% url 'adminpanel:product_list' %}">Cancelar</a>
+    </div>
+  </form>
+  {% if form.errors %}
+  <div class="alert alert-danger">{{ form.errors }}</div>
+  {% endif %}
+
+  {% if image_formset.errors %}
+  <div class="alert alert-danger">{{ image_formset.errors }}</div>
+  {% endif %}
+
+</div>
+{% endblock %}

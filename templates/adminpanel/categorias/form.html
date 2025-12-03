@@ -1,0 +1,35 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block header %}{% if form.instance.pk %}Editar categoría{% else %}Nueva categoría{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">{{ form.nombre.label }}</label>
+            {{ form.nombre }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">{{ form.descripcion.label }}</label>
+            {{ form.descripcion }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">{{ form.imagen.label }}</label>
+            {{ form.imagen }}
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+            <button class="btn-admin" type="submit">Guardar</button>
+            <a class="btn-outline-admin" href="{% url 'adminpanel:categoria_list' %}">Cancelar</a>
+        </div>
+    </form>
+
+    {% if form.errors %}
+    <div class="alert alert-danger mt-3">{{ form.errors }}</div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django.contrib.auth import login
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
@@ -47,6 +48,7 @@ from home import models
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 endpoint_secret = settings.WEBHOOK_SECRET
+site_domain = settings.SITE_DOMAIN
 
 
 # ============================================
@@ -206,6 +208,26 @@ def register_view(request):
                 request.session["cart_code"] = cart_code
             return redirect("home:catalogo")
     return render(request, "registration/registro.html", {"form": form})
+
+
+class CustomLoginView(auth_views.LoginView):
+    """Login view that redirects superusers to the admin panel and merges session cart."""
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        # merge session cart into user cart after login
+        try:
+            merge_session_cart_to_user(self.request, self.request.user)
+        except Exception:
+            pass
+        return response
+
+    def get_success_url(self):
+        # If superuser, go to adminpanel dashboard
+        if self.request.user.is_authenticated and self.request.user.is_superuser:
+            return reverse('adminpanel:dashboard')
+        # Respect next parameter or default
+        return super().get_success_url()
 
 
 # ============================================
@@ -477,7 +499,7 @@ def get_brevo_api_instance():
     return sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
 
 def enviar_correo(pedido):
-    dom = "https://webshop-1p46.onrender.com"
+    dom = site_domain
     asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
     FROM_EMAIL = "entertainpet2025@gmail.com" 
     to_email = pedido.cliente_email
