@@ -1,0 +1,11 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block header %}Confirmar eliminación{% endblock %}
+{% block content %}
+<div class="admin-card">
+  <p>¿Eliminar Categoria "{{ object.nombre }}"?</p>
+  <form method="post">{% csrf_token %}
+    <button class="btn-admin" type="submit">Eliminar</button>
+    <a class="btn-outline-admin" href="{% url 'adminpanel:categoria_list' %}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

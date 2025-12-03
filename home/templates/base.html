@@ -79,6 +79,9 @@
                         {% csrf_token %}
                         <button type="submit" class="logout-btn">Cerrar Sesión</button>
                     </form>
+                    {% if user.is_superuser %}
+                    <a class="nav-link ms-2" href="/gestor/">Ir al panel</a>
+                    {% endif %}
                     <span class="mx-2 text-secondary">|</span>
                     
                 {% else %}

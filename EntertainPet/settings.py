@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'home',
+    'adminpanel',
     'corsheaders',
 ]
 CORS_ALLOWED_ORIGINS = [
@@ -67,11 +68,14 @@ MIDDLEWARE = [
 ]
 
 
-#Production
+# Production / Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Include the project's top-level `static/` directory so templates like
+# `static/css/admin.css` are served during development.
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')]
+    os.path.join(BASE_DIR, 'static'),
+]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'EntertainPet.urls'
@@ -140,8 +144,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -164,3 +166,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'entertainpet2025@gmail.com'
 EMAIL_HOST_PASSWORD = 'agqz vtmx ycfe gjpu'
 SITE_DOMAIN = os.getenv("SITE_DOMAIN")
+
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
