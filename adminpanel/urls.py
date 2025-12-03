@@ -17,4 +17,8 @@ urlpatterns = [
     path("marcas/nueva/", views.marca_create, name="marca_create"),
     path("marcas/<int:pk>/editar/", views.marca_update, name="marca_update"),
     path("marcas/<int:pk>/eliminar/", views.MarcaDeleteView.as_view(), name="marca_delete"),
+    path("pedidos/", views.PedidoListView.as_view(), name="pedido_list"),
+    path("pedidos/<int:pk>/", views.PedidoDetailView.as_view(), name="pedido_detail"),
+    path("pedidos/<int:pk>/envio/", views.PedidoUpdateEnvioView.as_view(), name="pedido_update_envio"),
+
     ]

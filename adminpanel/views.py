@@ -8,7 +8,7 @@ from django.forms import modelformset_factory
 from django.core.files.storage import default_storage
 from django.conf import settings
 
-from home.models import Categoria, Marca, Producto, ImagenProducto
+from home.models import Categoria, Marca, Producto, ImagenProducto, Pedido, ItemPedido
 from .forms import CategoriaForm, ProductForm, ImagenProductoForm, ImagenFormSet
 
 
@@ -252,3 +252,41 @@ class MarcaDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Marca
     template_name = 'adminpanel/marcas/marca_confirm_delete.html'
     success_url = reverse_lazy('adminpanel:marca_list')
+
+class PedidoEnvioForm(forms.ModelForm):
+    class Meta:
+        model = Pedido
+        fields = ["estado_envio", "codigo_seguimiento"]
+
+class PedidoListView(SuperuserRequiredMixin, ListView):
+    model = Pedido
+    template_name = "adminpanel/pedidos/pedido_list.html"
+    context_object_name = "pedidos"
+    paginate_by = 20
+    ordering = ["-fecha_creacion"]
+
+class PedidoDetailView(SuperuserRequiredMixin, TemplateView):
+    template_name = "adminpanel/pedidos/pedido_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        pedido = get_object_or_404(Pedido, pk=self.kwargs["pk"])
+        items = pedido.pedido_items.select_related("producto")
+
+        context["pedido"] = pedido
+        context["items"] = items
+        return context
+    
+class PedidoUpdateEnvioView(SuperuserRequiredMixin, UpdateView):
+    model = Pedido
+    form_class = PedidoEnvioForm
+    template_name = "adminpanel/pedidos/pedido_envio_form.html"
+
+    def get_success_url(self):
+        return reverse("adminpanel:pedido_detail", kwargs={"pk": self.object.pk})
+
+    def form_valid(self, form):
+        messages.success(self.request, "Estado del envío actualizado correctamente.")
+        return super().form_valid(form)
+
+
