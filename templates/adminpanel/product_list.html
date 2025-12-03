@@ -1,0 +1,56 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block header %}Productos{% endblock %}
+{% block content %}
+<div class="admin-card">
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="m-0">Listado de productos</h3>
+  <div>
+    <a class="btn-admin" href="{% url 'adminpanel:product_add' %}">Crear producto</a>
+  </div>
+</div>
+<table class="table-admin">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Categoría</th>
+      <th>Marca</th>
+      <th>Precio</th>
+      <th>Stock</th>
+      <th>Visible</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for p in productos %}
+    <tr>
+      <td>{{ p.nombre }}</td>
+      <td>{{ p.categoria }}</td>
+      <td>{{ p.marca }}</td>
+      <td>{{ p.precio }}</td>
+      <td>{{ p.stock }}</td>
+      <td>{{ p.esta_disponible }}</td>
+      <td>
+        <a class="btn-outline-admin" href="{% url 'adminpanel:product_edit' p.pk %}">Editar</a>
+        <a class="btn-outline-admin" href="{% url 'adminpanel:product_delete' p.pk %}">Eliminar</a>
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="7">No hay productos.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if is_paginated %}
+  <div>
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+    {% endif %}
+    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+    {% endif %}
+  </div>
+{% endif %}
+
+</div>
+{% endblock %}

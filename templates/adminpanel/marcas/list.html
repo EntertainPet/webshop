@@ -1,0 +1,47 @@
+{% extends 'adminpanel/base_admin.html' %}
+{% block header %}Marcas{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Listado de marcas</h4>
+        <a href="{% url 'adminpanel:marca_create' %}" class="btn-admin">Nueva marca</a>
+    </div>
+
+    <table class="table admin-table align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Imagen</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in marcas %}
+            <tr>
+                <td>{{ m.id }}</td>
+                <td>{{ m.nombre }}</td>
+                <td>
+                    {% if m.imagen %}
+                    <img src="{{ m.imagen }}" style="height:40px;border-radius:6px;">
+                    {% else %}
+                    <span class="text-muted">Sin imagen</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="{% url 'adminpanel:marca_update' m.pk %}" class="btn-outline-admin btn-sm">Editar</a>
+                    <a class="btn-outline-admin" href="{% url 'adminpanel:marca_delete' m.pk %}">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                    No hay marcas creadas aún.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
