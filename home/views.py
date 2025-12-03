@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
 import uuid
+from decimal import Decimal
 import secrets
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
@@ -592,7 +593,7 @@ class CartView(TemplateView):
             total = subtotal + iva + envio
 
             ctx["subtotal"] = subtotal
-            ctx["subtotalIVA"] = iva
+            ctx["subtotalIVA"] = Decimal(iva)
             ctx["total"] = total
             ctx["cantidad_items"] = sum(item["cantidad"] for item in items)
 
@@ -809,6 +810,7 @@ class PedidoDetailView(LoginRequiredMixin, DetailView):
         ctx["total_sum"] = sum(i.get("subtotal", 0) for i in items_list)
         return ctx
 
+from decimal import Decimal
 
 @api_view(['POST'])
 def create_checkout_session(request):
@@ -816,7 +818,18 @@ def create_checkout_session(request):
     cart_code = request.data.get("cart_code")
     email = request.data.get("email")
     carrito = Carrito.objects.get(codigo_carrito=cart_code)
-    
+
+    iva_rate = Decimal('0.21')  # 21%
+    decimal_100 = Decimal('100')
+
+    subtotal = sum(
+        (item.producto.precio_final * item.cantidad)
+        for item in carrito.carrito_items.all()
+    )
+
+    iva_amount = int((subtotal * iva_rate * decimal_100).quantize(Decimal('1')))
+
+        
     try:
         checkout_session = stripe.checkout.Session.create(
             customer_email=email,
@@ -831,16 +844,26 @@ def create_checkout_session(request):
                     'quantity': item.cantidad,
                 }
                 for item in carrito.carrito_items.all()
-            ] + [
-                {
-                    'price_data': {
-                        'currency': 'eur',
-                        'product_data': {'name': 'Gastos de envío'},
-                        'unit_amount': 450,
-                    },
-                    'quantity': 1,
-                }
-            ],
+            ]  + [
+        # ✅ Shipping
+        {
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {'name': 'Gastos de envío'},
+                'unit_amount': 450,  # 4.50 €
+            },
+            'quantity': 1,
+        },
+        # ✅ IVA
+        {
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {'name': 'IVA (21%)'},
+                'unit_amount': iva_amount,
+            },
+            'quantity': 1,
+        }
+    ],
             mode='payment',
             success_url=request.build_absolute_uri("/success/") + "?session_id={CHECKOUT_SESSION_ID}",
             cancel_url=request.build_absolute_uri("/cancel/"),
