@@ -14,9 +14,10 @@ from django.http import HttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum, F
 from django.db.models.functions import Coalesce
-
 import uuid
 import secrets
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
 
 from django.template.loader import render_to_string
 from django.core.mail import send_mail, EmailMultiAlternatives
@@ -469,14 +470,19 @@ def carrito_update_session_item(request):
 class CheckoutConfirmacionView(LoginRequiredMixin, TemplateView):
     template_name = "home/checkout_confirmacion.html"
     
+def get_brevo_api_instance():
+    configuration = sib_api_v3_sdk.Configuration()
+    api_key = os.environ.get('BREVO_API_KEY')
+    configuration.api_key['api-key'] = api_key
+    return sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+
 def enviar_correo(pedido):
+    dom = "https://webshop-1p46.onrender.com"
     asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
-    FROM_EMAIL = "entertainpet2025@gmail.com"
-    to_email = [pedido.cliente_email]
+    FROM_EMAIL = "entertainpet2025@gmail.com" 
+    to_email = pedido.cliente_email
     
-    dom = "http://localhost:8000"
-    seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token])   
-    
+    seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token]) 
     items_con_subtotal = [
         {
             "producto": item.producto,
@@ -495,12 +501,20 @@ def enviar_correo(pedido):
         "cliente": cliente,
         "seguimiento_url": seguimiento_url,
     }
-
     html_content = render_to_string("email/confirmacion.html", context)
-    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
-    correo.attach_alternative(html_content, "text/html")
+    
+    api_instance = get_brevo_api_instance()
+    if api_instance is None:
+        raise Exception("Fallo en la inicialización de la API de Brevo") 
 
-    correo.send(fail_silently=False)
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=[{"email": to_email}],
+        sender={"name": "Entertain Pet", "email": FROM_EMAIL},
+        subject=asunto,
+        html_content=html_content
+    )
+    
+    api_instance.send_transac_email(send_smtp_email)
 
 @require_POST
 def carrito_remove_session_item(request):
@@ -829,44 +843,6 @@ def my_webhook_view(request):
 
 
     
-def enviar_correo(pedido):
-    asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
-    FROM_EMAIL = "entertainpet2025@gmail.com"
-    to_email = [pedido.cliente_email]
-    
-    dom = "http://localhost:8000"
-    seguimiento_url = dom + reverse("home:seguimiento_token", args=[pedido.seguimiento_token])   
-    
-    items_con_subtotal = [
-        {
-            "producto": item.producto,
-            "cantidad": item.cantidad,
-            "subtotal": item.producto.precio_final * item.cantidad,
-            "imagen_url": getattr(item.producto.imagenes.filter(es_principal=True).first(), "imagen", None),
-        }
-        for item in pedido.pedido_items.select_related("producto")
-    ]
-
-    cliente = Cliente.objects.filter(email=pedido.cliente_email).first()
-
-    context = {
-        "pedido": pedido,
-        "items_con_subtotal": items_con_subtotal,
-        "cliente": cliente,
-        "seguimiento_url": seguimiento_url,
-    }
-
-    html_content = render_to_string("email/confirmacion.html", context)
-    correo = EmailMultiAlternatives(asunto, "", FROM_EMAIL, to_email)
-    correo.attach_alternative(html_content, "text/html")
-
-    correo.send(fail_silently=False)
-    asunto = f"Confirmación de tu pedido #{pedido.stripe_checkout_id}"
-    FROM_EMAIL = "entertainpet2025@gmail.com"
-    to_email = [pedido.cliente_email]
-    
-    dom = "http://localhost:8000"
-    seguimiento_url = dom + reverse("home:seguimiento", args=[pedido.id])
     
 def fulfill_checkout(session, cart_code):
     """Crea el pedido tras pago exitoso."""
