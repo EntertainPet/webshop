@@ -273,6 +273,13 @@ class ProductListView(ListView):
         if precio_max:
             qs = qs.filter(precio__lte=precio_max)
 
+        if categoria and not marca:
+            qs = qs.order_by('orden_categoria', 'id')
+        elif marca and not categoria:
+            qs = qs.order_by('orden_catalogo', 'id')
+        else:
+            qs = qs.order_by('orden_categoria', 'orden_catalogo', 'id')
+        
         return qs
 
     def get_context_data(self, **kwargs):

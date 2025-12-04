@@ -127,3 +127,47 @@ body.admin-panel{
 .admin-content .alert-success::before{content:'\2713';font-size:18px}
 
 .admin-content .alert-danger{background:#ffc9c9;border-radius:8px}
+
+@keyframes slideDown {
+    from {
+        transform: translate(-50%, -150%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+    to {
+        transform: translate(-50%, -150%);
+        opacity: 0;
+    }
+}
+
+.destacado-btn {
+    font-size: 22px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: gold; /* color estrella rellena */
+    transition: 0.2s ease;
+}
+
+.destacado-btn:hover {
+    color: black; /* color de la estrella vacía */
+}
+
+/* Cambiar contenido al pasar el ratón */
+.destacado-btn:hover::before {
+    content: "☆"; /* estrella vacía */
+}
+
+.destacado-btn::before {
+    content: "★"; /* estrella rellena */
+}
