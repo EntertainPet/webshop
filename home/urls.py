@@ -19,11 +19,13 @@ urlpatterns = [
     path("carrito/session/remove/", views.carrito_remove_session_item, name="carrito_remove_session_item"),
     
     # Autenticación
-    path("login/", views.CustomLoginView.as_view(), name="login"),
+    path("login/", views.CustomLoginView.as_view(), name="login"),  
     path("logout/", views.CustomLogoutView.as_view(), name="logout"),
     path("register/", views.register_view, name="register"),
     path("guest/", views.invitado_view, name="guest"),
-    
+    path("change_password_forced/", views.ForcedPasswordChangeView.as_view(), name="change_password_forced"),
+    path("change_password/", views.CustomPasswordChangeView.as_view(), name="change_password"),
+
     # Stripe
     path("autocomplete/", views.autocomplete_productos, name="autocomplete"),
     path('pedido/seguimiento/<int:pedido_id>/', views.seguimiento_pedido, name='seguimiento'),

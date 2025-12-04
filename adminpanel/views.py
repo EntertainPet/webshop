@@ -4,13 +4,11 @@ from django.views.generic import TemplateView, ListView, CreateView, UpdateView,
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib import messages
-from django.forms import modelformset_factory
 from django.core.files.storage import default_storage
-from django.conf import settings
-from home.models import Cliente
+from home.forms import ClienteUpdateForm
+from home.models import Cliente,Categoria, Marca, Pedido, Producto, ImagenProducto, Pedido
+from .forms import CategoriaForm, ProductForm, ImagenFormSet
 
-from home.models import Categoria, Marca, Producto, ImagenProducto, Pedido, ItemPedido
-from .forms import CategoriaForm, ProductForm, ImagenProductoForm, ImagenFormSet
 
 
 class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -291,3 +289,54 @@ class PedidoUpdateEnvioView(SuperuserRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
+def cliente_list(request):
+    clientes = Cliente.objects.all()
+    return render(request, "clientes/list.html", {"clientes": clientes})
+
+def cliente_detail(request, pk):
+    """
+    Vista unificada para ver y editar un cliente.
+    Muestra un formulario con los datos del cliente y procesa su actualización.
+    """
+    cliente = get_object_or_404(Cliente, pk=pk)
+    
+    if request.method == 'POST':
+        form = ClienteUpdateForm(request.POST, instance=cliente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Los datos de '{cliente.username}' se han actualizado correctamente.")
+            return redirect('adminpanel:cliente_detail', pk=cliente.pk)
+    else:
+        form = ClienteUpdateForm(instance=cliente)
+
+    return render(request, "clientes/detail.html", {
+        "cliente": cliente,
+        "form": form
+    })
+
+def cliente_forzar_reset_password(request, pk):
+    '''
+    La idea es forzar al cliente a resetear su password en el próximo login.
+    '''
+    cliente = get_object_or_404(Cliente, pk=pk)
+    cliente.cambio_contraseña_requerido = True
+    cliente.save()
+    messages.success(request, f"Se ha forzado a '{cliente.username}' a resetear su contraseña en el próximo inicio de sesión.")
+    return redirect("adminpanel:cliente_list")
+
+def consultar_compras_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk)
+    compras = Pedido.objects.filter(cliente_email=cliente.email).order_by('-fecha_creacion')
+    return render(request, "clientes/compras.html", {
+        "cliente": cliente,
+        "compras": compras
+    })
+
+def cliente_update(request, pk):
+    from home.forms import ClienteRegistrationForm
+    cliente = get_object_or_404(Cliente, pk=pk)
+    form = ClienteRegistrationForm(request.POST or None, instance=cliente)
+    if form.is_valid():
+        form.save()
+        return redirect("adminpanel:cliente_list")
+    return render(request, "clientes/form.html", {"form": form})

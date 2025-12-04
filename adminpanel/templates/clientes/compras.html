@@ -1,0 +1,82 @@
+{% extends '../base_admin.html' %}
+
+{% block title %}Compras de {{ cliente.username }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Historial de Compras</h1>
+        <h5 class="text-muted">Cliente: {{ cliente.get_full_name|default:cliente.username }} ({{ cliente.email }})</h5>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>ID Pedido</th>
+                        <th>Fecha</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-center">Items</th>
+                        <th class="text-center">Estado Pago</th>
+                        <th class="text-center">Estado Envío</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in compras %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <span class="font-monospace">{{ pedido.stripe_checkout_id|truncatechars:25 }}</span>
+                        </td>
+                        <td>{{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end fw-bold">{{ pedido.cantidad|floatformat:2 }} {{ pedido.divisa|upper }}</td>
+                        <td class="text-center">{{ pedido.pedido_items.count }}</td>
+                        <td class="text-center">
+                            {% if pedido.status == 'Paid' %}
+                                <span class="badge bg-success">{{ pedido.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ pedido.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if pedido.estado_envio == 'Delivered' %}
+                                <span class="badge bg-info">{{ pedido.get_estado_envio_display }}</span>
+                            {% elif pedido.estado_envio == 'On the way' %}
+                                <span class="badge bg-primary">{{ pedido.get_estado_envio_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ pedido.get_estado_envio_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {# Aquí podrías añadir un enlace al detalle del pedido si tuvieras esa vista #}
+                            {# <a href="#" class="btn btn-sm btn-outline-primary">Ver Pedido</a> #}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <p class="mb-0">Este cliente aún no ha realizado ninguna compra.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+    
+</div>
+<div class="mt-4">
+    <a href="{% url 'adminpanel:cliente_list' %}" class="btn btn-outline-primary me-2">
+        <i class="fas fa-users me-2"></i>Volver a la lista de clientes
+    </a>
+    <a href="{% url 'adminpanel:cliente_detail' cliente.pk %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver al Cliente
+    </a>
+</div>
+{% endblock %}

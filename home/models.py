@@ -14,6 +14,7 @@ class Cliente(AbstractUser):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     is_anonymous_user = models.BooleanField(default=False, blank=True)
+    cambio_contraseña_requerido = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         base = self.username or self.email or "cliente"
