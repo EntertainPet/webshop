@@ -467,28 +467,6 @@ def actualizar_orden_categoria(request, categoria_id):
 
 @require_POST
 @csrf_protect
-def cambiar_seccion_producto(request, producto_id):
-    """
-    Cambia la seccion_destacada de un producto.
-    """
-    try:
-        data = json.loads(request.body.decode("utf-8"))
-        seccion = data.get("seccion", "") or ""
-    except json.JSONDecodeError:
-        return JsonResponse({"success": False, "error": "JSON inválido"}, status=400)
-
-    try:
-        producto = Producto.objects.get(pk=producto_id)
-    except Producto.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Producto no encontrado"}, status=404)
-
-    producto.seccion_destacada = seccion
-    producto.save(update_fields=["seccion_destacada"])
-
-    return JsonResponse({"success": True})
-
-@require_POST
-@csrf_protect
 def toggle_destacado_producto(request, producto_id):
     """
     Activa/desactiva el flag es_destacado de un producto.

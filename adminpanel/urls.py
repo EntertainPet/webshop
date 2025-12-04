@@ -30,6 +30,5 @@ urlpatterns = [
     path("catalogo/orden/",superuser_required(views.actualizar_orden_catalogo),name="catalogo_orden",),
     path("catalogo/categoria/<int:categoria_id>/orden/",superuser_required(views.actualizar_orden_categoria),name="categoria_orden",),
     path("catalogo/marca/<int:marca_id>/orden/", superuser_required(views.actualizar_orden_marca), name="marca_orden"),
-    path("catalogo/producto/<int:producto_id>/seccion/",superuser_required(views.cambiar_seccion_producto),name="producto_seccion",),
     path("catalogo/producto/<int:producto_id>/destacado/",superuser_required(views.toggle_destacado_producto),name="producto_destacado",),
     ]
