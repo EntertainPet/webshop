@@ -1,6 +1,6 @@
 from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
-from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import LogoutView, PasswordChangeView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404, render
@@ -1003,3 +1003,15 @@ def seguimiento_pedido_token(request, token):
         progreso = 100
     return render(request, "home/estado_envio.html", {"pedido": pedido,
                                                             "progreso": progreso})
+
+class ForcedPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = 'change_password_forced.html'
+    success_url = reverse_lazy('home:catalogo') # O a donde quieras que vaya después
+
+    def form_valid(self, form):
+        # Al cambiar la contraseña con éxito, desactivar el flag
+        user = self.request.user
+        user.cambio_contraseña_requerido = False
+        user.save()
+        messages.success(self.request, "Tu contraseña ha sido cambiada con éxito.")
+        return super().form_valid(form)

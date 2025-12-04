@@ -10,6 +10,7 @@ from django.conf import settings
 from home.forms import ClienteUpdateForm
 from home.models import Cliente,Categoria, Marca, Pedido, Producto, ImagenProducto
 from .forms import CategoriaForm, ProductForm, ImagenProductoForm, ImagenFormSet
+from django.contrib.auth.views import PasswordChangeView
 
 
 class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -279,11 +280,13 @@ def cliente_detail(request, pk):
     })
 
 def cliente_forzar_reset_password(request, pk):
+    '''
+    La idea es forzar al cliente a resetear su password en el próximo login.
+    '''
     cliente = get_object_or_404(Cliente, pk=pk)
-    nuevo_password = Cliente.objects.make_random_password()
-    cliente.set_password(nuevo_password)
+    cliente.cambio_contraseña_requerido = True
     cliente.save()
-    messages.success(request, f"Nuevo password para {cliente.get_username()}: {nuevo_password}")
+    messages.success(request, f"Se ha forzado a '{cliente.username}' a resetear su contraseña en el próximo inicio de sesión.")
     return redirect("adminpanel:cliente_list")
 
 def consultar_compras_cliente(request, pk):
