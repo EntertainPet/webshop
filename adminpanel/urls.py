@@ -25,4 +25,11 @@ urlpatterns = [
     path("clientes/<int:pk>/", superuser_required(views.cliente_detail), name="cliente_detail"),
     path("clientes/<int:pk>/forzar-reset-password/", superuser_required(views.cliente_forzar_reset_password), name="cliente_forzar_reset_password"),
     path("clientes/<int:pk>/compras/", superuser_required(views.consultar_compras_cliente), name="consultar_compras_cliente"),
+    # Gestión del Catálogo y Navegación
+    path("catalogo/",superuser_required(views.CatalogoGestionView.as_view()),name="catalogo_list",),
+    path("catalogo/orden/",superuser_required(views.actualizar_orden_catalogo),name="catalogo_orden",),
+    path("catalogo/categoria/<int:categoria_id>/orden/",superuser_required(views.actualizar_orden_categoria),name="categoria_orden",),
+    path("catalogo/marca/<int:marca_id>/orden/", superuser_required(views.actualizar_orden_marca), name="marca_orden"),
+    path("catalogo/producto/<int:producto_id>/seccion/",superuser_required(views.cambiar_seccion_producto),name="producto_seccion",),
+    path("catalogo/producto/<int:producto_id>/destacado/",superuser_required(views.toggle_destacado_producto),name="producto_destacado",),
     ]

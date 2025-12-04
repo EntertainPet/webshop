@@ -5,9 +5,14 @@ from django.urls import reverse, reverse_lazy
 from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib import messages
 from django.core.files.storage import default_storage
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 from home.forms import ClienteUpdateForm
 from home.models import Cliente,Categoria, Marca, Pedido, Producto, ImagenProducto, Pedido
 from .forms import CategoriaForm, ProductForm, ImagenFormSet
+import json
 
 
 
@@ -355,3 +360,160 @@ def cliente_update(request, pk):
         form.save()
         return redirect("adminpanel:cliente_list")
     return render(request, "clientes/form.html", {"form": form})
+
+# ============================================
+# GESTIÓN DEL CATÁLOGO Y NAVEGACIÓN
+# ============================================
+
+@method_decorator(csrf_protect, name="dispatch")
+class CatalogoGestionView(TemplateView):
+    template_name = "catalogo/gestion.html"  # ajusta si tu ruta es distinta
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Productos destacados (orden general del catálogo)
+        destacados = (
+            Producto.objects.filter(es_destacado=True)
+            .order_by("orden_catalogo", "nombre")
+        )
+
+        # Categorías con sus productos (para la pestaña "Por Categoría")
+        categorias_con_productos = []
+        categorias = Categoria.objects.all().order_by("nombre")
+
+        for cat in categorias:
+            productos_cat = (
+                Producto.objects.filter(categoria=cat)
+                .order_by("orden_categoria", "nombre")
+            )
+            categorias_con_productos.append(
+                {
+                    "categoria": cat,
+                    "productos": productos_cat,
+                }
+            )
+
+        marcas = Marca.objects.prefetch_related('productos').all()
+        context['marcas_con_productos'] = [
+            {
+                'marca': marca,
+                'productos': marca.productos.order_by('orden_catalogo')
+            }
+            for marca in marcas
+        ]
+
+        context["destacados"] = destacados
+        context["categorias_con_productos"] = categorias_con_productos
+
+        return context
+
+@require_POST
+@csrf_protect
+def actualizar_orden_catalogo(request):
+    """
+    Actualiza el campo orden_catalogo según el orden recibido.
+    Se usa para:
+      - lista general de destacados
+    """
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "JSON inválido"}, status=400)
+
+    orden_ids = data.get("orden", [])
+
+    if not isinstance(orden_ids, list):
+        return JsonResponse({"success": False, "error": "Formato de datos incorrecto"}, status=400)
+
+    # Asignamos índice a cada producto
+    for index, producto_id in enumerate(orden_ids):
+        try:
+            producto_id = int(producto_id)
+        except (TypeError, ValueError):
+            continue
+
+        Producto.objects.filter(pk=producto_id).update(orden_catalogo=index)
+
+    return JsonResponse({"success": True})
+
+@require_POST
+@csrf_protect
+def actualizar_orden_categoria(request, categoria_id):
+    """
+    Actualiza el orden dentro de una categoría (campo orden_categoria).
+    """
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "JSON inválido"}, status=400)
+
+    orden_ids = data.get("orden", [])
+
+    if not isinstance(orden_ids, list):
+        return JsonResponse({"success": False, "error": "Formato de datos incorrecto"}, status=400)
+
+    for index, producto_id in enumerate(orden_ids):
+        try:
+            producto_id = int(producto_id)
+        except (TypeError, ValueError):
+            continue
+
+        Producto.objects.filter(pk=producto_id, categoria_id=categoria_id).update(
+            orden_categoria=index
+        )
+
+    return JsonResponse({"success": True})
+
+@require_POST
+@csrf_protect
+def cambiar_seccion_producto(request, producto_id):
+    """
+    Cambia la seccion_destacada de un producto.
+    """
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        seccion = data.get("seccion", "") or ""
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "JSON inválido"}, status=400)
+
+    try:
+        producto = Producto.objects.get(pk=producto_id)
+    except Producto.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Producto no encontrado"}, status=404)
+
+    producto.seccion_destacada = seccion
+    producto.save(update_fields=["seccion_destacada"])
+
+    return JsonResponse({"success": True})
+
+@require_POST
+@csrf_protect
+def toggle_destacado_producto(request, producto_id):
+    """
+    Activa/desactiva el flag es_destacado de un producto.
+    """
+    try:
+        producto = Producto.objects.get(pk=producto_id)
+    except Producto.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Producto no encontrado"}, status=404)
+
+    producto.es_destacado = not producto.es_destacado
+    producto.save(update_fields=["es_destacado"])
+
+    return JsonResponse({"success": True, "es_destacado": producto.es_destacado})
+
+@require_POST
+@csrf_protect
+def actualizar_orden_marca(request, marca_id):
+    """Actualiza el orden de productos dentro de una marca"""
+    try:
+        data = json.loads(request.body)
+        orden = data.get('orden', [])
+        
+        for index, producto_id in enumerate(orden):
+            Producto.objects.filter(id=producto_id, marca_id=marca_id).update(orden_catalogo=index)
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)

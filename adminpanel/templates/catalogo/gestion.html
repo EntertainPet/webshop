@@ -1,0 +1,490 @@
+{% extends '../base_admin.html' %}
+
+{% block header %}Gestión del Catálogo{% endblock %}
+
+{% block content %}
+<style>
+    .sortable-list {
+        min-height: 50px;
+        padding: 10px;
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+    }
+    
+    .producto-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        margin-bottom: 8px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        cursor: move;
+        transition: all 0.2s;
+    }
+    
+    .producto-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-color: #0d6efd;
+    }
+    
+    .producto-item.dragging {
+        opacity: 0.5;
+    }
+    
+    .drag-handle {
+        font-size: 20px;
+        color: #6c757d;
+        cursor: grab;
+    }
+    
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+    
+    .producto-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .producto-info {
+        flex: 1;
+    }
+    
+    .producto-nombre {
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .producto-meta {
+        font-size: 12px;
+        color: #6c757d;
+    }
+    
+    .seccion-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    
+    .seccion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+    
+    .seccion-titulo {
+        font-size: 18px;
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .badge-destacado {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-seccion {
+        background: #cfe2ff;
+        color: #084298;
+    }
+    
+    .btn-icon {
+        padding: 8px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    
+    .btn-icon:hover {
+        background: #f8f9fa;
+    }
+    
+    .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .tab {
+        padding: 12px 24px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-weight: 500;
+        color: #6c757d;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+    }
+    
+    .tab.active {
+        color: #0d6efd;
+        border-bottom-color: #0d6efd;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .select-seccion {
+        padding: 6px 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 14px;
+        background: white;
+        color: #212529;
+    }
+    
+    .empty-state {
+        text-align: center;
+        color: #6c757d;
+        padding: 32px;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+    }
+</style>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto;">
+    
+    <!-- Pestañas de navegación -->
+    <div class="tabs">
+        <button class="tab active" data-tab="destacados">&#9733; Productos Destacados</button>
+        <button class="tab" data-tab="categorias"> Por Categoría</button>
+        <button class="tab" data-tab="marcas"> Por Marca</button>
+    </div>
+    
+    <!-- TAB 1: Productos Destacados -->
+    <div class="tab-content active" id="tab-destacados">
+        <div class="seccion-card">
+            <div class="seccion-header">
+                <h2 class="seccion-titulo"> Productos Destacados (Orden General)</h2>
+                <span class="badge badge-destacado">{{ destacados.count }} productos</span>
+            </div>
+            
+            <p style="color: #6c757d; margin-bottom: 16px;">
+                Arrastra para cambiar el orden en que aparecen en la página principal.
+            </p>
+            
+            <div class="sortable-list" id="lista-destacados">
+                {% for producto in destacados %}
+                <div class="producto-item" data-id="{{ producto.id }}">
+                    <span class="drag-handle">⋮⋮</span>
+                    {% if producto.imagenes.first %}
+                    <img src="{{ producto.imagenes.first.imagen }}" alt="{{ producto.nombre }}" class="producto-img">
+                    {% else %}
+                    <div class="producto-img" style="background: #e9ecef;"></div>
+                    {% endif %}
+                    <div class="producto-info">
+                        <div class="producto-nombre">{{ producto.nombre }}</div>
+                        <div class="producto-meta">
+                            {{ producto.categoria }} • {{ producto.marca }} • €{{ producto.precio_final }}
+                        </div>
+                    </div>
+                    <button class="btn-icon destacado-btn" onclick="toggleDestacado('{{ producto.id }}')" title="Quitar de destacados"></button>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    No hay productos marcados como destacados.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- TAB 2: Por Categoría -->
+    <div class="tab-content" id="tab-categorias">
+        {% for item in categorias_con_productos %}
+        <div class="seccion-card">
+            <div class="seccion-header">
+                <h3 class="seccion-titulo"> {{ item.categoria.nombre }}</h3>
+                <span class="badge badge-seccion">{{ item.productos.count }} productos</span>
+            </div>
+            <div class="sortable-list" data-categoria="{{ item.categoria.id }}">
+                {% for producto in item.productos %}
+                <div class="producto-item" data-id="{{ producto.id }}">
+                    <span class="drag-handle">⋮⋮</span>
+                    {% if producto.imagenes.first %}
+                    <img src="{{ producto.imagenes.first.imagen }}" alt="{{ producto.nombre }}" class="producto-img">
+                    {% endif %}
+                    <div class="producto-info">
+                        <div class="producto-nombre">{{ producto.nombre }}</div>
+                        <div class="producto-meta">{{ producto.marca }} • €{{ producto.precio_final }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    No hay productos en esta categoría.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- TAB 3: Por Marca -->
+    <div class="tab-content" id="tab-marcas">
+        {% for item in marcas_con_productos %}
+        <div class="seccion-card">
+            <div class="seccion-header">
+                <h3 class="seccion-titulo"> {{ item.marca.nombre }}</h3>
+                <span class="badge badge-seccion">{{ item.productos.count }} productos</span>
+            </div>
+            <div class="sortable-list" data-marca="{{ item.marca.id }}">
+                {% for producto in item.productos %}
+                <div class="producto-item" data-id="{{ producto.id }}">
+                    <span class="drag-handle">⋮⋮</span>
+                    {% if producto.imagenes.first %}
+                    <img src="{{ producto.imagenes.first.imagen }}" alt="{{ producto.nombre }}" class="producto-img">
+                    {% endif %}
+                    <div class="producto-info">
+                        <div class="producto-nombre">{{ producto.nombre }}</div>
+                        <div class="producto-meta">{{ producto.categoria }} • €{{ producto.precio_final }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    No hay productos de esta marca.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    
+</div>
+
+<script>
+// ============================================
+// CSRF helper
+// ============================================
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie("csrftoken");
+
+// ============================================
+// SISTEMA DE TABS
+// ============================================
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        
+        tab.classList.add('active');
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+    });
+});
+
+// ============================================
+// DRAG AND DROP
+// ============================================
+let draggedItem = null;
+
+document.querySelectorAll('.sortable-list').forEach(lista => {
+    lista.querySelectorAll('.producto-item').forEach(item => {
+        item.setAttribute('draggable', 'true');
+        
+        item.addEventListener('dragstart', (e) => {
+            draggedItem = item;
+            item.classList.add('dragging');
+        });
+        
+        item.addEventListener('dragend', (e) => {
+            item.classList.remove('dragging');
+            guardarOrden(lista);
+        });
+    });
+    
+    lista.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(lista, e.clientY);
+        if (afterElement == null) {
+            lista.appendChild(draggedItem);
+        } else {
+            lista.insertBefore(draggedItem, afterElement);
+        }
+    });
+});
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.producto-item:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+// ============================================
+// GUARDAR ORDEN
+// ============================================
+function guardarOrden(lista) {
+    const items = lista.querySelectorAll('.producto-item');
+    const orden = Array.from(items).map(item => item.getAttribute('data-id'));
+    
+    let url;
+    const categoriaId = lista.getAttribute('data-categoria');
+    const marcaId = lista.getAttribute('data-marca');
+    
+    if (categoriaId) {
+        url = `/gestor/catalogo/categoria/${categoriaId}/orden/`;
+    } else if (marcaId) {
+        url = `/gestor/catalogo/marca/${marcaId}/orden/`;
+    } else {
+        url = '/gestor/catalogo/orden/';
+    }
+
+    
+    fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+        },
+        body: JSON.stringify({ orden: orden })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarNotificacion('✓ Orden actualizado correctamente', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarNotificacion('✗ Error al actualizar el orden', 'error');
+    });
+}
+
+// ============================================
+// CAMBIAR SECCIÓN DESTACADA
+// ============================================
+function cambiarSeccion(productoId, seccion) {
+    fetch(`/gestor/catalogo/producto/${productoId}/seccion/`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+        },
+        body: JSON.stringify({ seccion: seccion })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarNotificacion('✓ Sección actualizada', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarNotificacion('✗ Error al cambiar sección', 'error');
+    });
+}
+
+// ============================================
+// TOGGLE DESTACADO
+// ============================================
+function toggleDestacado(productoId) {
+    fetch(`/gestor/catalogo/producto/${productoId}/destacado/`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarNotificacion('✓ Estado actualizado', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarNotificacion('✗ Error al actualizar', 'error');
+    });
+}
+
+// ============================================
+// NOTIFICACIONES
+// ============================================
+function mostrarNotificacion(mensaje, tipo) {
+    const notif = document.createElement('div');
+    notif.textContent = mensaje;
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translate(-50%, -150%);
+        padding: 16px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        background: ${tipo === 'success' ? '#198754' : '#dc3545'};
+        animation: slideDown 0.4s ease forwards;
+    `;
+    
+    document.body.appendChild(notif);
+
+    setTimeout(() => {
+        notif.style.animation = 'slideUp 0.4s ease forwards';
+        setTimeout(() => notif.remove(), 400);
+    }, 3000);
+}
+</script>
+
+{% endblock %}

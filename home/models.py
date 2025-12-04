@@ -72,6 +72,8 @@ class Producto(models.Model):
     es_destacado = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    orden_catalogo = models.PositiveIntegerField(default=0)
+    orden_categoria = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.nombre
@@ -93,6 +95,10 @@ class Producto(models.Model):
     @property
     def precio_final(self):
         return self.precio_oferta if self.precio_oferta else self.precio
+    
+    class Meta:
+        ordering = ["orden_catalogo", "nombre"]
+
     
 
 
