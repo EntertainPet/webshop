@@ -296,8 +296,9 @@ class Command(BaseCommand):
 
             # Si hay colores, guardar el primero como valor representativo en el campo `color`
             if color_nombres:
-                prod.color = color_nombres[0]
-                prod.save()
+                for color_nombre in color_nombres:
+                    if color_nombre in colores_map:
+                        prod.colores.add(colores_map[color_nombre])
 
 
             ImagenProducto.objects.create(producto=prod, imagen=img_url, es_principal=True)
