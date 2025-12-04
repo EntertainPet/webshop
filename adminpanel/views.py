@@ -195,12 +195,19 @@ class CategoriaUpdateView(SuperuserRequiredMixin, UpdateView):
 
 class CategoriaDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Categoria
-    template_name = "categorias/categoria_confirm_delete.html"
+    template_name = 'categorias/categoria_confirm_delete.html'
     success_url = reverse_lazy("adminpanel:categoria_list")
 
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, "Categoría eliminada.")
-        return super().delete(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        categoria = self.get_object()
+
+        # Verificar si hay productos asociados
+        if categoria.productos.exists():
+            messages.error(request, "No se puede eliminar la categoría porque está asociada a uno o más productos.")
+            return redirect("adminpanel:categoria_list")
+
+        messages.success(request, "Categoría eliminada correctamente.")
+        return super().post(request, *args, **kwargs)
     
 class MarcaForm(forms.ModelForm):
     class Meta:
@@ -242,15 +249,23 @@ def marca_update(request, pk):
         return redirect("adminpanel:marca_list")
     return render(request, "marcas/form.html", {"form": form})
 
-def marca_delete(request, pk):
-    marca = get_object_or_404(Marca, pk=pk)
-    marca.delete()
-    return render(request, 'marcas/marca_confirm_delete.html')
-
 class MarcaDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Marca
     template_name = 'marcas/marca_confirm_delete.html'
-    success_url = reverse_lazy('adminpanel:marca_list')
+    success_url = reverse_lazy("adminpanel:marca_list")
+
+    def post(self, request, *args, **kwargs):
+        marca = self.get_object()
+
+        # Verificar si hay productos asociados
+        if marca.productos.exists():
+            messages.error(request, "No se puede eliminar la marca porque está asociada a uno o más productos.")
+            return redirect("adminpanel:marca_list")
+
+        messages.success(request, "Marca eliminada correctamente.")
+        return super().post(request, *args, **kwargs)
+
+
 
 class PedidoEnvioForm(forms.ModelForm):
     class Meta:
