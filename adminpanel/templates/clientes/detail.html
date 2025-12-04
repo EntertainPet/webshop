@@ -1,10 +1,10 @@
 {% extends '../base_admin.html' %}
 
-{% block title %}Editar Cliente: {{ cliente.username }}{% endblock %}
+{% block title %}Detalles Cliente: {{ cliente.username }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Editar Cliente: <span class="text-primary">{{ cliente.username }}</span></h1>
+    <h1>Detalles Cliente: <span class="text-primary">{{ cliente.username }}</span></h1>
     <a href="{% url 'adminpanel:cliente_list' %}" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-2"></i>Volver a la lista
     </a>

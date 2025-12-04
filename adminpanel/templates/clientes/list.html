@@ -43,7 +43,7 @@
                                 <td class="text-truncate" style="max-width:250px;">{{ cliente.direccion|default:"—" }}</td>
                                 <td>{{ cliente.fecha_actualizacion|date:"Y-m-d" }}</td>
                                 <td class="text-end">
-                                    <a href="{% url 'adminpanel:cliente_detail' cliente.id %}" class="btn btn-sm btn-outline-primary">Editar</a>
+                                    <a href="{% url 'adminpanel:cliente_detail' cliente.id %}" class="btn btn-sm btn-outline-primary">Ver +</a>
                                     <a href="{% url 'adminpanel:consultar_compras_cliente' cliente.id %}" class="btn btn-sm btn-outline-secondary">Ver Compras</a>
                                     <a href="{% url 'adminpanel:cliente_forzar_reset_password' cliente.id %}" class="btn btn-sm btn-outline-warning">Cambio contraseña</a>
                                 </td>
