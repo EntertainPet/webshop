@@ -1015,3 +1015,11 @@ class ForcedPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
         user.save()
         messages.success(self.request, "Tu contraseña ha sido cambiada con éxito.")
         return super().form_valid(form)
+
+class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = 'change_password.html'
+    success_url = reverse_lazy('home:catalogo') # O a donde quieras que vaya después
+
+    def form_valid(self, form):
+        messages.success(self.request, "Tu contraseña ha sido cambiada con éxito.")
+        return super().form_valid(form)
