@@ -38,9 +38,7 @@ from .models import (
 from django.conf import settings
 import stripe
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view
 from django.db.models import Q
 from django.http import JsonResponse
 from django.db.models import Count
@@ -66,10 +64,9 @@ def get_or_create_carrito(request):
         carrito, created = Carrito.objects.get_or_create(cliente=request.user)
         return carrito
     else:
-        # Carrito en sesión: {"producto_id-talla_id": cantidad}
         if 'cart' not in request.session:
             request.session['cart'] = {}
-        return None  # Indicamos que es carrito de sesión
+        return None  
 
 
 def get_cart_items_from_session(request):
@@ -114,7 +111,7 @@ def merge_session_cart_to_user(request, user):
             producto = Producto.objects.get(pk=int(producto_id))
             talla_producto = TallaProducto.objects.get(pk=int(talla_producto_id))
             
-            # Fusionar: si ya existe el item, sumar cantidades
+            
             item, created = ItemCarrito.objects.get_or_create(
                 carrito=carrito,
                 producto=producto,
@@ -127,7 +124,7 @@ def merge_session_cart_to_user(request, user):
         except (ValueError, Producto.DoesNotExist, TallaProducto.DoesNotExist):
             continue
     
-    # Limpiar sesión
+    
     request.session['cart'] = {}
     request.session.modified = True
 
@@ -175,8 +172,7 @@ def invitado_view(request):
     nuevo_cliente.set_unusable_password()
     nuevo_cliente.save()
     login(request, nuevo_cliente)
-    
-    # Fusionar carrito de sesión
+
     merge_session_cart_to_user(request, nuevo_cliente)
     
     if not request.session.get("cart_code"):
@@ -200,7 +196,7 @@ def register_view(request):
             user = form.save()
             login(request, user)
             
-            # Fusionar carrito de sesión
+            
             merge_session_cart_to_user(request, user)
             
             if not request.session.get("cart_code"):
@@ -216,7 +212,6 @@ class CustomLoginView(auth_views.LoginView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        # merge session cart into user cart after login
         try:
             merge_session_cart_to_user(self.request, self.request.user)
         except Exception:
@@ -224,10 +219,8 @@ class CustomLoginView(auth_views.LoginView):
         return response
 
     def get_success_url(self):
-        # If superuser, go to adminpanel dashboard
         if self.request.user.is_authenticated and self.request.user.is_superuser:
             return reverse('adminpanel:dashboard')
-        # Respect next parameter or default
         return super().get_success_url()
 
 
@@ -337,17 +330,16 @@ def add_to_cart(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
     talla_producto_id = request.POST.get("talla_producto_id")
     
-    # Validación de cantidad con límite máximo de seguridad
     try:
         cantidad = int(request.POST.get("cantidad", 1))
-        if cantidad <= 0 or cantidad > 99:  # Límite de seguridad
+        if cantidad <= 0 or cantidad > 99:  
             messages.error(request, "La cantidad debe estar entre 1 y 99.")
             return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
     except (ValueError, TypeError):
         messages.error(request, "Cantidad no válida.")
         return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
 
-    # Validación correcta de talla
+    
     if not talla_producto_id or talla_producto_id in ["", "None", None]:
         messages.error(request, "Debes seleccionar una talla antes de añadir el producto.")
         return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
@@ -359,18 +351,16 @@ def add_to_cart(request, pk):
         return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
 
     
-       # Helper to build stock message
     def build_stock_message(talla_producto, producto):
         if talla_producto.talla == "Única" or producto.tallas.count() <= 1:
             return f"Solo quedan {talla_producto.stock} unidades disponibles."
         return f"Solo quedan {talla_producto.stock} unidades disponibles de la talla {talla_producto.talla}."
-
-    # Validate available stock
+    
     if cantidad > talla_producto.stock:
         messages.error(request, build_stock_message(talla_producto, producto))
         return redirect(request.META.get('HTTP_REFERER', 'home:catalogo'))
     
-    # Authenticated user
+
     if request.user.is_authenticated:
         carrito, _ = Carrito.objects.get_or_create(cliente=request.user)
         item, created = ItemCarrito.objects.get_or_create(
@@ -388,7 +378,6 @@ def add_to_cart(request, pk):
             item.save()
         messages.success(request, f"{producto.nombre} añadido al carrito.")
     else:
-        # Anonymous user: session
         if 'cart' not in request.session:
             request.session['cart'] = {}
         
@@ -411,7 +400,7 @@ def update_cart_item(request, item_id):
     if request.method != "POST":
         return redirect("home:carrito")
     
-    action = request.POST.get("action")  # "increase" o "decrease"
+    action = request.POST.get("action") 
     
     if request.user.is_authenticated:
         item = get_object_or_404(ItemCarrito, pk=item_id, carrito__cliente=request.user)
@@ -431,7 +420,6 @@ def update_cart_item(request, item_id):
             else:
                 messages.warning(request, "La cantidad mínima es 1. Usa 'Eliminar' para quitar el producto.")
     else:
-        # Sesión
         key = request.POST.get("key")
         if key and 'cart' in request.session and key in request.session['cart']:
             if action == "increase":
@@ -451,7 +439,6 @@ def remove_from_cart(request, item_id):
         ItemCarrito.objects.filter(id=item_id, carrito__cliente=request.user).delete()
         messages.success(request, "Producto eliminado del carrito.")
     else:
-        # Para sesión, item_id es el "key"
         key = str(item_id)
         if 'cart' in request.session and key in request.session['cart']:
             del request.session['cart'][key]
@@ -460,8 +447,6 @@ def remove_from_cart(request, item_id):
     
     return redirect("home:carrito")
 
-
-# CARRITO DE SESIÓN
 from django.views.decorators.http import require_POST
 
 @require_POST
@@ -474,7 +459,6 @@ def carrito_update_session_item(request):
     
     if key in cart:
         if action == 'increase':
-            # Verificar stock antes de aumentar
             try:
                 producto_id, talla_producto_id = key.split('-')
                 talla = TallaProducto.objects.get(pk=int(talla_producto_id))
@@ -570,7 +554,6 @@ class CartView(TemplateView):
 
         client_email = ""
         if request.user.is_authenticated:
-            # Email solo si no es invitado
             if not getattr(request.user, 'is_anonymous_user', False):
                 client_email = request.user.email
                 
@@ -611,7 +594,6 @@ from rest_framework.test import APIRequestFactory
 def invitado_compra_view(request):
     """Crea un usuario invitado temporal y lo autentica, y procesa la compra correctamente."""
 
-    # 1. Crear usuario invitado
     nuevo_cliente = Cliente.objects.create(
         username=f"guest_{uuid.uuid4().hex[:8]}",
         email=f"guest_{uuid.uuid4().hex[:8]}@example.com",
@@ -625,10 +607,8 @@ def invitado_compra_view(request):
     nuevo_cliente.save()
     login(request, nuevo_cliente)
 
-    # 2. Fusionar carrito de sesión al usuario
     merge_session_cart_to_user(request, nuevo_cliente)
 
-    # 3. OBTENER el carrito real del usuario
     carrito = Carrito.objects.filter(cliente=nuevo_cliente).first()
 
     if not carrito:
@@ -636,7 +616,6 @@ def invitado_compra_view(request):
 
     cart_code = carrito.codigo_carrito
 
-    # 4. Enviar cart_code correcto al endpoint de Stripe
     factory = APIRequestFactory()
     stripe_request = factory.post(
         '/create_checkout_session/', 
@@ -644,20 +623,15 @@ def invitado_compra_view(request):
         format='json'
     )
 
-    # IMPORTANTE: Copiar host y esquema del request actual para que 
-    # Stripe reciba las URLs de success/cancel correctas del dominio real
     stripe_request.META['HTTP_HOST'] = request.META['HTTP_HOST']
     stripe_request.META['wsgi.url_scheme'] = request.scheme
 
-    # 5. Llamar a la vista directamente como función
     response = create_checkout_session(stripe_request)
 
     if response.status_code == 200:
-        # Al ser llamada interna, response.data mantiene el objeto Python original
-        # (El objeto Session de Stripe)
+
         checkout_session = response.data['data']
-        
-        # Accedemos a la propiedad url del objeto Stripe y redirigimos
+
         return redirect(checkout_session.url)
     else:
         return JsonResponse(response.data, status=response.status_code)
@@ -670,7 +644,7 @@ def invitado_compra_view(request):
 
 def guest_checkout_view(request):
     """Vista para que invitados ingresen email antes de pagar."""
-    # Obtener items del carrito
+
     if request.user.is_authenticated:
         carrito = Carrito.objects.filter(cliente=request.user).first()
         cart_items = carrito.carrito_items.all() if carrito else []
@@ -686,37 +660,31 @@ def guest_checkout_view(request):
     
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
-        
-        # Validación más robusta del email
+
         if not email:
             messages.error(request, "Debes ingresar un email válido.")
             return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
-        
-        # Verificar formato del email
+
         if "@" not in email or "." not in email.split("@")[-1]:
             messages.error(request, "El formato del email no es válido.")
             return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
         
-        # Verificar longitud del email
-        if len(email) > 254:  # RFC 5321 limit
+
+        if len(email) > 254:  
             messages.error(request, "El email es demasiado largo.")
             return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
         
-        # Generar código de seguimiento
+
         codigo_seguimiento = secrets.token_urlsafe(8).upper()
-        
-        # Guardar en sesión para usar en stripe checkout
+
         request.session['guest_email'] = email
         request.session['codigo_seguimiento'] = codigo_seguimiento
         request.session.modified = True
         
-        # Redirigir a proceso de pago (Stripe)
+
         return redirect("home:process_payment")
     
     return render(request, "guest_checkout.html", {"total": total, "cart_items": cart_items})
-
-import requests
-import json
 
 def process_payment_view(request):
     """Procesa el pago y redirige a Stripe."""
@@ -731,9 +699,8 @@ def process_payment_view(request):
             messages.error(request, "Debes ingresar tu email primero.")
             return redirect("home:guest_checkout")
     
-    # Aquí iría la lógica de Stripe checkout
     messages.info(request, "Redirigiendo a pasarela de pago...")
-    # Por ahora redirect temporal
+
     return redirect("home:carrito")
 
 
@@ -766,7 +733,6 @@ class OrderHistoryListView(LoginRequiredMixin, ListView):
         )
         ctx["selected_status"] = self.request.GET.get("status", "")
         ctx["q"] = self.request.GET.get("q", "")
-        # Calculate friendly display amounts (try to detect cents returned by Stripe)
         for pedido in ctx.get('pedidos', []):
             try:
                 amount = float(pedido.cantidad)
@@ -790,18 +756,15 @@ class PedidoDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         pedido = self.get_object()
-        # compute display amount -- Stripe returns cents in amount_total; try to make a readable amount
         try:
             amount = float(pedido.cantidad)
             if amount > 1000:
-                # likely cents
                 display_amount = amount / 100.0
             else:
                 display_amount = amount
         except Exception:
             display_amount = pedido.cantidad
         ctx["display_amount"] = display_amount
-        # Build items detail for the template with computed subtotals
         items_list = []
         for item in pedido.pedido_items.all():
             unit_price = float(item.producto.precio_final)
@@ -813,7 +776,6 @@ class PedidoDetailView(LoginRequiredMixin, DetailView):
                 "subtotal": subtotal,
             })
         ctx["items_list"] = items_list
-        # Total sum computed from items
         ctx["total_sum"] = sum(i.get("subtotal", 0) for i in items_list)
         return ctx
 
@@ -826,7 +788,7 @@ def create_checkout_session(request):
     email = request.data.get("email")
     carrito = Carrito.objects.get(codigo_carrito=cart_code)
 
-    iva_rate = Decimal('0.21')  # 21%
+    iva_rate = Decimal('0.21')  
     decimal_100 = Decimal('100')
 
     subtotal = sum(
@@ -852,16 +814,14 @@ def create_checkout_session(request):
                 }
                 for item in carrito.carrito_items.all()
             ]  + [
-        # ✅ Shipping
         {
             'price_data': {
                 'currency': 'eur',
                 'product_data': {'name': 'Gastos de envío'},
-                'unit_amount': 450,  # 4.50 €
+                'unit_amount': 450, 
             },
             'quantity': 1,
         },
-        # ✅ IVA
         {
             'price_data': {
                 'currency': 'eur',
@@ -903,7 +863,7 @@ def my_webhook_view(request):
             fulfill_checkout(session, cart_code)
             print("🎉 Pedido creado con éxito")
         except Exception as e:
-            print(f"❌ Error en fulfill_checkout: {e}") # DEBUG CRÍTICO
+            print(f"❌ Error en fulfill_checkout: {e}") 
 
     return HttpResponse(status=200)
 
@@ -920,7 +880,6 @@ def fulfill_checkout(session, cart_code):
         email = customer_details.get("email")
     elif session.get("customer_email"):
         email = session.get("customer_email")
-    # Fallback por seguridad (aunque no debería ocurrir en pago exitoso)
     if not email:
         print("⚠️ ALERTA: No se encontró email en la sesión de Stripe.")
         email = "no-email@found.com"
@@ -948,7 +907,6 @@ def fulfill_checkout(session, cart_code):
                 talla=item.talla_producto.talla
             )
             
-            # Descontar stock
             item.talla_producto.stock -= item.cantidad
             item.talla_producto.save()
     except Exception as e:
@@ -968,18 +926,14 @@ def success_view(request):
     pedido = None
 
     if session_id:
-        # Intentamos buscar el pedido por el ID de sesión de Stripe
         pedido = Pedido.objects.filter(stripe_checkout_id=session_id).first()
         
-        # OPCIONAL: Pequeño "retry" por si el webhook tiene un ligero retraso (race condition)
-        # Si no es crítico, puedes omitir este bloque while
         intentos = 0
         while not pedido and intentos < 3:
-            time.sleep(0.5) # Espera 500ms
+            time.sleep(0.5) 
             pedido = Pedido.objects.filter(stripe_checkout_id=session_id).first()
             intentos += 1
 
-    # Ahora tienes el objeto 'pedido' disponible en el template
     return render(request, "home/success.html", {"pedido": pedido})
 
 
@@ -990,7 +944,6 @@ def cancel_view(request):
 @login_required
 def seguimiento_pedido(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id)
-    # Verificar que el usuario es el dueño del pedido
     if pedido.cliente_email != request.user.email:
         return HttpResponse("No autorizado para ver este pedido.", status=403)
     progreso = 0
@@ -1013,10 +966,9 @@ def seguimiento_pedido_token(request, token):
 
 class ForcedPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     template_name = 'change_password_forced.html'
-    success_url = reverse_lazy('home:catalogo') # O a donde quieras que vaya después
+    success_url = reverse_lazy('home:catalogo') 
 
     def form_valid(self, form):
-        # Al cambiar la contraseña con éxito, desactivar el flag
         user = self.request.user
         user.cambio_contraseña_requerido = False
         user.save()
@@ -1025,7 +977,7 @@ class ForcedPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
 
 class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     template_name = 'change_password.html'
-    success_url = reverse_lazy('home:catalogo') # O a donde quieras que vaya después
+    success_url = reverse_lazy('home:catalogo') 
 
     def form_valid(self, form):
         messages.success(self.request, "Tu contraseña ha sido cambiada con éxito.")
