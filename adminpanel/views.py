@@ -10,10 +10,13 @@ from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from home.forms import ClienteUpdateForm
-from home.models import Cliente,Categoria, Marca, Pedido, Producto, ImagenProducto, Pedido
+from home.models import Cliente,Categoria, ItemPedido, Marca, Pedido, Producto, ImagenProducto, Pedido
 from .forms import CategoriaForm, ProductForm, ImagenFormSet
 import json
-
+from django.db.models import Sum, Count, F, DecimalField, ExpressionWrapper
+from django.utils.timezone import now
+from django.db.models.functions import TruncMonth, Coalesce
+from decimal import Decimal
 
 
 class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -495,3 +498,57 @@ def actualizar_orden_marca(request, marca_id):
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+
+class DashboardView(SuperuserRequiredMixin, TemplateView):
+    template_name = 'dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hoy = now()
+        primer_dia_mes = hoy.replace(day=1)
+
+        # -------------------------
+        # Pedidos del mes
+        # -------------------------
+        pedidos_mes_qs = Pedido.objects.filter(
+            fecha_creacion__gte=primer_dia_mes,
+            status="Paid"
+        )
+        num_pedidos_mes = pedidos_mes_qs.count()
+
+        # -------------------------
+        # Estadísticas generales (solo conteos, sin cálculos de precio)
+        # -------------------------
+        pedidos_pagados = Pedido.objects.filter(status="Paid")
+        total_pedidos = pedidos_pagados.count()
+        pedidos_pendientes = Pedido.objects.filter(status="Pending").count()
+        ingreso_promedio = Pedido.objects.filter(status="Paid").aggregate(
+            ingreso_promedio=Coalesce(
+                ExpressionWrapper(
+                    Sum(F('cantidad')) / Count('id'),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                ),
+                Decimal('0.00')
+            )
+        )['ingreso_promedio']
+
+        # -------------------------
+        # Últimos pedidos y clientes
+        # -------------------------
+        ultimos_pedidos = pedidos_pagados.order_by("-fecha_creacion")[:5]
+        ultimos_clientes = Cliente.objects.order_by("-fecha_creacion")[:5]
+
+        # -------------------------
+        # Contexto final simplificado
+        # -------------------------
+        context.update({
+            "num_pedidos_mes": num_pedidos_mes,
+            "pedidos_pendientes": pedidos_pendientes,
+            "ingreso_promedio": ingreso_promedio,
+            "ultimos_pedidos": ultimos_pedidos,
+            "ultimos_clientes": ultimos_clientes,
+            # Quitamos ventas_mes, top_producto, top_cliente, chart_data...
+        })
+
+        return context
